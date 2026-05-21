@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- HEADER (Ya existente) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@android:drawable/ic_menu_sort_by_size"
+                        app:tint="#BAE6FD" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="38dp"
+                            android:layout_height="38dp"
+                            android:src="@drawable/logozentory" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingStart="8dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:letterSpacing="0.05"
+                                android:text="ZENTORY"
+                                android:textColor="#FFFFFF"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Control de caducidad"
+                                android:textColor="#94A3B8"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="16dp"
+                        android:src="@android:drawable/ic_popup_reminder"
+                        app:tint="#FFFFFF" />
+
+                    <ImageView
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
+                        android:src="@android:drawable/ic_menu_myplaces"
+                        app:tint="#FFFFFF" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="#1E293B" />
+
+                <!-- SALUDO (Ya existente) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="¡Hola, (Usuario)! 👋"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Aquí tienes el resumen de tu minisúper"
+                    android:textColor="#94A3B8"
+                    android:textSize="13sp" />
+
+                <!-- TARJETAS DE ESTADO (Ya existentes) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="horizontal"
+                    android:weightSum="4">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="140dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="#24345F"
+                        app:cardCornerRadius="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="4dp">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@android:drawable/checkbox_on_background"
+                                app:tint="#7CFC00" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="150"
+                                android:textColor="#7CFC00"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="En buen estado"
+                                android:textAlignment="center"
+                                android:textColor="#FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Productos"
+                                android:textColor="#94A3B8"
+                                android:textSize="9sp" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="140dp"
+                        android:layout_marginHorizontal="2dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="#24345F"
+                        app:cardCornerRadius="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="4dp">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@android:drawable/ic_lock_idle_alarm"
+                                app:tint="#FFC107" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="23"
+                                android:textColor="#FFC107"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Por vencer\n(7 dias)"
+                                android:textAlignment="center"
+                                android:textColor="#FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Productos"
+                                android:textColor="#94A3B8"
+                                android:textSize="9sp" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="140dp"
+                        android:layout_marginHorizontal="2dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="#24345F"
+                        app:cardCornerRadius="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="4dp">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@android:drawable/ic_dialog_alert"
+                                app:tint="#FF3B3B" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="7"
+                                android:textColor="#FF3B3B"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Vencidos"
+                                android:textAlignment="center"
+                                android:textColor="#FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Productos"
+                                android:textColor="#94A3B8"
+                                android:textSize="9sp" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="140dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="#24345F"
+                        app:cardCornerRadius="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="4dp">
+
+                            <ImageView
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@android:drawable/ic_menu_upload"
+                                app:tint="#6F8CFF" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="180"
+                                android:textColor="#6F8CFF"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Total de productos"
+                                android:textAlignment="center"
+                                android:textColor="#FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Productos"
+                                android:textColor="#94A3B8"
+                                android:textSize="9sp" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+                <!-- ALERTA MAÑANA (Actualizada) -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    app:cardBackgroundColor="#9A4A0D"
+                    app:cardCornerRadius="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@android:drawable/ic_dialog_alert"
+                            app:tint="#FFFFFF" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="23 productos vencen mañana"
+                                android:textColor="#FFFFFF"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Revisa tu inventario y evita perdidas"
+                                android:textColor="#E0E0E0"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=">"
+                            android:textColor="#FFFFFF"
+                            android:textSize="20sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- SECCIÓN PRODUCTOS PRÓXIMOS (Con filtros) -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Productos próximos a vencer"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:text="Ver todos"
+                        android:textColor="#10B981"
+                        android:textSize="14sp" />
+                </RelativeLayout>
+
+                <!-- FILTROS -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#10B981"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Todos"
+                        android:textColor="#FFFFFF" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="#1E293B"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Por vencer"
+                        android:textColor="#FFFFFF" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="#1E293B"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:text="Vencidos"
+                        android:textColor="#FFFFFF" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#1E293B"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="8dp">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@android:drawable/ic_menu_manage"
+                            app:tint="#FFFFFF" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:text="Filtrar"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- LISTA DE PRODUCTOS (Contenedor) -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="#1E293B"
+                    app:cardCornerRadius="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <!-- Item 1 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <ImageView
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:src="@android:drawable/ic_menu_gallery" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Leche Chiricana 946ml"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Lácteos"
+                                    android:textColor="#94A3B8"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="end"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="25/05/2026"
+                                    android:textColor="#94A3B8"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Mañana"
+                                    android:textColor="#FF3B3B"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:background="#9A4A0D"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="4dp"
+                                android:text="Por vencer"
+                                android:textColor="#FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text=">"
+                                android:textColor="#94A3B8" />
+                        </LinearLayout>
+
+                        <!-- Item 2 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <ImageView
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:src="@android:drawable/ic_menu_gallery" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Coca Cola 1 litro"
+                                    android:textColor="#FFFFFF"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Bebidas"
+                                    android:textColor="#94A3B8"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="end"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="27/05/2026"
+                                    android:textColor="#94A3B8"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="En 3 dias"
+                                    android:textColor="#FFC107"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:background="#9A4A0D"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="4dp"
+                                android:text="Por vencer"
+                                android:textColor="#FFFFFF"
+                                android:textSize="10sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text=">"
+                                android:textColor="#94A3B8" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- BOTÓN VER TODOS LOS PRODUCTOS -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="#1E293B"
+                    app:cardCornerRadius="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_archive"
+                            app:tint="#10B981" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:text="Ver todos los productos"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=">"
+                            android:textColor="#FFFFFF" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- RESUMEN DE INVENTARIO -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    android:text="Resumen de inventario"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <!-- Marcador para el gráfico (Donut chart) -->
+                    <RelativeLayout
+                        android:layout_width="150dp"
+                        android:layout_height="150dp">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:drawable/ic_menu_compass" /> <!-- Placeholder -->
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+                        <!-- Leyenda -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <View
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:background="#10B981" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="En buen estado"
+                                android:textColor="#FFFFFF"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="150 (81%)"
+                                android:textColor="#94A3B8"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <View
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:background="#FFC107" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Por vencer"
+                                android:textColor="#FFFFFF"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="23 (15%)"
+                                android:textColor="#94A3B8"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <View
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
+                                android:background="#FF3B3B" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="Vencido"
+                                android:textColor="#FFFFFF"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:text="7 (4%)"
+                                android:textColor="#94A3B8"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- ESPACIO EXTRA PARA EL FAB -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp" />
+
+            </LinearLayout>
+        </ScrollView>
+
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:background="#1E293B"
+            app:itemIconTint="#10B981"
+            app:itemTextColor="#10B981"
+            app:menu="@menu/bottom_menu" />
+    </LinearLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
