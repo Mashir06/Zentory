@@ -832,6 +832,8 @@
                 </LinearLayout>
 
                 <!-- PRODUCT LIST -->
+
+                <!-- EXTRA SPACE FOR FAB -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -839,6 +841,21 @@
                     android:orientation="vertical">
 
                     <!-- Product Item 1 -->
+                    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:layout_margin="20dp"
+                        android:layout_marginBottom="90dp"
+                        android:fontFamily="@font/inter2"
+                        android:text="Agregar producto"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#10B981"
+                        app:icon="@android:drawable/ic_input_add"
+                        app:iconTint="#FFFFFF" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1014,7 +1031,6 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- EXTRA SPACE FOR FAB -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="100dp" />
@@ -1025,26 +1041,11 @@
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
+            android:layout_height="93dp"
             android:background="#1E293B"
             app:itemIconTint="#10B981"
             app:itemTextColor="#10B981"
-            app:menu="@menu/bottom_menu" />
+            app:menu="@menu/bottom_nav_menu" />
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="20dp"
-        android:layout_marginBottom="90dp"
-        android:fontFamily="@font/inter2"
-        android:text="Agregar producto"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:backgroundTint="#10B981"
-        app:icon="@android:drawable/ic_input_add"
-        app:iconTint="#FFFFFF" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -636,7 +636,7 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/ic_menu_archive"
+                            android:src="@android:drawable/ic_menu_gallery"
                             app:tint="#10B981" />
 
                         <TextView
@@ -784,14 +784,22 @@
         </ScrollView>
 
 
+        <!-- Contenedor para los fragments -->
+
+        <!-- BottomNavigationView -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation_view"
             android:layout_width="match_parent"
-            android:layout_height="65dp"
+            android:layout_height="wrap_content"
             android:background="#1E293B"
             app:itemIconTint="#10B981"
             app:itemTextColor="#10B981"
-            app:menu="@menu/bottom_menu" />
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/bottom_nav_menu" />
+
+
     </LinearLayout>
 
+    <!-- FLOATING ACTION BUTTON -->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
