@@ -54,6 +54,12 @@ fun MainScreen() {
             composable("calendar") {
                 CalendarioScreen(navController)
             }
+            composable("scan") {
+                QRScreen(navController)
+            }
+            composable("productos") {
+                ProductosScreen(navController)
+            }
             composable("settings") {
                 SettingsScreen()
             }

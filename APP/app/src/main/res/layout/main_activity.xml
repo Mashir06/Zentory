@@ -133,7 +133,7 @@
         android:background="@drawable/button_bg"
         android:backgroundTint="@null"
         android:fontFamily="@font/inter2"
-        android:paddingTop="13dp"
+        android:paddingTop="5dp"
         android:text="@string/iniciar_sesion"
         android:textAlignment="center"
         android:textAllCaps="false"

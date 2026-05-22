@@ -10,8 +10,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.LayoutInflater
+import android.widget.PopupMenu
 import com.example.zentoryapp.databinding.HomeActivityBinding
 import com.example.zentoryapp.databinding.CalendarioActivityBinding
+import com.example.zentoryapp.databinding.QrActivityBinding
+import com.example.zentoryapp.databinding.ProductosActivityBinding
+import com.example.zentoryapp.databinding.MainActivityBinding
 
 // Pantalla de Login (main_activity.xml)
 @Composable
@@ -19,7 +23,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
     AndroidView(
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
-            val binding = com.example.zentoryapp.databinding.MainActivityBinding.inflate(LayoutInflater.from(context))
+            val binding = MainActivityBinding.inflate(LayoutInflater.from(context))
             binding.btnIniciarSesion.setOnClickListener {
                 onLoginSuccess()
             }
@@ -36,22 +40,16 @@ fun HomeScreen(navController: androidx.navigation.NavController) {
         factory = { context ->
             val binding = HomeActivityBinding.inflate(LayoutInflater.from(context))
             
-            // Configurar navegación de la barra inferior en XML
+            binding.bottomNavigationView.selectedItemId = R.id.nav_home
             binding.bottomNavigationView.setOnItemSelectedListener { item ->
                 when (item.itemId) {
-                    com.example.zentoryapp.R.id.nav_home -> {
-                        // Ya estamos aquí
-                        true
-                    }
-                    com.example.zentoryapp.R.id.nav_calendario -> {
-                        navController.navigate("calendar")
-                        true
-                    }
-                    // Agrega otros casos según necesites
+                    R.id.nav_home -> true
+                    R.id.nav_calendario -> { navController.navigate("calendar"); true }
+                    R.id.nav_escanear -> { navController.navigate("scan"); true }
+                    R.id.nav_productos -> { navController.navigate("productos"); true }
                     else -> false
                 }
             }
-            
             binding.root
         }
     )
@@ -65,20 +63,88 @@ fun CalendarioScreen(navController: androidx.navigation.NavController) {
         factory = { context ->
             val binding = CalendarioActivityBinding.inflate(LayoutInflater.from(context))
             
-            binding.bottomNavigation.setOnItemSelectedListener { item ->
+            binding.bottomNavigationView.selectedItemId = R.id.nav_calendario
+            binding.bottomNavigationView.setOnItemSelectedListener { item ->
                 when (item.itemId) {
-                    com.example.zentoryapp.R.id.nav_home -> {
-                        navController.navigate("home")
-                        true
-                    }
-                    com.example.zentoryapp.R.id.nav_calendario -> {
-                        // Ya estamos aquí
-                        true
-                    }
+                    R.id.nav_home -> { navController.navigate("home"); true }
+                    R.id.nav_calendario -> true
+                    R.id.nav_escanear -> { navController.navigate("scan"); true }
+                    R.id.nav_productos -> { navController.navigate("productos"); true }
                     else -> false
                 }
             }
+            binding.root
+        }
+    )
+}
 
+// Pantalla de QR (qr_activity.xml)
+@Composable
+fun QRScreen(navController: androidx.navigation.NavController) {
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context ->
+            val binding = QrActivityBinding.inflate(LayoutInflater.from(context))
+            
+            binding.bottomNavigationView.selectedItemId = R.id.nav_escanear
+            binding.bottomNavigationView.setOnItemSelectedListener { item ->
+                when (item.itemId) {
+                    R.id.nav_home -> { navController.navigate("home"); true }
+                    R.id.nav_calendario -> { navController.navigate("calendar"); true }
+                    R.id.nav_escanear -> true
+                    R.id.nav_productos -> { navController.navigate("productos"); true }
+                    else -> false
+                }
+            }
+            binding.root
+        }
+    )
+}
+
+// Pantalla de Productos (productos_activity.xml)
+@Composable
+fun ProductosScreen(navController: androidx.navigation.NavController) {
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context ->
+            val binding = ProductosActivityBinding.inflate(LayoutInflater.from(context))
+            
+            binding.bottomNavigationView.selectedItemId = R.id.nav_productos
+            // Menú para Categoría
+            binding.btnCategoria.setOnClickListener { view ->
+                val popup = PopupMenu(context, view)
+                popup.menu.add("Lácteos")
+                popup.menu.add("Bebidas")
+                popup.menu.add("Otros")
+                popup.setOnMenuItemClickListener { menuItem ->
+                    binding.btnCategoria.text = menuItem.title
+                    true
+                }
+                popup.show()
+            }
+
+            // Menú para Marca
+            binding.btnMarca.setOnClickListener { view ->
+                val popup = PopupMenu(context, view)
+                popup.menu.add("FEDURO")
+                popup.menu.add("TOLEDANO")
+                popup.menu.add("Nestlé")
+                popup.setOnMenuItemClickListener { menuItem ->
+                    binding.btnMarca.text = menuItem.title
+                    true
+                }
+                popup.show()
+            }
+
+            binding.bottomNavigationView.setOnItemSelectedListener { item ->
+                when (item.itemId) {
+                    R.id.nav_home -> { navController.navigate("home"); true }
+                    R.id.nav_calendario -> { navController.navigate("calendar"); true }
+                    R.id.nav_escanear -> { navController.navigate("scan"); true }
+                    R.id.nav_productos -> true
+                    else -> false
+                }
+            }
             binding.root
         }
     )
