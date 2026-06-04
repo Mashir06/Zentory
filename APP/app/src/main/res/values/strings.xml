@@ -11,6 +11,8 @@
     <string name="desc_logo">Logo de Zentory</string>
     <string name="no_tienes_cuenta">¿No tienes una cuenta? </string>
     <string name="registrate_aqui">Regístrate aquí</string>
+    <string name="o_separador">O</string>
+    <string name="iniciar_con_google">Iniciar sesión con Google</string>
     <string name="inicio">Inicio</string>
 
 </resources>

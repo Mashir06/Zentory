@@ -13,8 +13,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.zentoryapp.ui.theme.ZentoryAPPTheme
 import com.example.zentoryapp.LoginScreen
+import com.example.zentoryapp.RegistroScreen
 import com.example.zentoryapp.HomeScreen
 import com.example.zentoryapp.CalendarioScreen
+import com.example.zentoryapp.QRScreen
+import com.example.zentoryapp.ProductosScreen
 import com.example.zentoryapp.SettingsScreen
 
 class MainActivity : ComponentActivity() {
@@ -42,11 +45,28 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("login") {
-                LoginScreen(onLoginSuccess = {
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true }
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate("home") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate("register")
                     }
-                })
+                )
+            }
+            composable("register") {
+                RegistroScreen(
+                    onRegisterSuccess = {
+                        navController.navigate("home") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = {
+                        navController.popBackStack()
+                    }
+                )
             }
             composable("home") {
                 HomeScreen(navController)
@@ -59,6 +79,9 @@ fun MainScreen() {
             }
             composable("productos") {
                 ProductosScreen(navController)
+            }
+            composable("profile") {
+                ProfileScreen(navController)
             }
             composable("settings") {
                 SettingsScreen()

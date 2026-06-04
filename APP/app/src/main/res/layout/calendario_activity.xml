@@ -77,9 +77,10 @@
                 android:contentDescription="Notificaciones" />
 
             <ImageView
+                android:id="@+id/btnTopProfile"
                 android:layout_width="28dp"
                 android:layout_height="28dp"
-                android:src="@android:drawable/ic_menu_myplaces"
+                android:src="@drawable/option"
                 app:tint="#FFFFFF"
                 android:contentDescription="Perfil" />
         </LinearLayout>
