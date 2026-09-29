@@ -66,3 +66,7 @@ class AddProductArgs {
   final String? qrMarca;
   final String? qrPresentacion;
 }
+
+/// Permite que pantallas como "Inicio" recarguen sus datos al volver a ellas.
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
