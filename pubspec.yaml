@@ -1,0 +1,57 @@
+name: zentory
+description: "Zentory - Control de caducidad e inventario para minisúpers."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Firebase (mismo proyecto "zentory-base" que la app Kotlin)
+  firebase_core: ^4.0.0
+  firebase_auth: ^6.0.0
+  cloud_firestore: ^6.0.0
+  google_sign_in: ^7.1.0
+
+  # Escáner de códigos de barras (reemplaza CameraX + ML Kit)
+  mobile_scanner: ^7.0.1
+  # Consulta a OpenFoodFacts (reemplaza OkHttp)
+  http: ^1.4.0
+
+  # Fotos de productos (cámara / galería)
+  image_picker: ^1.1.2
+
+  # Alertas de vencimiento (reemplaza AlarmManager + BroadcastReceiver)
+  flutter_local_notifications: ^19.4.0
+  timezone: ^0.10.1
+
+  shared_preferences: ^2.5.3
+  intl: ^0.20.2
+  url_launcher: ^6.3.1
+  path_provider: ^2.1.5
+  open_filex: ^4.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/docs/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+        - asset: assets/fonts/Inter-Italic.ttf
+          style: italic
