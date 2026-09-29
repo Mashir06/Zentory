@@ -37,20 +37,22 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <ImageView
-            android:id="@+id/btnTopProfile"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_manage"
-            app:tint="#FFFFFF"
-            android:contentDescription="Ajustes" />
+        <Button
+            android:id="@+id/btnJoinStore"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unirse a Tienda"
+            android:textColor="#10B981"
+            android:textAllCaps="false" />
+
     </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view"
-        app:layout_constraintTop_toBottomOf="@id/header">
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -69,13 +71,15 @@
                 <androidx.cardview.widget.CardView
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    app:cardCornerRadius="50dp"
-                    app:cardBackgroundColor="#1E293B">
+                    app:cardBackgroundColor="#1E293B"
+                    app:cardCornerRadius="50dp">
+
                     <ImageView
+                        android:id="@+id/perfilview"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:src="@android:drawable/ic_menu_myplaces"
                         android:padding="20dp"
+                        android:src="@android:drawable/ic_menu_myplaces"
                         app:tint="#10B981" />
                 </androidx.cardview.widget.CardView>
 
@@ -103,14 +107,15 @@
                 android:id="@+id/layoutMinisupers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:layout_marginTop="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="16dp">
+                    android:orientation="horizontal">
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -119,41 +124,23 @@
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
                         android:textStyle="bold" />
+
                     <Button
                         android:id="@+id/btnAddMinisuper"
                         style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="+ Agregar"
-                        android:textColor="#10B981"
-                        android:textAllCaps="false" />
+                        android:textAllCaps="false"
+                        android:textColor="#10B981" />
                 </LinearLayout>
 
-                <androidx.cardview.widget.CardView
+                <LinearLayout
+                    android:id="@+id/containerMinisupers"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:cardBackgroundColor="#1E293B"
-                    app:cardCornerRadius="12dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Minisuper 'La Bendición'"
-                            android:textColor="#FFFFFF"
-                            android:textStyle="bold" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Calle 50, Ciudad de Panamá"
-                            android:textColor="#94A3B8"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                    android:orientation="vertical"
+                    android:paddingTop="8dp" />
             </LinearLayout>
 
             <!-- User Management Section -->
@@ -172,66 +159,14 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <!-- Sample Worker Item 1 -->
-                <androidx.cardview.widget.CardView
+                <LinearLayout
+                    android:id="@+id/containerPersonal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    app:cardBackgroundColor="#1E293B"
-                    app:cardCornerRadius="12dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:padding="12dp">
-                        <ImageView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:src="@android:drawable/ic_menu_myplaces"
-                            android:background="#334155"
-                            android:padding="8dp" />
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Carlos Ruiz"
-                                android:textColor="#FFFFFF"
-                                android:textStyle="bold" />
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Trabajador - Inventario"
-                                android:textColor="#94A3B8"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Editar"
-                            android:textColor="#10B981"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                    android:orientation="vertical" />
             </LinearLayout>
 
             <!-- Logout Button -->
-            <Button
-                android:id="@+id/btnLogout"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="32dp"
-                android:text="Cerrar Sesión"
-                android:textColor="#FF3B3B"
-                android:textAllCaps="false"
-                app:strokeColor="#FF3B3B"
-                app:cornerRadius="12dp" />
 
             <View
                 android:layout_width="match_parent"
@@ -239,16 +174,5 @@
 
         </LinearLayout>
     </ScrollView>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#1E293B"
-        app:itemIconTint="@color/white"
-        app:itemTextColor="@color/white"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

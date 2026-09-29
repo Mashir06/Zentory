@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_gradient">
@@ -11,17 +12,13 @@
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:rotation="180"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="#FFFFFF" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -63,26 +60,14 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="16dp"
-            android:src="@android:drawable/ic_popup_reminder"
-            app:tint="#FFFFFF" />
-
-        <ImageView
-            android:id="@+id/btnTopProfile"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/option"
-            app:tint="#FFFFFF"
-            android:contentDescription="Perfil" />
     </LinearLayout>
 
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header">
 
         <LinearLayout
@@ -129,64 +114,64 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <Button
-                    style="@style/Widget.MaterialComponents.Button.Icon"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/linterna"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:backgroundTint="#1E293B"
+                    android:fontFamily="@font/inter2"
                     android:text="Linterna"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:backgroundTint="#1E293B"
                     app:icon="@android:drawable/ic_lock_power_off"
-                    app:iconTint="#FFFFFF" />
+                    app:iconTint="#FFFFFF"
+                    app:cornerRadius="12dp"
+                    app:iconPadding="8dp"
+                    android:minHeight="48dp" />
             </LinearLayout>
 
             <!-- Scanner View Placeholder -->
-            <androidx.cardview.widget.CardView
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="350dp"
-                android:layout_marginTop="20dp"
-                app:cardBackgroundColor="#000000"
-                app:cardCornerRadius="20dp">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
 
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    app:cardBackgroundColor="#000000"
+                    app:cardCornerRadius="20dp"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
 
-                    <ImageView
+                    <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:alpha="0.3"
-                        android:scaleType="centerCrop"
-                        android:src="@android:drawable/ic_menu_gallery" />
+                        android:layout_height="match_parent">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="top|center_horizontal"
-                        android:layout_marginTop="16dp"
-                        android:background="#80000000"
-                        android:paddingHorizontal="16dp"
-                        android:paddingVertical="8dp"
-                        android:text="Coloca el código de barras dentro del marco"
-                        android:textColor="#FFFFFF"
-                        android:textSize="12sp" />
+                        <androidx.camera.view.PreviewView
+                            android:id="@+id/viewFinder"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
 
-                    <!-- Frame Overlay -->
-                    <View
-                        android:layout_width="250dp"
-                        android:layout_height="200dp"
-                        android:layout_gravity="center"
-                        android:background="@android:drawable/dialog_holo_light_frame" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top|center_horizontal"
+                            android:layout_marginTop="16dp"
+                            android:background="#80000000"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="8dp"
+                            android:text="Coloca el código de barras dentro del marco"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp" />
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="2dp"
-                        android:layout_gravity="center"
-                        android:background="#10B981" />
-
-                </FrameLayout>
-            </androidx.cardview.widget.CardView>
+                    </FrameLayout>
+                </androidx.cardview.widget.CardView>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Instructions -->
             <LinearLayout
@@ -247,8 +232,8 @@
                             android:layout_height="40dp"
                             android:background="@drawable/edittext_bg"
                             android:padding="8dp"
-                            android:src="@android:drawable/ic_menu_day"
-                            app:tint="#FFFFFF" />
+                            android:src="@drawable/luz"
+                            app:tint="#94A3B8" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -288,56 +273,21 @@
             </LinearLayout>
 
             <!-- Auto Scan Toggle -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="#1E293B"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="16dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Escaneo automático"
-                        android:textColor="#FFFFFF"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="El código se detectará automáticamente."
-                        android:textColor="#94A3B8"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:thumbTint="#10B981"
-                    android:trackTint="#334155" />
-            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_view"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#1E293B"
         app:itemIconTint="#FFFFFF"
         app:itemTextColor="#FFFFFF"
         app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -20,9 +20,4 @@
         android:icon="@android:drawable/ic_menu_month"
         android:title="Calendario" />
 
-    <item
-        android:id="@+id/nav_perfil"
-        android:icon="@android:drawable/ic_menu_myplaces"
-        android:title="Perfil" />
-
 </menu>
