@@ -52,6 +52,7 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
   Timer? _debounce;
 
   bool get _isEditing => widget.args.productId != null;
+  bool get _isNewLot => !_isEditing && widget.args.lotOfProductId != null;
 
   @override
   void initState() {
@@ -102,6 +103,17 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
           _fecha = DateUtilsZ.parse(data['fechaVencimiento'] as String?);
           _setImage(data['imagen'] as String?);
         }
+      } else if (widget.args.lotOfProductId != null) {
+        // Nuevo lote: mismos datos del producto, sin fecha ni cantidad.
+        final data =
+            await _repo.fetchProductData(storeId, widget.args.lotOfProductId!);
+        if (data != null) {
+          _nombre.text = (data['nombre'] ?? '').toString();
+          _categoria = data['categoria'] as String?;
+          _marca.text = (data['marca'] ?? '').toString();
+          _presentacion.text = (data['presentacion'] ?? '').toString();
+          _setImage(data['imagen'] as String?);
+        }
       }
 
       final catalog = await _repo.fetchCatalog(storeId);
@@ -127,7 +139,7 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
 
   /// Al escribir el nombre, busca el producto en el catálogo y autocompleta.
   void _onNameChanged(String value) {
-    if (_isEditing) return;
+    if (_isEditing || _isNewLot) return;
     _debounce?.cancel();
     final nombre = value.trim();
     if (nombre.length <= 2 || _storeId == null) return;
@@ -345,7 +357,9 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                _isEditing ? Icons.edit_outlined : Icons.add_box_outlined,
+                _isEditing
+                    ? Icons.edit_outlined
+                    : (_isNewLot ? Icons.layers_outlined : Icons.add_box_outlined),
                 color: AppColors.primary,
               ),
             ),
@@ -355,7 +369,9 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _isEditing ? 'Editar producto' : 'Agregar producto',
+                    _isEditing
+                        ? 'Editar producto'
+                        : (_isNewLot ? 'Agregar lote' : 'Agregar producto'),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -365,7 +381,10 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
                   Text(
                     _isEditing
                         ? 'Actualiza la información del producto'
-                        : 'Completa la información del nuevo producto',
+                        : (_isNewLot
+                            ? 'Indica la fecha de vencimiento y la cantidad '
+                                'del nuevo lote'
+                            : 'Completa la información del nuevo producto'),
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 13,
@@ -433,14 +452,22 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
               child: OutlinedButton(
                 onPressed:
                     _saving ? null : () => Navigator.of(context).maybePop(),
-                child: const Text('Cancelar'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                child: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('Cancelar', maxLines: 1, softWrap: false),
+                ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               flex: 2,
               child: LoadingButton(
-                label: _isEditing ? 'Actualizar producto' : 'Guardar producto',
+                label: _isEditing
+                    ? 'Actualizar producto'
+                    : (_isNewLot ? 'Guardar lote' : 'Guardar producto'),
                 loading: _saving,
                 onPressed: _save,
               ),

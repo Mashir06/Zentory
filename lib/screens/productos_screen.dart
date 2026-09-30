@@ -177,6 +177,15 @@ class _ProductosScreenState extends State<ProductosScreen> {
     }
   }
 
+  /// Abre el registro con los datos del producto para crear un lote nuevo.
+  Future<void> _addLot(ProductGroup g) async {
+    await Navigator.of(context).pushNamed(
+      Routes.addProduct,
+      arguments: AddProductArgs(lotOfProductId: g.main.id),
+    );
+    _load();
+  }
+
   /// "Editar producto": si hay un solo lote lo abre directo; si hay varios,
   /// pregunta cuál editar (cada lote es un registro independiente).
   Future<void> _editGroup(ProductGroup g) async {
@@ -438,6 +447,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             labels: _labels,
                             onOpenLot: (i) => _openLot(g, i),
                             onEdit: () => _editGroup(g),
+                            onAddLot: () => _addLot(g),
                           ),
                     ],
                   ),
@@ -791,6 +801,7 @@ class _ProductGroupCard extends StatelessWidget {
     required this.labels,
     required this.onOpenLot,
     required this.onEdit,
+    required this.onAddLot,
   });
 
   final ProductGroup group;
@@ -799,6 +810,7 @@ class _ProductGroupCard extends StatelessWidget {
   final VoidCallback onToggle;
   final ValueChanged<int> onOpenLot;
   final VoidCallback onEdit;
+  final VoidCallback onAddLot;
 
   @override
   Widget build(BuildContext context) {
@@ -930,22 +942,51 @@ class _ProductGroupCard extends StatelessWidget {
             const Divider(color: AppColors.border, height: 1),
           ],
           const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              onPressed: onEdit,
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: const Text('Editar producto'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(0, 44),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                textStyle: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onAddLot,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Agregar lote', maxLines: 1, softWrap: false),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    textStyle: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child:
+                        Text('Editar producto', maxLines: 1, softWrap: false),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    textStyle: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

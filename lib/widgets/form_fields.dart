@@ -96,7 +96,10 @@ class LoadingButton extends StatelessWidget {
                 color: Colors.white,
               ),
             )
-          : Text(label),
+          : FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label, maxLines: 1, softWrap: false),
+            ),
     );
   }
 }

@@ -98,7 +98,7 @@ class LotTableRow extends StatelessWidget {
             Expanded(
               flex: 3,
               child: _cell(
-                'F. vencimiento',
+                'Vence',
                 Text(
                   lot.expiryDate == null ? 'Sin fecha' : lot.fechaVencimiento,
                   style: _value,
@@ -106,9 +106,10 @@ class LotTableRow extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 3,
               child: _cell('Cantidad', Text(lot.cantidad, style: _value)),
             ),
+            const SizedBox(width: 4),
             Expanded(
               flex: 3,
               child: _cell(

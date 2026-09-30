@@ -58,9 +58,15 @@ class AddProductArgs {
     this.qrCategoria,
     this.qrMarca,
     this.qrPresentacion,
+    this.lotOfProductId,
   });
 
   final String? productId;
+
+  /// Crear un **lote nuevo** del mismo producto que este registro: se copian
+  /// nombre, categoría, marca, presentación y foto; la fecha y la cantidad
+  /// quedan vacías para el nuevo lote.
+  final String? lotOfProductId;
   final String? qrNombre;
   final String? qrCategoria;
   final String? qrMarca;
