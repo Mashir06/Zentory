@@ -1,0 +1,87 @@
+# Compila el APK de Zentory en cada cambio a "main" y lo publica en Releases.
+# Descarga directa de la última versión:
+#   https://github.com/Mashir06/Zentory/releases/latest/download/zentory.apk
+name: Compilar APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      - name: Análisis de código
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        continue-on-error: true
+
+      - name: Pruebas
+        run: flutter test
+        continue-on-error: true
+
+      - name: Configurar firma (si hay secretos)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+            printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=upload-keystore.jks\n' \
+              "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > android/key.properties
+            echo "Firma: llave del repositorio."
+          else
+            echo "::warning::Sin secretos de firma: el APK se firma con una llave de depuración temporal. Para instalar una versión nueva tendrás que desinstalar la anterior."
+          fi
+
+      - name: Compilar APK
+        run: flutter build apk --release --build-number=${{ github.run_number }}
+
+      - name: Renombrar APK
+        run: cp build/app/outputs/flutter-apk/app-release.apk zentory.apk
+
+      - name: Guardar APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: zentory-apk
+          path: zentory.apk
+
+      - name: Publicar en Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Zentory (compilación ${{ github.run_number }})
+          body: |
+            APK compilado automáticamente desde el commit ${{ github.sha }}.
+
+            Descarga: **zentory.apk** (abajo, en "Assets").
+          files: zentory.apk
+          make_latest: true

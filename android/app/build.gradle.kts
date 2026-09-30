@@ -1,3 +1,15 @@
+import java.util.Properties
+
+// Firma de release: si existe android/key.properties (lo crea GitHub Actions a
+// partir de los secretos del repositorio), se usa esa llave fija para que las
+// actualizaciones se instalen encima sin desinstalar. Si no existe, se firma
+// con la llave de depuración.
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+}
+
 plugins {
     id("com.android.application")
     // Firebase: procesa google-services.json (mismo proyecto "zentory-base" de la app Kotlin)
@@ -29,10 +41,24 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Agrega tu propia configuración de firma para release.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
