@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../firebase_options.dart';
+import 'notification_service.dart';
 import 'zentory_repository.dart';
 
 /// Autenticación con Firebase (correo/contraseña y Google).
@@ -74,6 +75,8 @@ class AuthService {
       _auth.sendPasswordResetEmail(email: correo);
 
   Future<void> signOut() async {
+    // Las alertas pertenecen a la tienda de este usuario.
+    await NotificationService.instance.cancelExpiryAlerts();
     await _auth.signOut();
     try {
       await _initGoogle();

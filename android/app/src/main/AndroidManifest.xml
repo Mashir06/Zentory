@@ -9,6 +9,10 @@
     <!-- Para reprogramar las alertas de vencimiento tras reiniciar el teléfono -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Permite pedir que el sistema no restrinja la batería de Zentory
+         (imprescindible en ROMs chinas para que lleguen las alertas) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application

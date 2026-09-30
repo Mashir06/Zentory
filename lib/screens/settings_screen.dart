@@ -4,8 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../routes.dart';
 import '../services/auth_service.dart';
 import '../services/notification_service.dart';
+import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../widgets/notification_setup_sheet.dart';
 
 /// Tarjeta de opción con ícono, título, subtítulo y elemento a la derecha.
 class SettingsOption extends StatelessWidget {
@@ -118,7 +120,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _notifications = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(NotificationService.prefNotificationsEnabled, value);
-    if (value) await NotificationService.instance.requestPermission();
+    if (value) {
+      final granted = await NotificationService.instance.requestPermission();
+      final storeId = await ZentoryRepository.instance.resolveActiveStoreId();
+      await NotificationService.instance.syncStore(storeId);
+      if (!granted && mounted) await showNotificationSetupSheet(context);
+    } else {
+      await NotificationService.instance.cancelExpiryAlerts();
+    }
   }
 
   Future<void> _logout() async {
@@ -169,6 +178,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: _notifications,
                         onChanged: _setNotifications,
                       ),
+                    ),
+                    SettingsOption(
+                      icon: Icons.tune,
+                      title: 'Configurar notificaciones',
+                      subtitle: 'Permisos, batería y prueba de alertas',
+                      onTap: () => showNotificationSetupSheet(context),
                     ),
                     SettingsOption(
                       icon: Icons.lock_outline,

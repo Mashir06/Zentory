@@ -75,6 +75,17 @@ android/                     Proyecto Android del runner de Flutter
 test/                        Pruebas unitarias
 ```
 
+## Notificaciones en teléfonos con ROM china
+
+Las alertas de vencimiento son notificaciones locales programadas (3 días antes, 1 día antes y el día del vencimiento, a las 9:00 a. m.). Sistemas como **ColorOS (OPPO/realme/OnePlus), MIUI/HyperOS (Xiaomi), OriginOS (vivo) o EMUI/HarmonyOS (Huawei/Honor)**, sobre todo en sus versiones para China, cierran las apps en segundo plano y borran sus alarmas. Para que las alertas lleguen igual:
+
+- La app **reprograma todas las alertas** de la tienda cada vez que se abre, se vuelve al Inicio o se guarda o elimina un producto.
+- Cada lote tiene sus propias alertas (identificadas por el ID del registro).
+- En **Ajustes → Configurar notificaciones** hay una guía que revisa y abre directamente: permiso de notificaciones, alarmas exactas, restricción de batería e inicio automático/segundo plano del fabricante, además de una **prueba programada a 1 minuto** para comprobarlo con la app cerrada.
+- La guía se abre sola una vez en los teléfonos de esos fabricantes.
+
+En OPPO (ColorOS): Ajustes → Apps → Gestión de apps → Zentory → Uso de batería → activar **Permitir actividad en segundo plano** y **Permitir inicio automático**; y fijar Zentory en Recientes con el candado.
+
 ## Pruebas
 
 ```bash

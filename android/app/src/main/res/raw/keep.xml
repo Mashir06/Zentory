@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Evita que el shrinker elimine recursos usados solo por nombre desde Dart
-     (sonido e icono de las notificaciones). -->
+     (sonido e íconos de las notificaciones). -->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@raw/notification_sound,@drawable/logozentory" />
+    tools:keep="@raw/notification_sound,@drawable/logozentory,@drawable/ic_notification" />

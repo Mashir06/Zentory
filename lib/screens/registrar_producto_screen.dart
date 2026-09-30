@@ -14,6 +14,7 @@ import '../utils/date_utils.dart';
 import '../utils/image_utils.dart';
 import '../widgets/common.dart';
 import '../widgets/form_fields.dart';
+import '../widgets/notification_setup_sheet.dart';
 import '../widgets/product_card.dart';
 
 /// Registrar o editar un producto (equivale a RegistrarProductoScreen).
@@ -109,6 +110,9 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
         _catalog = catalog;
         _loading = false;
       });
+      // En teléfonos que bloquean el segundo plano (p. ej. ROM chinas),
+      // guía una sola vez para dejar listas las alertas.
+      if (mounted) maybePromptNotificationSetup(context);
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -278,8 +282,8 @@ class _RegistrarProductoScreenState extends State<RegistrarProductoScreen> {
         fechaVencimiento: fechaStr,
         imagenBase64: _imagenBase64,
       );
-      await NotificationService.instance
-          .scheduleProductNotifications(nombre, fechaStr);
+      // Reprograma las alertas de todos los lotes de la tienda
+      await NotificationService.instance.syncStore(storeId);
       if (!mounted) return;
       if (_isEditing) showMessage(context, 'Actualizado');
       Navigator.of(context).pushNamedAndRemoveUntil(

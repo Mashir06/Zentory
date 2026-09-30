@@ -254,7 +254,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
     if (!ok) return;
     try {
       await _repo.deleteProduct(storeId, p.id);
-      await NotificationService.instance.cancelProductNotifications(p.nombre);
+      // Reprograma las alertas: se quitan las de este lote y se
+      // conservan las de los demás lotes del mismo producto.
+      await NotificationService.instance.syncStore(storeId);
       if (mounted) showMessage(context, 'Eliminado');
       _load();
     } catch (e) {
