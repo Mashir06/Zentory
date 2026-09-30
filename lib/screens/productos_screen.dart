@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../models/categories.dart';
 import '../models/product.dart';
+import '../models/product_lots.dart';
 import '../routes.dart';
 import '../services/notification_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
-import '../utils/date_utils.dart';
 import '../widgets/common.dart';
+import '../widgets/lot_widgets.dart';
 import '../widgets/product_card.dart';
 
 /// Opciones de ordenamiento del listado.
@@ -22,21 +23,6 @@ enum _SortOption {
 
 const _statusOptions = ['Todos', 'Buen estado', 'Por vencer', 'Vencido'];
 
-/// Prioridad de un estado para decidir el estado general de un producto
-/// (el lote "peor" manda): vencido > por vencer > sin fecha > buen estado.
-int _statusRank(ProductStatus s) {
-  switch (s) {
-    case ProductStatus.expired:
-      return 3;
-    case ProductStatus.expiring:
-      return 2;
-    case ProductStatus.noDate:
-      return 1;
-    case ProductStatus.good:
-      return 0;
-  }
-}
-
 Color _statusColorFor(String label) {
   switch (label) {
     case 'Buen estado':
@@ -47,76 +33,6 @@ Color _statusColorFor(String label) {
       return ProductStatus.expired.color;
     default:
       return AppColors.primary;
-  }
-}
-
-/// Cantidad numérica de un registro (el campo se guarda como texto).
-num _qty(Product p) {
-  final raw = p.cantidad.trim().replaceAll(',', '.');
-  return int.tryParse(raw) ?? double.tryParse(raw) ?? 0;
-}
-
-String _formatQty(num value) => value == value.roundToDouble()
-    ? value.toInt().toString()
-    : value.toStringAsFixed(1);
-
-/// Texto relativo de vencimiento: "Vence en 3 días", "Venció hace 2 días"...
-String _relativeExpiry(DateTime? expiry) {
-  if (expiry == null) return 'Sin fecha de vencimiento';
-  final d = DateUtilsZ.daysFromToday(expiry);
-  if (d < 0) return d == -1 ? 'Venció ayer' : 'Venció hace ${-d} días';
-  if (d == 0) return 'Vence hoy';
-  if (d == 1) return 'Vence mañana';
-  return 'Vence en $d días';
-}
-
-/// Número de lote para mostrar: L001, L002... (según orden de vencimiento).
-String _lotLabel(int index) => 'L${index.toString().padLeft(3, '0')}';
-
-/// Código del registro en Firestore, para distinguir lotes con precisión.
-String _lotCode(Product p) {
-  final id = p.id;
-  return '#${(id.length > 6 ? id.substring(0, 6) : id).toUpperCase()}';
-}
-
-/// Un producto con todos sus lotes (registros con el mismo nombre).
-class _ProductGroup {
-  _ProductGroup(this.key, List<Product> lots)
-      : lots = _sortLots(lots),
-        status = lots
-            .map((l) => l.status)
-            .reduce((a, b) => _statusRank(a) >= _statusRank(b) ? a : b),
-        totalQty = lots.fold<num>(0, (sum, l) => sum + _qty(l));
-
-  final String key;
-  final List<Product> lots;
-  final ProductStatus status;
-  final num totalQty;
-
-  Product get main => lots.first;
-  String get nombre => main.nombre;
-
-  /// Primer lote con foto, para la miniatura del producto.
-  Product get withImage =>
-      lots.firstWhere((l) => l.imageBytes != null, orElse: () => main);
-
-  /// Fecha de vencimiento más próxima entre los lotes.
-  DateTime? get nextExpiry => main.expiryDate;
-
-  String get categoria => lots.map((l) => l.categoria).toSet().join(', ');
-
-  /// Lotes ordenados por vencimiento (los que vencen antes primero).
-  static List<Product> _sortLots(List<Product> lots) {
-    final sorted = [...lots];
-    sorted.sort((a, b) {
-      final ea = a.expiryDate;
-      final eb = b.expiryDate;
-      if (ea == null && eb == null) return 0;
-      if (ea == null) return 1;
-      if (eb == null) return -1;
-      return ea.compareTo(eb);
-    });
-    return sorted;
   }
 }
 
@@ -137,6 +53,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
   String _category = 'Todas';
   String _status = 'Todos';
   _SortOption _sort = _SortOption.expiry;
+
+  /// Número de lote (L001...) de cada registro, sobre el inventario completo
+  /// para que no cambie al filtrar (igual que en el Calendario).
+  Map<String, String> _labels = const {};
 
   /// Productos expandidos (se conserva al recargar tras editar o eliminar).
   final Set<String> _expanded = {};
@@ -163,6 +83,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       setState(() {
         _storeId = storeId;
         _all = products;
+        _labels = lotLabels(products);
         _loading = false;
       });
     } catch (e) {
@@ -176,7 +97,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   // Filtros, agrupación y orden (solo presentación; no cambia los datos)
   // ---------------------------------------------------------------------------
 
-  List<_ProductGroup> get _groups {
+  List<ProductGroup> get _groups {
     final query = _search.text.trim().toLowerCase();
     final lots = _all.where((p) {
       final matchesCat = _category == 'Todas' || p.categoria == _category;
@@ -185,17 +106,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
       return matchesCat && matchesStat && matchesSearch;
     });
 
-    final map = <String, List<Product>>{};
-    for (final p in lots) {
-      final name = p.nombre.trim().toLowerCase();
-      final key = name.isEmpty ? 'id:${p.id}' : name;
-      map.putIfAbsent(key, () => []).add(p);
-    }
-    final groups = [
-      for (final e in map.entries) _ProductGroup(e.key, e.value),
-    ];
+    final groups = groupProducts(lots);
 
-    int byName(_ProductGroup a, _ProductGroup b) =>
+    int byName(ProductGroup a, ProductGroup b) =>
         a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase());
 
     switch (_sort) {
@@ -247,7 +160,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       context,
       title: 'Eliminar producto',
       message: isLot
-          ? '¿Deseas eliminar el lote ${_lotCode(p)} de "${p.nombre}" '
+          ? '¿Deseas eliminar el lote ${lotCode(p)} de "${p.nombre}" '
               '(vence ${p.fechaVencimiento})?'
           : '¿Deseas eliminar "${p.nombre}" del inventario?',
     );
@@ -266,7 +179,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   /// "Editar producto": si hay un solo lote lo abre directo; si hay varios,
   /// pregunta cuál editar (cada lote es un registro independiente).
-  Future<void> _editGroup(_ProductGroup g) async {
+  Future<void> _editGroup(ProductGroup g) async {
     if (g.lots.length == 1) return _edit(g.main);
     final chosen = await showModalBottomSheet<Product>(
       context: context,
@@ -295,14 +208,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
                 leading: const Icon(Icons.layers_outlined,
                     color: AppColors.textSecondary),
                 title: Text(
-                  '${_lotLabel(i + 1)} · Vence ${g.lots[i].fechaVencimiento}',
+                  '${_labels[g.lots[i].id] ?? lotLabel(i + 1)} · Vence ${g.lots[i].fechaVencimiento}',
                   style: const TextStyle(color: Colors.white),
                 ),
                 subtitle: Text(
                   '${g.lots[i].cantidad} unidades',
                   style: const TextStyle(color: AppColors.textSecondary),
                 ),
-                trailing: _StatusPill(g.lots[i].status, small: true),
+                trailing: StatusPill(g.lots[i].status, small: true),
                 onTap: () => Navigator.pop(ctx, g.lots[i]),
               ),
             const SizedBox(height: 8),
@@ -314,92 +227,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   /// Detalle de un lote con sus acciones (editar / eliminar).
-  Future<void> _openLot(_ProductGroup g, int index) async {
+  Future<void> _openLot(ProductGroup g, int index) async {
     final lot = g.lots[index];
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Lote ${_lotLabel(index + 1)}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          '${lot.nombre} · ${_lotCode(lot)}',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _StatusPill(lot.status),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _SheetRow('Fecha de vencimiento', lot.fechaVencimiento),
-              _SheetRow('', _relativeExpiry(lot.expiryDate),
-                  valueColor: lot.status.color),
-              _SheetRow('Cantidad', '${lot.cantidad} unidades'),
-              _SheetRow('Marca', lot.marca),
-              _SheetRow('Presentación', lot.presentacion),
-              _SheetRow('Fecha de registro', lot.fechaRegistro),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => Navigator.pop(ctx, 'delete'),
-                      icon: const Icon(Icons.delete_outline, size: 18),
-                      label: const Text('Eliminar'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.danger,
-                        side: const BorderSide(color: AppColors.danger),
-                        minimumSize: const Size.fromHeight(48),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(ctx, 'edit'),
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('Editar lote'),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+    final action = await showLotDetailSheet(
+      context,
+      lot: lot,
+      label: _labels[lot.id] ?? lotLabel(index + 1),
     );
-    if (action == 'edit') {
+    if (action == LotAction.edit) {
       await _edit(lot);
-    } else if (action == 'delete') {
+    } else if (action == LotAction.delete) {
       await _delete(lot, isLot: g.lots.length > 1);
     }
   }
@@ -598,6 +435,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 _expanded.add(g.key);
                               }
                             }),
+                            labels: _labels,
                             onOpenLot: (i) => _openLot(g, i),
                             onEdit: () => _editGroup(g),
                           ),
@@ -943,104 +781,6 @@ class _RemovableChip extends StatelessWidget {
   }
 }
 
-/// Píldora de estado con los colores de Zentory.
-class _StatusPill extends StatelessWidget {
-  const _StatusPill(this.status, {this.small = false});
-  final ProductStatus status;
-  final bool small;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: small ? 6 : 8,
-        vertical: small ? 3 : 4,
-      ),
-      decoration: BoxDecoration(
-        color: status.color,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        status.label,
-        maxLines: 1,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: small ? 10 : 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-/// Etiqueta de categoría con ícono.
-class _CategoryTag extends StatelessWidget {
-  const _CategoryTag(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.sell_outlined,
-              size: 12, color: AppColors.textSecondary),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.textSoft, fontSize: 11),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Fila etiqueta/valor de la hoja de detalle de un lote.
-class _SheetRow extends StatelessWidget {
-  const _SheetRow(this.label, this.value, {this.valueColor = Colors.white});
-  final String label;
-  final String value;
-  final Color valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style:
-                  const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: valueColor,
-              fontSize: 13,
-              fontWeight:
-                  label.isEmpty ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Tarjeta expandible de un producto con la tabla de sus lotes.
 class _ProductGroupCard extends StatelessWidget {
   const _ProductGroupCard({
@@ -1048,11 +788,13 @@ class _ProductGroupCard extends StatelessWidget {
     required this.group,
     required this.expanded,
     required this.onToggle,
+    required this.labels,
     required this.onOpenLot,
     required this.onEdit,
   });
 
-  final _ProductGroup group;
+  final ProductGroup group;
+  final Map<String, String> labels;
   final bool expanded;
   final VoidCallback onToggle;
   final ValueChanged<int> onOpenLot;
@@ -1092,7 +834,7 @@ class _ProductGroupCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          _CategoryTag(g.categoria),
+                          CategoryTag(g.categoria),
                         ],
                       ),
                     ),
@@ -1100,7 +842,7 @@ class _ProductGroupCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        _StatusPill(g.status),
+                        StatusPill(g.status),
                         const SizedBox(height: 8),
                         Text.rich(
                           TextSpan(
@@ -1111,7 +853,7 @@ class _ProductGroupCard extends StatelessWidget {
                             ),
                             children: [
                               TextSpan(
-                                text: '${_formatQty(g.totalQty)} un.',
+                                text: '${formatQty(g.totalQty)} un.',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -1180,8 +922,8 @@ class _ProductGroupCard extends StatelessWidget {
           const SizedBox(height: 8),
           const Divider(color: AppColors.border, height: 1),
           for (var i = 0; i < g.lots.length; i++) ...[
-            _LotRow(
-              index: i + 1,
+            LotTableRow(
+              label: labels[g.lots[i].id] ?? lotLabel(i + 1),
               lot: g.lots[i],
               onTap: () => onOpenLot(i),
             ),
@@ -1207,83 +949,6 @@ class _ProductGroupCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Fila de la tabla de lotes: Lote | F. vencimiento | Cantidad | Estado.
-class _LotRow extends StatelessWidget {
-  const _LotRow({
-    required this.index,
-    required this.lot,
-    required this.onTap,
-  });
-
-  final int index;
-  final Product lot;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: _cell('Lote', Text(_lotLabel(index), style: _value)),
-            ),
-            Expanded(
-              flex: 3,
-              child: _cell(
-                'F. vencimiento',
-                Text(
-                  lot.expiryDate == null ? 'Sin fecha' : lot.fechaVencimiento,
-                  style: _value,
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: _cell('Cantidad', Text(lot.cantidad, style: _value)),
-            ),
-            Expanded(
-              flex: 3,
-              child: _cell(
-                'Estado',
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: _StatusPill(lot.status, small: true),
-                ),
-              ),
-            ),
-            const Icon(Icons.chevron_right,
-                color: AppColors.textSecondary, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  static const _value = TextStyle(color: Colors.white, fontSize: 13);
-
-  Widget _cell(String label, Widget value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-        ),
-        const SizedBox(height: 4),
-        value,
-      ],
     );
   }
 }

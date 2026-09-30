@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../models/product.dart';
+import '../models/product_lots.dart';
 import '../routes.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
 import '../widgets/common.dart';
+import '../widgets/lot_widgets.dart';
 import '../widgets/product_card.dart';
 
 enum _ListMode { month, day, all }
@@ -24,6 +26,9 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
   DateTime _selected = DateUtilsZ.today();
   _ListMode _mode = _ListMode.month;
   List<Product> _products = [];
+
+  /// Número de lote (L001...) de cada registro, igual que en Productos.
+  Map<String, String> _labels = const {};
   bool _loading = true;
 
   static const _weekDays = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
@@ -42,6 +47,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
       if (!mounted) return;
       setState(() {
         _products = products;
+        _labels = lotLabels(products);
         _loading = false;
       });
     } catch (e) {
@@ -93,12 +99,30 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
   String get _listTitle {
     switch (_mode) {
       case _ListMode.all:
-        return 'Todos los productos';
+        return 'Todos los lotes';
       case _ListMode.day:
-        return 'Productos para el ${DateUtilsZ.dayOfMonth(_selected)}';
+        return 'Lotes que vencen el ${DateUtilsZ.dayOfMonth(_selected)}';
       case _ListMode.month:
-        return 'Productos de ${DateUtilsZ.monthYear(_month)}';
+        return 'Lotes de ${DateUtilsZ.monthYear(_month)}';
     }
+  }
+
+  /// Lotes agrupados por producto, empezando por el que vence antes.
+  List<ProductGroup> _groupsOf(List<Product> lots) {
+    final groups = groupProducts(lots);
+    groups.sort((a, b) {
+      final c = compareByExpiry(a.main, b.main);
+      return c != 0
+          ? c
+          : a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase());
+    });
+    return groups;
+  }
+
+  String _summary(List<Product> lots) {
+    final products = groupProducts(lots).length;
+    return '${lots.length} ${lots.length == 1 ? 'lote' : 'lotes'} de '
+        '$products ${products == 1 ? 'producto' : 'productos'}';
   }
 
   @override
@@ -137,8 +161,8 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                                   children: [
                                     Text(
                                       todayCount == 1
-                                          ? '1 producto vence hoy'
-                                          : '$todayCount productos vencen hoy',
+                                          ? '1 lote vence hoy'
+                                          : '$todayCount lotes vencen hoy',
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -178,6 +202,14 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                           ),
                         ],
                       ),
+                      if (!_loading && listed.isNotEmpty)
+                        Text(
+                          _summary(listed),
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
                       const SizedBox(height: 8),
                       if (_loading)
                         const Padding(
@@ -188,17 +220,23 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 30),
                           child: Text(
-                            'No hay productos que venzan en esta fecha',
+                            'No hay lotes que venzan en esta fecha',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: AppColors.textSecondary),
                           ),
                         )
                       else
-                        for (final p in listed)
-                          ProductCard(
-                            key: ValueKey('${_mode.name}-${p.id}'),
-                            product: p,
-                            subtitle: '${p.categoria} | Marca: ${p.marca}',
+                        for (final g in _groupsOf(listed))
+                          _CalendarLotsCard(
+                            key: ValueKey('${_mode.name}-${g.key}'),
+                            group: g,
+                            labels: _labels,
+                            onOpenLot: (lot) => showLotDetailSheet(
+                              context,
+                              lot: lot,
+                              label: _labels[lot.id] ?? '',
+                              allowActions: false,
+                            ),
                           ),
                     ],
                   ),
@@ -338,6 +376,104 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tarjeta de un producto con la tabla de sus lotes del periodo elegido.
+class _CalendarLotsCard extends StatelessWidget {
+  const _CalendarLotsCard({
+    super.key,
+    required this.group,
+    required this.labels,
+    required this.onOpenLot,
+  });
+
+  final ProductGroup group;
+  final Map<String, String> labels;
+  final ValueChanged<Product> onOpenLot;
+
+  @override
+  Widget build(BuildContext context) {
+    final g = group;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  ProductThumbnail(bytes: g.withImage.imageBytes, size: 48),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          g.nombre.isEmpty ? 'Sin nombre' : g.nombre,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        CategoryTag(g.categoria),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      StatusPill(g.status),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${formatQty(g.totalQty)} un.',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(
+                  children: [
+                    for (var i = 0; i < g.lots.length; i++) ...[
+                      if (i > 0)
+                        const Divider(color: AppColors.border, height: 1),
+                      LotTableRow(
+                        label: labels[g.lots[i].id] ?? '',
+                        lot: g.lots[i],
+                        onTap: () => onOpenLot(g.lots[i]),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
