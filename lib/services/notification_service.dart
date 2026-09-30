@@ -66,6 +66,9 @@ class NotificationService {
   /// las más próximas (el resto se programa en siguientes resincronizaciones).
   static const _maxScheduled = 150;
 
+  /// Cuánto tiempo se conserva un evento del calendario después de su hora.
+  static const _calendarKeepAfter = Duration(days: 1);
+
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
@@ -328,6 +331,11 @@ class NotificationService {
 
   /// Un evento por lote el día del vencimiento a las 9:00, con recordatorios
   /// ese día, 1 día antes y 3 días antes.
+  ///
+  /// El evento se conserva hasta [_calendarKeepAfter] después de su hora y se
+  /// borra en la siguiente sincronización. Solo se crean los recordatorios que
+  /// aún no han llegado, para que un aviso nunca suene dos veces al recrear
+  /// los eventos.
   Future<void> _syncCalendar(List<Product> products, {required bool force}) async {
     if (!await calendarBackupEnabled()) return;
     if (!await DeviceSettings.hasCalendarPermission()) return;
@@ -338,7 +346,12 @@ class NotificationService {
       final e = p.expiryDate;
       if (e == null) continue;
       final start = DateTime(e.year, e.month, e.day, _alertHour);
-      if (!start.isAfter(now)) continue;
+      // Se borra un día después del evento.
+      if (!start.add(_calendarKeepAfter).isAfter(now)) continue;
+      final reminders = [
+        for (final minutes in const [0, 24 * 60, 3 * 24 * 60])
+          if (start.subtract(Duration(minutes: minutes)).isAfter(now)) minutes,
+      ];
       final name = p.nombre.trim().isEmpty ? 'Producto' : p.nombre.trim();
       final label = labels[p.id];
       events.add({
@@ -350,7 +363,7 @@ class NotificationService {
           'Alerta creada por Zentory',
         ].join('\n'),
         'startMillis': start.millisecondsSinceEpoch,
-        'reminders': [0, 24 * 60, 3 * 24 * 60],
+        'reminders': reminders,
       });
     }
     events.sort((a, b) =>
@@ -358,8 +371,9 @@ class NotificationService {
     if (events.length > _maxScheduled) {
       events.removeRange(_maxScheduled, events.length);
     }
-    final signature =
-        events.map((e) => '${e['title']}@${e['startMillis']}').join(',');
+    final signature = events
+        .map((e) => '${e['title']}@${e['startMillis']}/${e['reminders']}')
+        .join(',');
     if (!force && signature == _lastCalendarSignature) return;
     final created = await DeviceSettings.syncCalendar(events);
     if (created != null) _lastCalendarSignature = signature;

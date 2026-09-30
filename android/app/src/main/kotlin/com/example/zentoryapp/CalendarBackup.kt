@@ -84,6 +84,8 @@ object CalendarBackup {
         var created = 0
         for (e in events) {
             val start = (e["startMillis"] as? Number)?.toLong() ?: continue
+            @Suppress("UNCHECKED_CAST")
+            val reminders = (e["reminders"] as? List<Number>) ?: emptyList()
             val values = ContentValues().apply {
                 put(CalendarContract.Events.CALENDAR_ID, calendarId)
                 put(CalendarContract.Events.TITLE, e["title"] as? String ?: "Vencimiento")
@@ -91,15 +93,13 @@ object CalendarBackup {
                 put(CalendarContract.Events.DTSTART, start)
                 put(CalendarContract.Events.DTEND, start + 30 * 60 * 1000L)
                 put(CalendarContract.Events.EVENT_TIMEZONE, tz)
-                put(CalendarContract.Events.HAS_ALARM, 1)
+                put(CalendarContract.Events.HAS_ALARM, if (reminders.isEmpty()) 0 else 1)
             }
             val uri = context.contentResolver.insert(
                 asSyncAdapter(CalendarContract.Events.CONTENT_URI),
                 values,
             ) ?: continue
             val eventId = uri.lastPathSegment?.toLongOrNull() ?: continue
-            @Suppress("UNCHECKED_CAST")
-            val reminders = (e["reminders"] as? List<Number>) ?: listOf(0)
             for (minutes in reminders) {
                 val r = ContentValues().apply {
                     put(CalendarContract.Reminders.EVENT_ID, eventId)
