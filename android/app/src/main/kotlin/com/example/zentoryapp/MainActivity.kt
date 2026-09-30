@@ -34,6 +34,8 @@ class MainActivity : FlutterActivity() {
                         "requestIgnoreBatteryOptimizations" -> result.success(requestIgnoreBatteryOptimizations())
                         "openAutoStartSettings" -> result.success(openAutoStartSettings())
                         "openAppDetails" -> result.success(openAppDetails())
+                        "hasGooglePlayServices" -> result.success(hasGooglePlayServices())
+                        "getSigningSha1" -> result.success(signingSha1())
                         else -> result.notImplemented()
                     }
                 } catch (e: Exception) {
@@ -103,6 +105,35 @@ class MainActivity : FlutterActivity() {
             if (tryStart(intent)) return "oem"
         }
         return if (openAppDetails()) "app_details" else "none"
+    }
+
+    /**
+     * Las versiones chinas de muchos teléfonos (p. ej. ColorOS China) no traen
+     * los servicios de Google Play, sin los cuales el inicio de sesión con
+     * Google no puede funcionar.
+     */
+    private fun hasGooglePlayServices(): Boolean {
+        return try {
+            val info = packageManager.getApplicationInfo("com.google.android.gms", 0)
+            info.enabled
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /** Huella SHA-1 del certificado con el que está firmada esta app. */
+    private fun signingSha1(): String? {
+        return try {
+            val info = packageManager.getPackageInfo(
+                packageName,
+                android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES,
+            )
+            val signer = info.signingInfo?.apkContentsSigners?.firstOrNull() ?: return null
+            val digest = java.security.MessageDigest.getInstance("SHA-1").digest(signer.toByteArray())
+            digest.joinToString(":") { "%02X".format(it) }
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun openAppDetails(): Boolean {

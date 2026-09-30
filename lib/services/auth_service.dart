@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../firebase_options.dart';
+import 'device_settings.dart';
 import 'notification_service.dart';
 import 'zentory_repository.dart';
 
@@ -39,15 +40,39 @@ class AuthService {
 
   /// Devuelve `false` si el usuario canceló el inicio de sesión.
   Future<bool> signInWithGoogle() async {
+    if (!await DeviceSettings.hasGooglePlayServices()) {
+      throw const GoogleUnavailableException(
+        'Tu teléfono no tiene los servicios de Google Play, que son necesarios '
+        'para iniciar sesión con Google (pasa en muchos teléfonos de versión '
+        'china). Inicia sesión con correo y contraseña; si tu cuenta es de '
+        'Google, usa "¿Olvidaste tu contraseña?" para crear una contraseña.',
+      );
+    }
     await _initGoogle();
     final GoogleSignInAccount account;
     try {
       account = await GoogleSignIn.instance.authenticate();
     } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) return false;
+      // Si la huella (SHA-1) de la app no está registrada en Firebase, Android
+      // suele informar el error como "cancelado" ("[16] Account reauth
+      // failed"). Solo se ignora cuando fue el usuario quien canceló.
+      final desc = (e.description ?? '').toLowerCase();
+      final isConfigError = desc.contains('reauth') ||
+          desc.contains('[16]') ||
+          desc.contains('developer') ||
+          desc.contains('[10]');
+      if (e.code == GoogleSignInExceptionCode.canceled && !isConfigError) {
+        return false;
+      }
       rethrow;
     }
     final idToken = account.authentication.idToken;
+    if (idToken == null || idToken.isEmpty) {
+      throw const GoogleUnavailableException(
+        'Google no devolvió las credenciales. Revisa que la huella SHA-1 de '
+        'esta versión de la app esté registrada en Firebase.',
+      );
+    }
     final credential = GoogleAuthProvider.credential(idToken: idToken);
     final result = await _auth.signInWithCredential(credential);
     final user = result.user;
@@ -107,9 +132,32 @@ class AuthService {
       }
       return 'Error: ${error.message ?? error.code}';
     }
+    if (error is GoogleUnavailableException) return error.message;
     if (error is GoogleSignInException) {
-      return 'Error de Google: ${error.description ?? error.code.name}';
+      switch (error.code) {
+        case GoogleSignInExceptionCode.canceled:
+        case GoogleSignInExceptionCode.clientConfigurationError:
+        case GoogleSignInExceptionCode.providerConfigurationError:
+          return 'No se pudo iniciar sesión con Google: esta versión de la app '
+              'no está autorizada en Firebase (falta registrar su huella '
+              'SHA-1). Mientras tanto, usa correo y contraseña. '
+              '(${error.description ?? error.code.name})';
+        case GoogleSignInExceptionCode.uiUnavailable:
+          return 'No se pudo mostrar la ventana de Google. Revisa que tengas '
+              'una cuenta de Google en el teléfono y los servicios de Google '
+              'Play actualizados.';
+        default:
+          return 'Error de Google: ${error.description ?? error.code.name}';
+      }
     }
     return 'Error: $error';
   }
+}
+
+/// Error de inicio con Google con un mensaje listo para mostrar.
+class GoogleUnavailableException implements Exception {
+  const GoogleUnavailableException(this.message);
+  final String message;
+  @override
+  String toString() => message;
 }

@@ -54,7 +54,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final ok = await AuthService.instance.signInWithGoogle();
       if (ok && mounted) Routes.resetTo(context, Routes.session);
     } catch (e) {
-      if (mounted) showMessage(context, AuthService.messageFor(e));
+      if (mounted) {
+        showMessage(context, AuthService.messageFor(e), long: true);
+      }
     } finally {
       if (mounted) setState(() => _googleLoading = false);
     }

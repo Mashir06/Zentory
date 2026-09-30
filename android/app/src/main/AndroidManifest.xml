@@ -58,6 +58,8 @@
     </application>
 
     <queries>
+        <!-- Comprobar si el teléfono tiene los servicios de Google Play -->
+        <package android:name="com.google.android.gms" />
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

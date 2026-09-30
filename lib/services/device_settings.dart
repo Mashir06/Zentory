@@ -144,6 +144,27 @@ class DeviceSettings {
 
   static Future<bool> openAppDetails() => _call('openAppDetails');
 
+  /// Huella SHA-1 con la que está firmada la app (para registrarla en
+  /// Firebase y habilitar el inicio de sesión con Google).
+  static Future<String?> signingSha1() async {
+    try {
+      return await _channel.invokeMethod<String>('getSigningSha1');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `true` si el teléfono tiene los servicios de Google Play (necesarios para
+  /// iniciar sesión con Google). Si no se puede comprobar, asume que sí.
+  static Future<bool> hasGooglePlayServices() async {
+    try {
+      return await _channel.invokeMethod<bool>('hasGooglePlayServices') ??
+          true;
+    } catch (_) {
+      return true;
+    }
+  }
+
   /// Devuelve "oem", "app_details" o "none".
   static Future<String> openAutoStartSettings() async {
     try {
