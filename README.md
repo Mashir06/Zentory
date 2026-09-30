@@ -67,7 +67,7 @@ lib/
   app.dart                   MaterialApp, tema y rutas
   routes.dart                Nombres de rutas y navegación entre pestañas
   firebase_options.dart      Configuración de Firebase
-  models/                    Producto, catálogo y categorías
+  models/                    Producto, lote y agrupación de lotes
   services/                  Firestore, autenticación, notificaciones y OpenFoodFacts
   screens/                   Una pantalla por archivo
   widgets/                   Componentes reutilizables (tarjetas, diálogos, gráfica…)
