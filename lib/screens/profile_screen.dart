@@ -55,7 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final currentId = data['tiendaId'] as String?;
       final ids = <String>{
         ...((data['tiendasIds'] as List?)?.whereType<String>() ?? const []),
-        if (currentId != null) currentId,
+        ?currentId,
       }.toList();
 
       final docs = <DocumentSnapshot<Map<String, dynamic>>>[];
