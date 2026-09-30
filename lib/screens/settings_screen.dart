@@ -132,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await NotificationService.instance.syncStore(storeId);
       if (!granted && mounted) await showNotificationSetupSheet(context);
     } else {
-      await NotificationService.instance.cancelExpiryAlerts();
+      await NotificationService.instance.clearAll();
     }
   }
 

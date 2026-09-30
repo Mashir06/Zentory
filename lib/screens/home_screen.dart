@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       // Recrea las alertas de vencimiento cada vez que se abre la app o se
       // vuelve al inicio (algunos sistemas borran las alarmas al cerrar la app).
       if (storeId == null) {
-        NotificationService.instance.cancelExpiryAlerts();
+        NotificationService.instance.clearAll();
       } else {
         NotificationService.instance.syncProducts(products);
       }

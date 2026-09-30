@@ -8,6 +8,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/product.dart';
+import '../models/product_lots.dart';
 import '../utils/image_utils.dart';
 import 'device_settings.dart';
 import 'zentory_repository.dart';
@@ -43,6 +44,11 @@ class NotificationService {
   /// Si el usuario no lo eligió, se activa sola en esos fabricantes.
   static const String prefAlarmClockMode = 'alarm_clock_mode';
 
+  /// Copiar las alertas como recordatorios en el calendario del teléfono.
+  /// El calendario del sistema nunca se cierra, así que avisa aunque Zentory
+  /// haya sido cerrada desde Recientes (lo que cancela sus alarmas).
+  static const String prefCalendarBackup = 'calendar_backup';
+
   static const _channelId = 'expiration_notifications_custom_sound';
   static const _channelName = 'Vencimientos de Productos';
   static const _channelDescription =
@@ -71,6 +77,7 @@ class NotificationService {
   /// Firma de la última programación hecha en este proceso. Si la app se
   /// reinicia (o el sistema la cerró) es `null` y se vuelve a programar todo.
   String? _lastSignature;
+  String? _lastCalendarSignature;
 
   AndroidFlutterLocalNotificationsPlugin? get _android =>
       _plugin.resolvePlatformSpecificImplementation<
@@ -221,8 +228,11 @@ class NotificationService {
 
     if (!await _enabled()) {
       await cancelExpiryAlerts();
+      await _clearCalendar();
       return;
     }
+
+    await _syncCalendar(products, force: force);
 
     final alerts = _buildAlerts(products);
     final mode = await _scheduleMode();
@@ -283,6 +293,82 @@ class NotificationService {
     return alerts.length > _maxScheduled
         ? alerts.sublist(0, _maxScheduled)
         : alerts;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Respaldo en el calendario del teléfono
+  // ---------------------------------------------------------------------------
+
+  Future<bool> calendarBackupEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(prefCalendarBackup) ?? false;
+  }
+
+  /// Activa o desactiva el respaldo. Al activarlo pide el permiso de
+  /// calendario; devuelve `false` si el usuario no lo concedió.
+  Future<bool> setCalendarBackup(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value) {
+      final granted = await DeviceSettings.requestCalendarPermission();
+      if (!granted) return false;
+      await prefs.setBool(prefCalendarBackup, true);
+    } else {
+      await prefs.setBool(prefCalendarBackup, false);
+      await _clearCalendar();
+    }
+    _lastCalendarSignature = null;
+    return true;
+  }
+
+  Future<void> _clearCalendar() async {
+    _lastCalendarSignature = null;
+    if (!await DeviceSettings.hasCalendarPermission()) return;
+    await DeviceSettings.removeCalendar();
+  }
+
+  /// Un evento por lote el día del vencimiento a las 9:00, con recordatorios
+  /// ese día, 1 día antes y 3 días antes.
+  Future<void> _syncCalendar(List<Product> products, {required bool force}) async {
+    if (!await calendarBackupEnabled()) return;
+    if (!await DeviceSettings.hasCalendarPermission()) return;
+    final now = DateTime.now();
+    final labels = lotLabels(products);
+    final events = <Map<String, Object?>>[];
+    for (final p in products) {
+      final e = p.expiryDate;
+      if (e == null) continue;
+      final start = DateTime(e.year, e.month, e.day, _alertHour);
+      if (!start.isAfter(now)) continue;
+      final name = p.nombre.trim().isEmpty ? 'Producto' : p.nombre.trim();
+      final label = labels[p.id];
+      events.add({
+        'title': 'Vence: $name${label == null ? '' : ' ($label)'}',
+        'description': [
+          'Cantidad: ${p.cantidad}',
+          if (p.presentacion.trim().isNotEmpty && p.presentacion != 'N/A')
+            'Presentación: ${p.presentacion}',
+          'Alerta creada por Zentory',
+        ].join('\n'),
+        'startMillis': start.millisecondsSinceEpoch,
+        'reminders': [0, 24 * 60, 3 * 24 * 60],
+      });
+    }
+    events.sort((a, b) =>
+        (a['startMillis'] as int).compareTo(b['startMillis'] as int));
+    if (events.length > _maxScheduled) {
+      events.removeRange(_maxScheduled, events.length);
+    }
+    final signature =
+        events.map((e) => '${e['title']}@${e['startMillis']}').join(',');
+    if (!force && signature == _lastCalendarSignature) return;
+    final created = await DeviceSettings.syncCalendar(events);
+    if (created != null) _lastCalendarSignature = signature;
+  }
+
+  /// Borra alarmas y recordatorios del calendario (p. ej. al cerrar sesión).
+  Future<void> clearAll() async {
+    await cancelExpiryAlerts();
+    await _clearCalendar();
   }
 
   /// Cancela todas las alertas de vencimiento programadas (no las pruebas).

@@ -1,17 +1,24 @@
 package com.example.zentoryapp
 
+import android.Manifest
+import android.app.ActivityManager
 import android.app.AlarmManager
+import android.app.ApplicationExitInfo
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.util.concurrent.Executors
 
 /**
  * Además de la actividad de Flutter, expone el canal "zentory/device" para que
@@ -21,6 +28,10 @@ import io.flutter.plugin.common.MethodChannel
  * actividad en segundo plano y a veces las propias notificaciones.
  */
 class MainActivity : FlutterActivity() {
+
+    private val io = Executors.newSingleThreadExecutor()
+    private val main = Handler(Looper.getMainLooper())
+    private var pendingCalendarResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -36,6 +47,14 @@ class MainActivity : FlutterActivity() {
                         "openAppDetails" -> result.success(openAppDetails())
                         "hasGooglePlayServices" -> result.success(hasGooglePlayServices())
                         "getSigningSha1" -> result.success(signingSha1())
+                        "requestCalendarPermission" -> requestCalendarPermission(result)
+                        "hasCalendarPermission" -> result.success(hasCalendarPermission())
+                        "syncCalendar" -> {
+                            @Suppress("UNCHECKED_CAST")
+                            val events = (call.argument<List<Map<String, Any?>>>("events")) ?: emptyList()
+                            runInBackground(result) { CalendarBackup.sync(this, events) }
+                        }
+                        "removeCalendar" -> runInBackground(result) { CalendarBackup.remove(this) }
                         else -> result.notImplemented()
                     }
                 } catch (e: Exception) {
@@ -57,7 +76,73 @@ class MainActivity : FlutterActivity() {
             "notificationsEnabled" to nm.areNotificationsEnabled(),
             "exactAlarmsAllowed" to exact,
             "ignoringBatteryOptimizations" to pm.isIgnoringBatteryOptimizations(packageName),
+            "lastExitForceStopped" to lastExitWasForceStop(),
         )
+    }
+
+    /**
+     * `true` si la última vez que se cerró Zentory fue "detenida a la fuerza"
+     * (por ejemplo, al deslizarla en Recientes en ColorOS). En ese caso Android
+     * canceló sus alarmas hasta que se volvió a abrir.
+     */
+    private fun lastExitWasForceStop(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false
+        return try {
+            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            val last = am.getHistoricalProcessExitReasons(packageName, 0, 1).firstOrNull()
+                ?: return false
+            last.reason == ApplicationExitInfo.REASON_USER_REQUESTED ||
+                (Build.VERSION.SDK_INT >= 35 && last.reason == 23 /* REASON_USER_STOPPED */)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // --- Calendario (respaldo de alertas) ---------------------------------
+
+    private fun hasCalendarPermission(): Boolean =
+        checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
+            checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+
+    private fun requestCalendarPermission(result: MethodChannel.Result) {
+        if (hasCalendarPermission()) {
+            result.success(true)
+            return
+        }
+        pendingCalendarResult?.success(false)
+        pendingCalendarResult = result
+        requestPermissions(
+            arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR),
+            REQUEST_CALENDAR,
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CALENDAR) {
+            pendingCalendarResult?.success(hasCalendarPermission())
+            pendingCalendarResult = null
+        }
+    }
+
+    /** Ejecuta trabajo de calendario fuera del hilo principal. */
+    private fun runInBackground(result: MethodChannel.Result, work: () -> Any?) {
+        if (!hasCalendarPermission()) {
+            result.error("no_permission", "Sin permiso de calendario", null)
+            return
+        }
+        io.execute {
+            try {
+                val value = work()
+                main.post { result.success(value) }
+            } catch (e: Exception) {
+                main.post { result.error("calendar_error", e.message, null) }
+            }
+        }
     }
 
     private fun tryStart(intent: Intent): Boolean {
@@ -143,6 +228,7 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val CHANNEL = "zentory/device"
+        private const val REQUEST_CALENDAR = 4817
 
         /** Pantallas conocidas de inicio automático / segundo plano por fabricante. */
         private val AUTOSTART_COMPONENTS = listOf(

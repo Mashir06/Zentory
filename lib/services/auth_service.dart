@@ -101,7 +101,7 @@ class AuthService {
 
   Future<void> signOut() async {
     // Las alertas pertenecen a la tienda de este usuario.
-    await NotificationService.instance.cancelExpiryAlerts();
+    await NotificationService.instance.clearAll();
     await _auth.signOut();
     try {
       await _initGoogle();
