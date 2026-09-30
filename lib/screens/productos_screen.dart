@@ -20,6 +20,8 @@ enum _SortOption {
   final String label;
 }
 
+const _statusOptions = ['Todos', 'Buen estado', 'Por vencer', 'Vencido'];
+
 /// Prioridad de un estado para decidir el estado general de un producto
 /// (el lote "peor" manda): vencido > por vencer > sin fecha > buen estado.
 int _statusRank(ProductStatus s) {
@@ -35,14 +37,28 @@ int _statusRank(ProductStatus s) {
   }
 }
 
+Color _statusColorFor(String label) {
+  switch (label) {
+    case 'Buen estado':
+      return ProductStatus.good.color;
+    case 'Por vencer':
+      return ProductStatus.expiring.color;
+    case 'Vencido':
+      return ProductStatus.expired.color;
+    default:
+      return AppColors.primary;
+  }
+}
+
 /// Cantidad numérica de un registro (el campo se guarda como texto).
 num _qty(Product p) {
   final raw = p.cantidad.trim().replaceAll(',', '.');
   return int.tryParse(raw) ?? double.tryParse(raw) ?? 0;
 }
 
-String _formatQty(num value) =>
-    value == value.roundToDouble() ? value.toInt().toString() : value.toStringAsFixed(1);
+String _formatQty(num value) => value == value.roundToDouble()
+    ? value.toInt().toString()
+    : value.toStringAsFixed(1);
 
 /// Texto relativo de vencimiento: "Vence en 3 días", "Venció hace 2 días"...
 String _relativeExpiry(DateTime? expiry) {
@@ -54,7 +70,10 @@ String _relativeExpiry(DateTime? expiry) {
   return 'Vence en $d días';
 }
 
-/// Identificador corto y legible de un lote a partir del ID del documento.
+/// Número de lote para mostrar: L001, L002... (según orden de vencimiento).
+String _lotLabel(int index) => 'L${index.toString().padLeft(3, '0')}';
+
+/// Código del registro en Firestore, para distinguir lotes con precisión.
 String _lotCode(Product p) {
   final id = p.id;
   return '#${(id.length > 6 ? id.substring(0, 6) : id).toUpperCase()}';
@@ -84,23 +103,7 @@ class _ProductGroup {
   /// Fecha de vencimiento más próxima entre los lotes.
   DateTime? get nextExpiry => main.expiryDate;
 
-  /// Categorías y marcas distintas (normalmente una sola).
   String get categoria => lots.map((l) => l.categoria).toSet().join(', ');
-  String get marca {
-    final marcas = lots
-        .map((l) => l.marca)
-        .where((m) => m.trim().isNotEmpty && m != 'N/A')
-        .toSet();
-    return marcas.isEmpty ? 'N/A' : marcas.join(', ');
-  }
-
-  String get presentacion {
-    final values = lots
-        .map((l) => l.presentacion)
-        .where((m) => m.trim().isNotEmpty && m != 'N/A')
-        .toSet();
-    return values.isEmpty ? 'N/A' : values.join(', ');
-  }
 
   /// Lotes ordenados por vencimiento (los que vencen antes primero).
   static List<Product> _sortLots(List<Product> lots) {
@@ -138,8 +141,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
   /// Productos expandidos (se conserva al recargar tras editar o eliminar).
   final Set<String> _expanded = {};
 
-  static const _statusOptions = ['Todos', 'Buen estado', 'Por vencer', 'Vencido'];
-
   @override
   void initState() {
     super.initState();
@@ -175,31 +176,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
   // Filtros, agrupación y orden (solo presentación; no cambia los datos)
   // ---------------------------------------------------------------------------
 
-  /// Registros que cumplen la búsqueda y la categoría (sin filtro de estado).
-  List<Product> get _searchScope {
+  List<_ProductGroup> get _groups {
     final query = _search.text.trim().toLowerCase();
-    return _all.where((p) {
+    final lots = _all.where((p) {
       final matchesCat = _category == 'Todas' || p.categoria == _category;
+      final matchesStat = _status == 'Todos' || p.status.label == _status;
       final matchesSearch = p.nombre.toLowerCase().contains(query);
-      return matchesCat && matchesSearch;
-    }).toList();
-  }
-
-  /// Cantidad de lotes por estado, para los chips de filtro.
-  Map<String, int> _statusCounts(List<Product> scope) {
-    final counts = {for (final s in _statusOptions) s: 0};
-    counts['Todos'] = scope.length;
-    for (final p in scope) {
-      final label = p.status.label;
-      if (counts.containsKey(label)) counts[label] = counts[label]! + 1;
-    }
-    return counts;
-  }
-
-  List<_ProductGroup> _groups(List<Product> scope) {
-    final lots = _status == 'Todos'
-        ? scope
-        : scope.where((p) => p.status.label == _status).toList();
+      return matchesCat && matchesStat && matchesSearch;
+    });
 
     final map = <String, List<Product>>{};
     for (final p in lots) {
@@ -236,16 +220,13 @@ class _ProductosScreenState extends State<ProductosScreen> {
     return groups;
   }
 
-  bool get _hasActiveFilters =>
-      _category != 'Todas' || _status != 'Todos' || _search.text.isNotEmpty;
+  int get _activeFilterCount =>
+      (_category != 'Todas' ? 1 : 0) + (_status != 'Todos' ? 1 : 0);
 
-  void _clearFilters() {
-    _search.clear();
-    setState(() {
-      _category = 'Todas';
-      _status = 'Todos';
-    });
-  }
+  void _clearFilters() => setState(() {
+        _category = 'Todas';
+        _status = 'Todos';
+      });
 
   // ---------------------------------------------------------------------------
   // Acciones (mismo funcionamiento que antes)
@@ -281,12 +262,147 @@ class _ProductosScreenState extends State<ProductosScreen> {
     }
   }
 
-  Future<void> _pickFromMenu({
-    required BuildContext anchorContext,
-    required List<String> options,
-    required String selected,
-    required ValueChanged<String> onSelected,
-  }) async {
+  /// "Editar producto": si hay un solo lote lo abre directo; si hay varios,
+  /// pregunta cuál editar (cada lote es un registro independiente).
+  Future<void> _editGroup(_ProductGroup g) async {
+    if (g.lots.length == 1) return _edit(g.main);
+    final chosen = await showModalBottomSheet<Product>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Text(
+                '¿Qué lote deseas editar?',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            for (var i = 0; i < g.lots.length; i++)
+              ListTile(
+                leading: const Icon(Icons.layers_outlined,
+                    color: AppColors.textSecondary),
+                title: Text(
+                  '${_lotLabel(i + 1)} · Vence ${g.lots[i].fechaVencimiento}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                subtitle: Text(
+                  '${g.lots[i].cantidad} unidades',
+                  style: const TextStyle(color: AppColors.textSecondary),
+                ),
+                trailing: _StatusPill(g.lots[i].status, small: true),
+                onTap: () => Navigator.pop(ctx, g.lots[i]),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null) await _edit(chosen);
+  }
+
+  /// Detalle de un lote con sus acciones (editar / eliminar).
+  Future<void> _openLot(_ProductGroup g, int index) async {
+    final lot = g.lots[index];
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Lote ${_lotLabel(index + 1)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${lot.nombre} · ${_lotCode(lot)}',
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _StatusPill(lot.status),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _SheetRow('Fecha de vencimiento', lot.fechaVencimiento),
+              _SheetRow('', _relativeExpiry(lot.expiryDate),
+                  valueColor: lot.status.color),
+              _SheetRow('Cantidad', '${lot.cantidad} unidades'),
+              _SheetRow('Marca', lot.marca),
+              _SheetRow('Presentación', lot.presentacion),
+              _SheetRow('Fecha de registro', lot.fechaRegistro),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(ctx, 'delete'),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('Eliminar'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.danger,
+                        side: const BorderSide(color: AppColors.danger),
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(ctx, 'edit'),
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('Editar lote'),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (action == 'edit') {
+      await _edit(lot);
+    } else if (action == 'delete') {
+      await _delete(lot, isLot: g.lots.length > 1);
+    }
+  }
+
+  Future<void> _pickSort(BuildContext anchorContext) async {
     final box = anchorContext.findRenderObject() as RenderBox;
     final overlay =
         Overlay.of(anchorContext).context.findRenderObject() as RenderBox;
@@ -297,25 +413,25 @@ class _ProductosScreenState extends State<ProductosScreen> {
       ),
       Offset.zero & overlay.size,
     );
-    final value = await showMenu<String>(
+    final value = await showMenu<_SortOption>(
       context: context,
       position: position,
       items: [
-        for (final o in options)
+        for (final o in _SortOption.values)
           PopupMenuItem(
             value: o,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  o,
+                  o.label,
                   style: TextStyle(
-                    color: o == selected ? AppColors.primary : Colors.white,
+                    color: o == _sort ? AppColors.primary : Colors.white,
                     fontWeight:
-                        o == selected ? FontWeight.w600 : FontWeight.normal,
+                        o == _sort ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
-                if (o == selected) ...[
+                if (o == _sort) ...[
                   const SizedBox(width: 8),
                   const Icon(Icons.check, size: 18, color: AppColors.primary),
                 ],
@@ -324,7 +440,113 @@ class _ProductosScreenState extends State<ProductosScreen> {
           ),
       ],
     );
-    if (value != null) onSelected(value);
+    if (value != null) setState(() => _sort = value);
+  }
+
+  /// Hoja de filtros: estado y categoría (se aplican al tocarlos).
+  Future<void> _openFilters() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          void update(VoidCallback fn) {
+            setState(fn);
+            setSheet(() {});
+          }
+
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.7,
+            maxChildSize: 0.9,
+            builder: (_, scroll) => ListView(
+              controller: scroll,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+              children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Filtros',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (_activeFilterCount > 0)
+                      TextButton(
+                        onPressed: () => update(() {
+                          _category = 'Todas';
+                          _status = 'Todos';
+                        }),
+                        child: const Text('Limpiar'),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Estado',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final s in _statusOptions)
+                      _FilterChipZ(
+                        label: s,
+                        color: _statusColorFor(s),
+                        showDot: s != 'Todos',
+                        selected: _status == s,
+                        onTap: () => update(() => _status = s),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Categoría',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final c in ['Todas', ...kProductCategories])
+                      _FilterChipZ(
+                        label: c,
+                        color: AppColors.primary,
+                        selected: _category == c,
+                        onTap: () => update(() => _category = c),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Ver resultados'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -333,10 +555,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scope = _searchScope;
-    final counts = _statusCounts(scope);
-    final groups = _groups(scope);
-    final lotCount = groups.fold<int>(0, (sum, g) => sum + g.lots.length);
+    final groups = _groups;
 
     return Scaffold(
       body: ZentoryBackground(
@@ -349,29 +568,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
                 child: RefreshIndicator(
                   onRefresh: _load,
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
                     children: [
-                      const Text(
-                        'Productos',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'Gestiona tus artículos, lotes y vencimientos',
-                        style: TextStyle(color: AppColors.textSecondary),
-                      ),
+                      _titleBlock(),
                       const SizedBox(height: 16),
-                      _searchField(),
-                      const SizedBox(height: 10),
-                      _filterRow(),
-                      const SizedBox(height: 10),
-                      _statusChips(counts),
-                      const SizedBox(height: 20),
-                      _listHeader(groups.length, lotCount),
-                      const SizedBox(height: 12),
+                      _toolbar(),
+                      if (_activeFilterCount > 0) ...[
+                        const SizedBox(height: 10),
+                        _activeFilters(),
+                      ],
+                      const SizedBox(height: 16),
                       if (_loading)
                         const Padding(
                           padding: EdgeInsets.all(32),
@@ -390,9 +596,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 _expanded.add(g.key);
                               }
                             }),
-                            onEdit: _edit,
-                            onDelete: (p) =>
-                                _delete(p, isLot: g.lots.length > 1),
+                            onOpenLot: (i) => _openLot(g, i),
+                            onEdit: () => _editGroup(g),
                           ),
                     ],
                   ),
@@ -406,133 +611,122 @@ class _ProductosScreenState extends State<ProductosScreen> {
     );
   }
 
-  Widget _searchField() {
-    return TextField(
-      controller: _search,
-      style: const TextStyle(color: Colors.white),
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        hintText: 'Buscar por nombre...',
-        prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-        suffixIcon: _search.text.isEmpty
-            ? null
-            : IconButton(
-                tooltip: 'Borrar búsqueda',
-                icon: const Icon(Icons.close, color: AppColors.textSecondary),
-                onPressed: _search.clear,
-              ),
-      ),
-    );
-  }
-
-  Widget _filterRow() {
+  Widget _titleBlock() {
     return Row(
       children: [
-        Expanded(
-          child: Builder(
-            builder: (btnCtx) => _FilterButton(
-              icon: Icons.category_outlined,
-              label: _category == 'Todas' ? 'Categoría' : _category,
-              active: _category != 'Todas',
-              onTap: () => _pickFromMenu(
-                anchorContext: btnCtx,
-                options: ['Todas', ...kProductCategories],
-                selected: _category,
-                onSelected: (v) => setState(() => _category = v),
-              ),
-            ),
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Icon(
+            Icons.inventory_2_outlined,
+            color: AppColors.primary,
+            size: 28,
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Builder(
-            builder: (btnCtx) => _FilterButton(
-              icon: Icons.swap_vert,
-              label: _sort.label,
-              onTap: () => _pickFromMenu(
-                anchorContext: btnCtx,
-                options: [for (final s in _SortOption.values) s.label],
-                selected: _sort.label,
-                onSelected: (v) => setState(() => _sort =
-                    _SortOption.values.firstWhere((s) => s.label == v)),
+        const SizedBox(width: 14),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Productos',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
+              SizedBox(height: 2),
+              Text(
+                'Gestiona tus productos, consulta sus lotes y mantén el '
+                'control de tu inventario.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _statusChips(Map<String, int> counts) {
-    Color colorFor(String s) {
-      switch (s) {
-        case 'Buen estado':
-          return ProductStatus.good.color;
-        case 'Por vencer':
-          return ProductStatus.expiring.color;
-        case 'Vencido':
-          return ProductStatus.expired.color;
-        default:
-          return AppColors.primary;
-      }
-    }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (final s in _statusOptions)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _StatusChip(
-                label: s,
-                count: counts[s] ?? 0,
-                color: colorFor(s),
-                showDot: s != 'Todos',
-                selected: _status == s,
-                onTap: () => setState(() => _status = s),
+  /// Búsqueda + Filtros + Ordenar en una sola fila. En pantallas angostas
+  /// los botones muestran solo el ícono para dejar espacio a la búsqueda.
+  Widget _toolbar() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 420;
+        return Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _search,
+                style: const TextStyle(color: Colors.white),
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: 'Buscar producto...',
+                  prefixIcon:
+                      const Icon(Icons.search, color: AppColors.textSecondary),
+                  suffixIcon: _search.text.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Borrar búsqueda',
+                          icon: const Icon(Icons.close,
+                              color: AppColors.textSecondary),
+                          onPressed: _search.clear,
+                        ),
+                ),
               ),
             ),
-        ],
-      ),
+            const SizedBox(width: 8),
+            _ToolbarButton(
+              icon: Icons.tune,
+              label: 'Filtros',
+              compact: compact,
+              badge: _activeFilterCount,
+              onTap: _openFilters,
+            ),
+            const SizedBox(width: 8),
+            Builder(
+              builder: (btnCtx) => _ToolbarButton(
+                icon: Icons.swap_vert,
+                label: 'Ordenar',
+                compact: compact,
+                onTap: () => _pickSort(btnCtx),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _listHeader(int productCount, int lotCount) {
-    final summary = _loading
-        ? ''
-        : '$productCount ${productCount == 1 ? 'producto' : 'productos'} · '
-            '$lotCount ${lotCount == 1 ? 'lote' : 'lotes'}';
-    return Row(
+  Widget _activeFilters() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _hasActiveFilters ? 'Resultados' : 'Todos los productos',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (summary.isNotEmpty)
-                Text(
-                  summary,
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-            ],
+        if (_status != 'Todos')
+          _RemovableChip(
+            label: _status,
+            color: _statusColorFor(_status),
+            onRemove: () => setState(() => _status = 'Todos'),
           ),
+        if (_category != 'Todas')
+          _RemovableChip(
+            label: _category,
+            color: AppColors.primary,
+            onRemove: () => setState(() => _category = 'Todas'),
+          ),
+        TextButton(
+          onPressed: _clearFilters,
+          style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+          child: const Text('Limpiar filtros'),
         ),
-        if (_hasActiveFilters)
-          TextButton(
-            onPressed: _clearFilters,
-            child: const Text('Limpiar filtros'),
-          ),
       ],
     );
   }
@@ -564,64 +758,106 @@ class _ProductosScreenState extends State<ProductosScreen> {
 // Componentes de la pantalla
 // -----------------------------------------------------------------------------
 
-class _FilterButton extends StatelessWidget {
-  const _FilterButton({
+class _ToolbarButton extends StatelessWidget {
+  const _ToolbarButton({
     required this.icon,
     required this.label,
     required this.onTap,
-    this.active = false,
+    this.compact = false,
+    this.badge = 0,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final bool active;
+  final bool compact;
+  final int badge;
 
   @override
   Widget build(BuildContext context) {
-    return ZCard(
-      onTap: onTap,
-      radius: 12,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: active ? AppColors.primary : AppColors.textSecondary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: active ? AppColors.primary : Colors.white,
-                fontSize: 13,
-                fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-              ),
+    final active = badge > 0;
+    final button = Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          height: 54,
+          padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 14),
+          constraints: BoxConstraints(minWidth: compact ? 54 : 0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: active ? AppColors.primary : AppColors.border,
             ),
           ),
-          const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: active ? AppColors.primary : Colors.white,
+              ),
+              if (!compact) ...[
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+
+    return Tooltip(
+      message: label,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          button,
+          if (active)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                width: 18,
+                height: 18,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '$badge',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({
+class _FilterChipZ extends StatelessWidget {
+  const _FilterChipZ({
     required this.label,
-    required this.count,
     required this.color,
     required this.selected,
     required this.onTap,
-    this.showDot = true,
+    this.showDot = false,
   });
 
   final String label;
-  final int count;
   final Color color;
   final bool selected;
   final bool showDot;
@@ -630,7 +866,7 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? color.withValues(alpha: 0.18) : AppColors.surface,
+      color: selected ? color.withValues(alpha: 0.18) : AppColors.background,
       shape: StadiumBorder(
         side: BorderSide(color: selected ? color : AppColors.border),
       ),
@@ -659,18 +895,47 @@ class _StatusChip extends StatelessWidget {
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
-              const SizedBox(width: 6),
-              Text(
-                '$count',
-                style: TextStyle(
-                  color: selected ? color : AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _RemovableChip extends StatelessWidget {
+  const _RemovableChip({
+    required this.label,
+    required this.color,
+    required this.onRemove,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+          InkWell(
+            onTap: onRemove,
+            customBorder: const CircleBorder(),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.close, size: 14, color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -695,6 +960,7 @@ class _StatusPill extends StatelessWidget {
       ),
       child: Text(
         status.label,
+        maxLines: 1,
         style: TextStyle(
           color: Colors.white,
           fontSize: small ? 10 : 11,
@@ -705,385 +971,317 @@ class _StatusPill extends StatelessWidget {
   }
 }
 
-/// Dato breve con ícono (cantidad, lotes...).
-class _InfoTag extends StatelessWidget {
-  const _InfoTag({required this.icon, required this.text});
-  final IconData icon;
-  final String text;
+/// Etiqueta de categoría con ícono.
+class _CategoryTag extends StatelessWidget {
+  const _CategoryTag(this.label);
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: AppColors.textSecondary),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: const TextStyle(color: AppColors.textSoft, fontSize: 12),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.sell_outlined,
+              size: 12, color: AppColors.textSecondary),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: AppColors.textSoft, fontSize: 11),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// Tarjeta expandible de un producto con sus lotes.
+/// Fila etiqueta/valor de la hoja de detalle de un lote.
+class _SheetRow extends StatelessWidget {
+  const _SheetRow(this.label, this.value, {this.valueColor = Colors.white});
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style:
+                  const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor,
+              fontSize: 13,
+              fontWeight:
+                  label.isEmpty ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tarjeta expandible de un producto con la tabla de sus lotes.
 class _ProductGroupCard extends StatelessWidget {
   const _ProductGroupCard({
     super.key,
     required this.group,
     required this.expanded,
     required this.onToggle,
+    required this.onOpenLot,
     required this.onEdit,
-    required this.onDelete,
   });
 
   final _ProductGroup group;
   final bool expanded;
   final VoidCallback onToggle;
-  final ValueChanged<Product> onEdit;
-  final ValueChanged<Product> onDelete;
+  final ValueChanged<int> onOpenLot;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
     final g = group;
-    final lotsLabel = '${g.lots.length} ${g.lots.length == 1 ? 'lote' : 'lotes'}';
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border(left: BorderSide(color: g.status.color, width: 4)),
-          ),
-          child: Column(
-            children: [
-              InkWell(
-                onTap: onToggle,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                  child: Column(
-                    children: [
-                      Row(
+        child: Column(
+          children: [
+            InkWell(
+              onTap: onToggle,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    ProductThumbnail(bytes: g.withImage.imageBytes, size: 60),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ProductThumbnail(bytes: g.withImage.imageBytes),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  g.nombre.isEmpty ? 'Sin nombre' : g.nombre,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  g.categoria,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 12,
-                                  runSpacing: 4,
-                                  children: [
-                                    _InfoTag(
-                                      icon: Icons.inventory_2_outlined,
-                                      text: '${_formatQty(g.totalQty)} unidades',
-                                    ),
-                                    _InfoTag(
-                                      icon: Icons.layers_outlined,
-                                      text: lotsLabel,
-                                    ),
-                                  ],
-                                ),
-                              ],
+                          Text(
+                            g.nombre.isEmpty ? 'Sin nombre' : g.nombre,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                          const SizedBox(height: 6),
+                          _CategoryTag(g.categoria),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        _StatusPill(g.status),
+                        const SizedBox(height: 8),
+                        Text.rich(
+                          TextSpan(
+                            text: 'Total: ',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
                             children: [
-                              _StatusPill(g.status),
-                              const SizedBox(height: 6),
-                              AnimatedRotation(
-                                turns: expanded ? 0.5 : 0,
-                                duration: const Duration(milliseconds: 200),
-                                child: const Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: AppColors.textSecondary,
+                              TextSpan(
+                                text: '${_formatQty(g.totalQty)} un.',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.event_outlined,
-                                size: 16, color: g.main.status.color),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                g.nextExpiry == null
-                                    ? 'Sin fecha de vencimiento'
-                                    : 'Próximo vencimiento: ${g.main.fechaVencimiento}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            if (g.nextExpiry != null)
-                              Text(
-                                _relativeExpiry(g.nextExpiry),
-                                style: TextStyle(
-                                  color: g.main.status.color,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                          ],
-                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 4),
+                    AnimatedRotation(
+                      turns: expanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: AppColors.textSecondary,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                alignment: Alignment.topCenter,
-                child: expanded
-                    ? _details(context)
-                    : const SizedBox(width: double.infinity),
-              ),
-            ],
-          ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              alignment: Alignment.topCenter,
+              child: expanded
+                  ? _lotsSection()
+                  : const SizedBox(width: double.infinity),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _details(BuildContext context) {
+  Widget _lotsSection() {
     final g = group;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Divider(color: AppColors.border, height: 1),
-          const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _detail('Marca', g.marca)),
-              const SizedBox(width: 12),
-              Expanded(child: _detail('Presentación', g.presentacion)),
+              const Icon(Icons.layers_outlined, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Lotes (${g.lots.length})',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Lotes (${g.lots.length})',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
           const SizedBox(height: 8),
-          for (var i = 0; i < g.lots.length; i++)
-            _LotTile(
+          const Divider(color: AppColors.border, height: 1),
+          for (var i = 0; i < g.lots.length; i++) ...[
+            _LotRow(
               index: i + 1,
               lot: g.lots[i],
-              onEdit: () => onEdit(g.lots[i]),
-              onDelete: () => onDelete(g.lots[i]),
+              onTap: () => onOpenLot(i),
             ),
+            const Divider(color: AppColors.border, height: 1),
+          ],
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton.icon(
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: const Text('Editar producto'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(0, 44),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                textStyle: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _detail(String label, String value) {
+/// Fila de la tabla de lotes: Lote | F. vencimiento | Cantidad | Estado.
+class _LotRow extends StatelessWidget {
+  const _LotRow({
+    required this.index,
+    required this.lot,
+    required this.onTap,
+  });
+
+  final int index;
+  final Product lot;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: _cell('Lote', Text(_lotLabel(index), style: _value)),
+            ),
+            Expanded(
+              flex: 3,
+              child: _cell(
+                'F. vencimiento',
+                Text(
+                  lot.expiryDate == null ? 'Sin fecha' : lot.fechaVencimiento,
+                  style: _value,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: _cell('Cantidad', Text(lot.cantidad, style: _value)),
+            ),
+            Expanded(
+              flex: 3,
+              child: _cell(
+                'Estado',
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: _StatusPill(lot.status, small: true),
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right,
+                color: AppColors.textSecondary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static const _value = TextStyle(color: Colors.white, fontSize: 13);
+
+  Widget _cell(String label, Widget value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
         ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
-        ),
+        const SizedBox(height: 4),
+        value,
       ],
-    );
-  }
-}
-
-/// Un lote (registro) dentro de la tarjeta expandida.
-class _LotTile extends StatelessWidget {
-  const _LotTile({
-    required this.index,
-    required this.lot,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final int index;
-  final Product lot;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final status = lot.status;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: status.color.withValues(alpha: 0.45)),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Lote $index',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _lotCode(lot),
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 11,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        lot.expiryDate == null
-                            ? 'Sin fecha de vencimiento'
-                            : 'Vence: ${lot.fechaVencimiento}',
-                        style: const TextStyle(
-                          color: AppColors.textSoft,
-                          fontSize: 12,
-                        ),
-                      ),
-                      if (lot.expiryDate != null)
-                        Text(
-                          _relativeExpiry(lot.expiryDate),
-                          style: TextStyle(
-                            color: status.color,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Registrado: ${lot.fechaRegistro}',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      lot.cantidad,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Text(
-                      'unidades',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    _StatusPill(status, small: true),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 0, 4, 2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const Text('Editar'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Eliminar'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.danger,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
