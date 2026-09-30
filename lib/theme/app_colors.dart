@@ -29,13 +29,6 @@ class AppColors {
   static const alertBrown = Color(0xFF9A4A0D);
   static const whatsapp = Color(0xFF25D366);
 
-  // Colores de la gráfica de categorías del inicio
-  static const catLacteos = Color(0xFF10B981);
-  static const catBebidas = Color(0xFF2563EB);
-  static const catEnlatados = Color(0xFF7C3AED);
-  static const catPanaderia = Color(0xFFF97316);
-  static const catOtros = Color(0xFFFBBF24);
-
   static const backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,

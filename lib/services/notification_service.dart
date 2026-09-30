@@ -9,6 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../models/product.dart';
 import '../utils/image_utils.dart';
+import 'device_settings.dart';
 import 'zentory_repository.dart';
 
 /// Alertas locales de vencimiento de productos.
@@ -36,6 +37,11 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   static const String prefNotificationsEnabled = 'notifications_enabled';
+
+  /// Usar alarmas "de reloj" (como el despertador). Son las que los sistemas
+  /// con ahorro de batería agresivo (ColorOS, MIUI...) casi nunca bloquean.
+  /// Si el usuario no lo eligió, se activa sola en esos fabricantes.
+  static const String prefAlarmClockMode = 'alarm_clock_mode';
 
   static const _channelId = 'expiration_notifications_custom_sound';
   static const _channelName = 'Vencimientos de Productos';
@@ -156,6 +162,22 @@ class NotificationService {
     return prefs.getBool(prefNotificationsEnabled) ?? true;
   }
 
+  /// `true` si está activo el modo alarma de reloj.
+  Future<bool> alarmClockMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(prefAlarmClockMode);
+    if (saved != null) return saved;
+    final status = await DeviceSettings.status();
+    return status.hasAggressiveBatteryManager;
+  }
+
+  Future<void> setAlarmClockMode(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(prefAlarmClockMode, value);
+    _lastSignature = null; // obliga a reprogramar con el modo nuevo
+  }
+
+  /// Alarma de reloj > exacta > inexacta, según lo que permita el teléfono.
   Future<AndroidScheduleMode> _scheduleMode() async {
     bool exact;
     try {
@@ -163,9 +185,10 @@ class NotificationService {
     } catch (_) {
       exact = false;
     }
-    return exact
-        ? AndroidScheduleMode.exactAllowWhileIdle
-        : AndroidScheduleMode.inexactAllowWhileIdle;
+    if (!exact) return AndroidScheduleMode.inexactAllowWhileIdle;
+    return await alarmClockMode()
+        ? AndroidScheduleMode.alarmClock
+        : AndroidScheduleMode.exactAllowWhileIdle;
   }
 
   // ---------------------------------------------------------------------------
@@ -202,12 +225,13 @@ class NotificationService {
     }
 
     final alerts = _buildAlerts(products);
-    final signature =
+    final mode = await _scheduleMode();
+    final ids =
         alerts.map((a) => '${a.id}@${a.when.millisecondsSinceEpoch}').join(',');
+    final signature = '${mode.name}|$ids';
     if (!force && signature == _lastSignature) return;
 
     await cancelExpiryAlerts();
-    final mode = await _scheduleMode();
     for (final a in alerts) {
       try {
         await _plugin.zonedSchedule(
@@ -309,25 +333,53 @@ class NotificationService {
 
   /// Programa una notificación de prueba dentro de [delay]. Sirve para
   /// comprobar que las alertas llegan con la app cerrada (que es justo lo que
-  /// bloquean las ROM chinas). Devuelve `true` si se usó una alarma exacta.
-  Future<bool> scheduleTestNotification({
+  /// bloquean las ROM chinas).
+  Future<TestScheduleResult> scheduleTestNotification({
     Duration delay = const Duration(minutes: 1),
   }) async {
     await init();
-    if (!_initialized) return false;
+    if (!_initialized) {
+      return const TestScheduleResult.error(
+          'No se pudieron iniciar las notificaciones.');
+    }
     final mode = await _scheduleMode();
-    await _plugin.cancel(_testScheduledId);
-    await _plugin.zonedSchedule(
-      _testScheduledId,
-      _title,
-      'Prueba programada de Zentory: si ves esto con la app cerrada, las '
-          'alertas de vencimiento te llegarán. ✅',
-      tz.TZDateTime.from(DateTime.now().add(delay), tz.UTC),
-      _details,
-      androidScheduleMode: mode,
-    );
-    return mode == AndroidScheduleMode.exactAllowWhileIdle;
+    try {
+      await _plugin.cancel(_testScheduledId);
+      await _plugin.zonedSchedule(
+        _testScheduledId,
+        _title,
+        'Prueba programada de Zentory: si ves esto con la app cerrada, las '
+            'alertas de vencimiento te llegarán. ✅',
+        tz.TZDateTime.from(DateTime.now().add(delay), tz.UTC),
+        _details,
+        androidScheduleMode: mode,
+      );
+      final pending = await _plugin.pendingNotificationRequests();
+      if (!pending.any((r) => r.id == _testScheduledId)) {
+        return const TestScheduleResult.error(
+            'El sistema no aceptó la alarma de prueba.');
+      }
+      return TestScheduleResult.ok(mode);
+    } catch (e) {
+      debugPrint('No se pudo programar la prueba: $e');
+      return TestScheduleResult.error('No se pudo programar la prueba: $e');
+    }
   }
+}
+
+/// Resultado de programar la notificación de prueba.
+class TestScheduleResult {
+  const TestScheduleResult.ok(AndroidScheduleMode this.mode) : error = null;
+  const TestScheduleResult.error(String this.error) : mode = null;
+
+  final AndroidScheduleMode? mode;
+  final String? error;
+
+  bool get ok => error == null;
+  bool get isAlarmClock => mode == AndroidScheduleMode.alarmClock;
+  bool get isExact =>
+      mode == AndroidScheduleMode.alarmClock ||
+      mode == AndroidScheduleMode.exactAllowWhileIdle;
 }
 
 class _Alert {

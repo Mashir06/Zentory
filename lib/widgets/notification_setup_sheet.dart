@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/device_settings.dart';
 import '../services/notification_service.dart';
+import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import 'common.dart';
 
@@ -50,6 +51,8 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
   DeviceNotificationStatus? _status;
   int _pending = 0;
   bool _autoStartVisited = false;
+  bool _alarmClock = false;
+  TestScheduleResult? _lastTest;
 
   @override
   void initState() {
@@ -73,10 +76,12 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
   Future<void> _refresh() async {
     final status = await DeviceSettings.status();
     final pending = await NotificationService.instance.pendingCount();
+    final alarmClock = await NotificationService.instance.alarmClockMode();
     if (!mounted) return;
     setState(() {
       _status = status;
       _pending = pending;
+      _alarmClock = alarmClock;
     });
   }
 
@@ -116,14 +121,30 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
 
   Future<void> _scheduleTest() async {
     await NotificationService.instance.requestPermission();
-    await NotificationService.instance.scheduleTestNotification();
+    final r = await NotificationService.instance.scheduleTestNotification();
     if (!mounted) return;
+    setState(() => _lastTest = r);
+    if (!r.ok) {
+      showMessage(context, r.error!, long: true);
+      return;
+    }
     showMessage(
       context,
-      'Prueba programada para dentro de 1 minuto. Sal de la app (sin cerrarla '
-      'desde Recientes) y espera.',
+      r.isExact
+          ? 'Prueba programada para dentro de 1 minuto. Sal de la app con el '
+              'botón de inicio (sin cerrarla desde Recientes) y espera.'
+          : 'Prueba programada, pero sin alarmas exactas puede tardar varios '
+              'minutos. Activa "Alarmas y recordatorios".',
       long: true,
     );
+  }
+
+  Future<void> _setAlarmClock(bool value) async {
+    setState(() => _alarmClock = value);
+    await NotificationService.instance.setAlarmClockMode(value);
+    final storeId = await ZentoryRepository.instance.resolveActiveStoreId();
+    await NotificationService.instance.syncStore(storeId);
+    _refresh();
   }
 
   @override
@@ -199,6 +220,45 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
               actionLabel: 'Abrir ajustes',
               onAction: _openAutoStart,
             ),
+            ZCard(
+              color: AppColors.background,
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
+              child: Row(
+                children: [
+                  Icon(Icons.alarm,
+                      color: _alarmClock
+                          ? AppColors.primary
+                          : AppColors.textSecondary),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Modo alarma (más confiable)',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Programa los avisos como una alarma de reloj, que '
+                          'los teléfonos chinos casi nunca bloquean. Puede '
+                          'aparecer un ícono de reloj en la barra de estado.',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(value: _alarmClock, onChanged: _setAlarmClock),
+                ],
+              ),
+            ),
             const SizedBox(height: 8),
             ZCard(
               color: AppColors.background,
@@ -227,6 +287,23 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
                 side: const BorderSide(color: AppColors.primary),
               ),
             ),
+            if (_lastTest != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  _lastTest!.ok
+                      ? 'Prueba programada (${_lastTest!.isAlarmClock ? 'modo alarma' : (_lastTest!.isExact ? 'alarma exacta' : 'alarma inexacta')}). '
+                          'Si no llega en 1–2 minutos, revisa "Inicio automático '
+                          'y segundo plano" y activa el Modo alarma.'
+                      : _lastTest!.error!,
+                  style: TextStyle(
+                    color: _lastTest!.ok
+                        ? AppColors.textSecondary
+                        : AppColors.danger,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () => DeviceSettings.openAppDetails(),

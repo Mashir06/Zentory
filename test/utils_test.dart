@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zentory/models/categories.dart';
 import 'package:zentory/models/product.dart';
 import 'package:zentory/utils/date_utils.dart';
 import 'package:zentory/utils/image_utils.dart';
@@ -32,13 +31,6 @@ void main() {
       expect(ProductStatus.fromExpiry(inDays(7)), ProductStatus.expiring);
       expect(ProductStatus.fromExpiry(inDays(8)), ProductStatus.good);
     });
-  });
-
-  test('agrupa categorías para la gráfica del inicio', () {
-    expect(homeGroupFor('Refrigerados'), 'Lácteos');
-    expect(homeGroupFor('Licores y Cervezas'), 'Bebidas');
-    expect(homeGroupFor('Abarrotes'), 'Enlatados');
-    expect(homeGroupFor('Mascotas'), 'Otros');
   });
 
   test('javaStringHash replica String.hashCode() de Java', () {

@@ -19,6 +19,7 @@ class Routes {
   static const faq = '/faq';
   static const privacySettings = '/privacy_settings';
   static const addProduct = '/add_product';
+  static const lotForm = '/lot_form';
 
   /// Pestañas de la barra inferior (se muestran sin animación).
   static const tabs = {home, productos, scan, calendar};
@@ -50,27 +51,42 @@ class Routes {
   }
 }
 
-/// Argumentos de la pantalla de registro/edición de productos.
-class AddProductArgs {
-  const AddProductArgs({
-    this.productId,
+/// Argumentos del formulario de **producto** (nombre, foto y presentación).
+class ProductFormArgs {
+  const ProductFormArgs({
+    this.editName,
     this.qrNombre,
-    this.qrCategoria,
-    this.qrMarca,
     this.qrPresentacion,
-    this.lotOfProductId,
   });
 
-  final String? productId;
+  /// Nombre del producto a editar; `null` para crear uno nuevo.
+  final String? editName;
 
-  /// Crear un **lote nuevo** del mismo producto que este registro: se copian
-  /// nombre, categoría, marca, presentación y foto; la fecha y la cantidad
-  /// quedan vacías para el nuevo lote.
-  final String? lotOfProductId;
+  /// Datos obtenidos al escanear un código de barras.
   final String? qrNombre;
-  final String? qrCategoria;
-  final String? qrMarca;
   final String? qrPresentacion;
+}
+
+/// Argumentos del formulario de **lote** (fecha de vencimiento y cantidad).
+class LotFormArgs {
+  const LotFormArgs({
+    required this.nombre,
+    this.presentacion = '',
+    this.imagenBase64,
+    this.lotId,
+    this.lotLabel,
+  });
+
+  /// Producto al que pertenece el lote.
+  final String nombre;
+  final String presentacion;
+  final String? imagenBase64;
+
+  /// ID del lote a editar; `null` para crear uno nuevo.
+  final String? lotId;
+
+  /// Número visible del lote (L001...), solo al editar.
+  final String? lotLabel;
 }
 
 /// Permite que pantallas como "Inicio" recarguen sus datos al volver a ellas.

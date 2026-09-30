@@ -5,8 +5,6 @@ import 'package:zentory/models/product_lots.dart';
 Product _p(String id, String nombre, String vence, String cantidad) => Product(
       id: id,
       nombre: nombre,
-      categoria: 'Bebidas',
-      marca: 'N/A',
       presentacion: 'N/A',
       fechaVencimiento: vence,
       fechaRegistro: 'N/A',
@@ -42,5 +40,24 @@ void main() {
     expect(formatQty(3), '3');
     expect(formatQty(2.5), '2.5');
     expect(relativeExpiry(null), 'Sin fecha de vencimiento');
+  });
+
+  test('incluye productos del catálogo que aún no tienen lotes', () {
+    final groups = groupProducts(
+      [_p('x', 'Jugo', '15/8/2026', '1')],
+      catalog: [
+        CatalogItem(nombre: 'Jugo', presentacion: '250 ml'),
+        CatalogItem(nombre: 'Pan', presentacion: '500 g'),
+      ],
+    );
+    expect(groups.length, 2);
+    final pan = groups.firstWhere((g) => g.key == 'pan');
+    expect(pan.hasLots, isFalse);
+    expect(pan.status, isNull);
+    expect(pan.totalQty, 0);
+    expect(pan.presentacion, '500 g');
+    final jugo = groups.firstWhere((g) => g.key == 'jugo');
+    expect(jugo.lots.length, 1);
+    expect(jugo.presentacion, '250 ml');
   });
 }

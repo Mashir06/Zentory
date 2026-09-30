@@ -50,8 +50,12 @@ class ZentoryApp extends StatelessWidget {
       case Routes.privacySettings:
         return const PrivacySettingsScreen();
       case Routes.addProduct:
-        return RegistrarProductoScreen(
-          args: args is AddProductArgs ? args : const AddProductArgs(),
+        return ProductFormScreen(
+          args: args is ProductFormArgs ? args : const ProductFormArgs(),
+        );
+      case Routes.lotForm:
+        return LotFormScreen(
+          args: args is LotFormArgs ? args : const LotFormArgs(nombre: ''),
         );
       case Routes.session:
       default:

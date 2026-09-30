@@ -52,10 +52,8 @@ class _QRScreenState extends State<QRScreen> {
       if (!mounted) return;
       await Navigator.of(context).pushNamed(
         Routes.addProduct,
-        arguments: AddProductArgs(
+        arguments: ProductFormArgs(
           qrNombre: product.nombre,
-          qrCategoria: product.categoria,
-          qrMarca: product.marca,
           qrPresentacion: product.presentacion,
         ),
       );

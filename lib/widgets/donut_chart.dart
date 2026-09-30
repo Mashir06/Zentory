@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
-/// Gráfica de dona por categorías (reemplaza DonutChartView).
+/// Gráfica de dona (reemplaza DonutChartView).
 class DonutChart extends StatelessWidget {
   const DonutChart({
     super.key,

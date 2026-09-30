@@ -1,5 +1,7 @@
-import 'product.dart';
+import 'dart:typed_data';
+
 import '../utils/date_utils.dart';
+import 'product.dart';
 
 /// Agrupación de productos en lotes.
 ///
@@ -69,40 +71,89 @@ int compareByExpiry(Product a, Product b) {
 }
 
 /// Un producto con sus lotes, ordenados del que vence antes al que vence
-/// después.
+/// después. Puede no tener lotes todavía (producto recién creado en el
+/// catálogo); en ese caso [info] trae su nombre, presentación y foto.
 class ProductGroup {
-  ProductGroup(this.key, List<Product> lots)
+  ProductGroup(this.key, List<Product> lots, {this.info})
       : lots = [...lots]..sort(compareByExpiry),
-        status = lots
-            .map((l) => l.status)
-            .reduce((a, b) => statusRank(a) >= statusRank(b) ? a : b),
+        status = lots.isEmpty
+            ? null
+            : lots
+                .map((l) => l.status)
+                .reduce((a, b) => statusRank(a) >= statusRank(b) ? a : b),
         totalQty = lots.fold<num>(0, (sum, l) => sum + qtyOf(l));
 
   final String key;
   final List<Product> lots;
-  final ProductStatus status;
+
+  /// Ficha del catálogo, si existe.
+  final CatalogItem? info;
+
+  /// Estado general (el del lote en peor situación); `null` si no hay lotes.
+  final ProductStatus? status;
   final num totalQty;
 
-  Product get main => lots.first;
-  String get nombre => main.nombre;
+  bool get hasLots => lots.isNotEmpty;
 
-  /// Primer lote con foto, para la miniatura del producto.
-  Product get withImage =>
-      lots.firstWhere((l) => l.imageBytes != null, orElse: () => main);
+  /// Lote que vence antes (solo si hay lotes).
+  Product? get first => lots.isEmpty ? null : lots.first;
+
+  String get nombre => info?.nombre ?? first?.nombre ?? '';
+
+  String get presentacion {
+    final fromInfo = info?.presentacion.trim() ?? '';
+    if (fromInfo.isNotEmpty && fromInfo != 'N/A') return fromInfo;
+    for (final l in lots) {
+      final p = l.presentacion.trim();
+      if (p.isNotEmpty && p != 'N/A') return p;
+    }
+    return '';
+  }
+
+  String? get imagenBase64 {
+    final fromInfo = info?.imagenBase64;
+    if (fromInfo != null && fromInfo.isNotEmpty) return fromInfo;
+    for (final l in lots) {
+      if (l.imagenBase64 != null && l.imagenBase64!.isNotEmpty) {
+        return l.imagenBase64;
+      }
+    }
+    return null;
+  }
+
+  Uint8List? get imageBytes {
+    if (info?.imageBytes != null) return info!.imageBytes;
+    for (final l in lots) {
+      if (l.imageBytes != null) return l.imageBytes;
+    }
+    return null;
+  }
 
   /// Fecha de vencimiento más próxima entre los lotes.
-  DateTime? get nextExpiry => main.expiryDate;
-
-  String get categoria => lots.map((l) => l.categoria).toSet().join(', ');
+  DateTime? get nextExpiry => first?.expiryDate;
 }
 
-/// Agrupa una lista de registros en productos (sin ordenar los grupos).
-List<ProductGroup> groupProducts(Iterable<Product> products) {
+/// Agrupa una lista de registros (lotes) en productos. Si se pasa el
+/// [catalog], se incluyen también los productos que aún no tienen lotes.
+List<ProductGroup> groupProducts(
+  Iterable<Product> products, {
+  Iterable<CatalogItem> catalog = const [],
+}) {
   final map = <String, List<Product>>{};
   for (final p in products) {
     map.putIfAbsent(groupKeyOf(p), () => []).add(p);
   }
-  return [for (final e in map.entries) ProductGroup(e.key, e.value)];
+  final infos = <String, CatalogItem>{};
+  for (final c in catalog) {
+    final key = c.nombre.trim().toLowerCase();
+    if (key.isEmpty) continue;
+    infos.putIfAbsent(key, () => c);
+    map.putIfAbsent(key, () => []);
+  }
+  return [
+    for (final e in map.entries)
+      ProductGroup(e.key, e.value, info: infos[e.key]),
+  ];
 }
 
 /// Etiqueta de lote (L001, L002...) de cada registro, calculada sobre el

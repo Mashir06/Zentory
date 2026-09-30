@@ -71,9 +71,9 @@ class ZentoryException implements Exception {
 /// usuarios/{uid}                      nombre, correo, uid, tiendaId, tiendasIds
 /// tiendas/{nombreTienda}              nombre, ubicacion, adminUid, adminNombre, codigoInvitacion
 ///   personal/{nombreUsuario}          uid, nombre, correo, rol, fechaUnion
-///   productos/{autoId}                nombre, categoria, marca, presentacion, cantidad,
-///                                     fechaVencimiento (d/M/yyyy), fechaRegistro, imagen, usuarioId
-///   catalogo/{nombreProducto}         nombre, categoria, marca, presentacion, imagen
+///   productos/{autoId}                lote: nombre, presentacion, imagen, cantidad,
+///                                     fechaVencimiento (d/M/yyyy), fechaRegistro, usuarioId
+///   catalogo/{nombreProducto}         producto: nombre, presentacion, imagen
 ///   minisupers/{id}                   sucursales
 /// ```
 class ZentoryRepository {
@@ -379,51 +379,174 @@ class ZentoryRepository {
     return res.docs.map((d) => CatalogItem.fromMap(d.data())).toList();
   }
 
-  Future<CatalogItem?> findInCatalog(String storeId, String nombre) async {
-    if (nombre.contains('/')) return null;
-    final doc = await catalog(storeId).doc(nombre).get();
-    final data = doc.data();
-    return data == null ? null : CatalogItem.fromMap(data);
+  // ---------------------------------------------------------------------------
+  // Productos (catálogo) y lotes
+  //
+  // Un **producto** es la ficha del catálogo: nombre, presentación y foto
+  // (`tiendas/{id}/catalogo/{nombre}`). Cada **lote** es un registro de
+  // `productos` con su fecha de vencimiento y cantidad; lleva copiados el
+  // nombre, la presentación y la foto del producto para que se muestren igual
+  // en todas las pantallas y en las alertas.
+  // ---------------------------------------------------------------------------
+
+  static String _key(String nombre) => nombre.trim().toLowerCase();
+
+  static void _checkName(String nombre) {
+    if (nombre.trim().isEmpty) {
+      throw ZentoryException('El nombre del producto es obligatorio');
+    }
+    if (nombre.contains('/')) {
+      throw ZentoryException('El nombre no puede contener "/"');
+    }
   }
 
-  /// Guarda un producto nuevo o actualiza uno existente. Los productos nuevos
-  /// también se agregan al catálogo de productos frecuentes.
-  Future<void> saveProduct({
+  /// Crea un producto nuevo en el catálogo. Lanza [ZentoryException] si ya
+  /// existe uno con el mismo nombre.
+  Future<void> createProduct({
     required String storeId,
-    String? productId,
     required String nombre,
-    required String categoria,
-    required String marca,
     required String presentacion,
-    required String cantidad,
-    required String fechaVencimiento,
     String? imagenBase64,
   }) async {
-    final data = <String, dynamic>{
-      'nombre': nombre,
-      'categoria': categoria,
-      'cantidad': cantidad,
-      'fechaVencimiento': fechaVencimiento,
-      'marca': marca,
-      'presentacion': presentacion,
-      'usuarioId': currentUser?.uid,
+    final name = nombre.trim();
+    _checkName(name);
+    if (await findProduct(storeId, name) != null) {
+      throw ZentoryException('Ya existe un producto llamado "$name"');
+    }
+    await catalog(storeId).doc(name).set({
+      'nombre': name,
+      'presentacion': presentacion.trim(),
       'imagen': imagenBase64,
-    };
+      'fechaCreacion': Timestamp.now(),
+    });
+  }
 
-    if (productId == null) {
-      data['fechaRegistro'] = Timestamp.now();
-      await products(storeId).add(data);
-      if (!nombre.contains('/')) {
-        await catalog(storeId).doc(nombre).set({
-          'nombre': nombre,
-          'categoria': categoria,
-          'marca': marca,
-          'presentacion': presentacion,
+  /// Busca un producto del catálogo sin distinguir mayúsculas ni espacios.
+  Future<CatalogItem?> findProduct(String storeId, String nombre) async {
+    final name = nombre.trim();
+    if (name.isEmpty || name.contains('/')) return null;
+    final exact = await catalog(storeId).doc(name).get();
+    if (exact.data() != null) return CatalogItem.fromMap(exact.data()!);
+    final all = await fetchCatalog(storeId);
+    for (final item in all) {
+      if (_key(item.nombre) == _key(name)) return item;
+    }
+    return null;
+  }
+
+  /// Actualiza nombre, presentación y foto de un producto y de **todos** sus
+  /// lotes. [originalName] es el nombre actual del producto.
+  Future<void> updateProduct({
+    required String storeId,
+    required String originalName,
+    required String nombre,
+    required String presentacion,
+    String? imagenBase64,
+  }) async {
+    final name = nombre.trim();
+    _checkName(name);
+    final renamed = _key(name) != _key(originalName);
+    if (renamed && await findProduct(storeId, name) != null) {
+      throw ZentoryException('Ya existe un producto llamado "$name"');
+    }
+
+    // Ficha del catálogo (se borra la anterior si cambió el nombre).
+    final oldDocs = await _catalogDocsFor(storeId, originalName);
+    for (final d in oldDocs) {
+      if (d.id != name) await d.reference.delete();
+    }
+    await catalog(storeId).doc(name).set({
+      'nombre': name,
+      'presentacion': presentacion.trim(),
+      'imagen': imagenBase64,
+    }, SetOptions(merge: true));
+
+    // Todos los lotes del producto
+    final lots = await _lotDocsFor(storeId, originalName);
+    for (var i = 0; i < lots.length; i += 450) {
+      final batch = _db.batch();
+      for (final d in lots.skip(i).take(450)) {
+        batch.update(d.reference, {
+          'nombre': name,
+          'presentacion': presentacion.trim(),
           'imagen': imagenBase64,
         });
       }
-    } else {
-      await products(storeId).doc(productId).update(data);
+      await batch.commit();
     }
+  }
+
+  /// Elimina el producto del catálogo y **todos** sus lotes.
+  Future<void> deleteProductAndLots(String storeId, String nombre) async {
+    final docs = [
+      ...await _catalogDocsFor(storeId, nombre),
+      ...await _lotDocsFor(storeId, nombre),
+    ];
+    for (var i = 0; i < docs.length; i += 450) {
+      final batch = _db.batch();
+      for (final d in docs.skip(i).take(450)) {
+        batch.delete(d.reference);
+      }
+      await batch.commit();
+    }
+  }
+
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _catalogDocsFor(
+      String storeId, String nombre) async {
+    final res = await catalog(storeId).get();
+    return res.docs
+        .where((d) =>
+            _key((d.data()['nombre'] ?? d.id).toString()) == _key(nombre))
+        .toList();
+  }
+
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _lotDocsFor(
+      String storeId, String nombre) async {
+    final res = await products(storeId).get();
+    return res.docs
+        .where((d) => _key((d.data()['nombre'] ?? '').toString()) == _key(nombre))
+        .toList();
+  }
+
+  /// Agrega un lote (fecha de vencimiento y cantidad) a un producto.
+  Future<void> addLot({
+    required String storeId,
+    required String nombre,
+    required String presentacion,
+    String? imagenBase64,
+    required String cantidad,
+    required String fechaVencimiento,
+  }) async {
+    await products(storeId).add({
+      'nombre': nombre.trim(),
+      'presentacion': presentacion.trim(),
+      'imagen': imagenBase64,
+      'cantidad': cantidad,
+      'fechaVencimiento': fechaVencimiento,
+      'fechaRegistro': Timestamp.now(),
+      'usuarioId': currentUser?.uid,
+    });
+    // Asegura que el producto exista en el catálogo (datos antiguos).
+    final name = nombre.trim();
+    if (!name.contains('/') && await findProduct(storeId, name) == null) {
+      await catalog(storeId).doc(name).set({
+        'nombre': name,
+        'presentacion': presentacion.trim(),
+        'imagen': imagenBase64,
+      });
+    }
+  }
+
+  /// Cambia la fecha de vencimiento y la cantidad de un lote.
+  Future<void> updateLot({
+    required String storeId,
+    required String lotId,
+    required String cantidad,
+    required String fechaVencimiento,
+  }) {
+    return products(storeId).doc(lotId).update({
+      'cantidad': cantidad,
+      'fechaVencimiento': fechaVencimiento,
+    });
   }
 }

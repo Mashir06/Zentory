@@ -27,14 +27,12 @@ enum ProductStatus {
   }
 }
 
-/// Producto del inventario de una tienda
-/// (`tiendas/{tiendaId}/productos/{id}` en Firestore).
+/// Lote de un producto: registro de `tiendas/{tiendaId}/productos/{id}` con
+/// su fecha de vencimiento y cantidad.
 class Product {
   Product({
     required this.id,
     required this.nombre,
-    required this.categoria,
-    required this.marca,
     required this.presentacion,
     required this.fechaVencimiento,
     required this.fechaRegistro,
@@ -45,8 +43,6 @@ class Product {
 
   final String id;
   final String nombre;
-  final String categoria;
-  final String marca;
   final String presentacion;
 
   /// Texto `d/M/yyyy`, tal como se guarda en Firestore.
@@ -74,8 +70,6 @@ class Product {
     return Product(
       id: doc.id,
       nombre: (data['nombre'] ?? '').toString(),
-      categoria: (data['categoria'] ?? 'Otros').toString(),
-      marca: (data['marca'] ?? 'N/A').toString(),
       presentacion: (data['presentacion'] ?? 'N/A').toString(),
       fechaVencimiento: (data['fechaVencimiento'] ?? '').toString(),
       fechaRegistro: regStr,
@@ -85,29 +79,23 @@ class Product {
   }
 }
 
-/// Entrada del catálogo de productos frecuentes
-/// (`tiendas/{tiendaId}/catalogo/{nombre}`).
+/// Producto del catálogo de la tienda (`tiendas/{tiendaId}/catalogo/{nombre}`):
+/// nombre, presentación y foto. Sus lotes están en `productos`.
 class CatalogItem {
   CatalogItem({
     required this.nombre,
-    required this.categoria,
-    required this.marca,
     required this.presentacion,
     this.imagenBase64,
   }) : imageBytes = ImageUtils.decode(imagenBase64);
 
   final String nombre;
-  final String categoria;
-  final String marca;
   final String presentacion;
   final String? imagenBase64;
   final Uint8List? imageBytes;
 
   factory CatalogItem.fromMap(Map<String, dynamic> data) => CatalogItem(
-        nombre: (data['nombre'] ?? 'N/A').toString(),
-        categoria: (data['categoria'] ?? 'Otros').toString(),
-        marca: (data['marca'] ?? 'N/A').toString(),
-        presentacion: (data['presentacion'] ?? 'N/A').toString(),
+        nombre: (data['nombre'] ?? '').toString(),
+        presentacion: (data['presentacion'] ?? '').toString(),
         imagenBase64: data['imagen'] as String?,
       );
 }

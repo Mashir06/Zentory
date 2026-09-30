@@ -8,9 +8,9 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 
 - **Inicio de sesión** con correo/contraseña o Google, registro y recuperación de contraseña (Firebase Auth).
 - **Tiendas**: crear una tienda, unirse con código de invitación, sucursales, cambiar de tienda activa y administrar al personal.
-- **Inicio**: resumen de productos en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por categorías.
-- **Productos**: búsqueda, filtros por categoría y estado, edición y eliminación.
-- **Registrar producto**: foto (cámara o galería), categoría, marca, presentación, cantidad y fecha de vencimiento; autocompletado desde el catálogo de productos frecuentes.
+- **Inicio**: resumen de lotes en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por estado.
+- **Productos**: cada producto con sus lotes; búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.
+- **Registrar producto**: nombre, foto (cámara o galería) y presentación. **Agregar lote**: fecha de vencimiento y cantidad.
 - **Escáner** de códigos de barras con consulta a [OpenFoodFacts](https://world.openfoodfacts.org) y linterna.
 - **Calendario** mensual con indicadores de vencimiento por día.
 - **Notificaciones** locales 3 días y 1 día antes del vencimiento (9:00 a. m.), con sonido propio.
@@ -50,11 +50,14 @@ La app usa el mismo proyecto de Firebase que la versión Kotlin (`zentory-base`)
 usuarios/{uid}                    nombre, correo, uid, tiendaId, tiendasIds
 tiendas/{nombreTienda}            nombre, ubicacion, adminUid, adminNombre, codigoInvitacion
   personal/{nombreUsuario}        uid, nombre, correo, rol, fechaUnion
-  productos/{id}                  nombre, categoria, marca, presentacion, cantidad,
-                                  fechaVencimiento (d/M/yyyy), fechaRegistro, imagen (Base64), usuarioId
-  catalogo/{nombreProducto}       nombre, categoria, marca, presentacion, imagen
+  catalogo/{nombreProducto}       PRODUCTO: nombre, presentacion, imagen (Base64)
+  productos/{id}                  LOTE: nombre, presentacion, imagen, cantidad,
+                                  fechaVencimiento (d/M/yyyy), fechaRegistro, usuarioId
   minisupers/{id}                 sucursales
 ```
+
+- **Producto**: se registra con nombre, foto y presentación (tamaño).
+- **Lote**: cada ingreso de un producto, con su fecha de vencimiento y cantidad. Los lotes de un mismo producto se agrupan por nombre.
 
 ## Estructura del proyecto
 

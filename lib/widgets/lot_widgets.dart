@@ -4,10 +4,11 @@ import '../models/product.dart';
 import '../models/product_lots.dart';
 import '../theme/app_colors.dart';
 
-/// Píldora de estado con los colores de Zentory.
+/// Píldora de estado con los colores de Zentory. Sin estado (producto sin
+/// lotes) muestra "Sin lotes".
 class StatusPill extends StatelessWidget {
   const StatusPill(this.status, {super.key, this.small = false});
-  final ProductStatus status;
+  final ProductStatus? status;
   final bool small;
 
   @override
@@ -18,11 +19,11 @@ class StatusPill extends StatelessWidget {
         vertical: small ? 3 : 4,
       ),
       decoration: BoxDecoration(
-        color: status.color,
+        color: status?.color ?? AppColors.border,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        status.label,
+        status?.label ?? 'Sin lotes',
         maxLines: 1,
         style: TextStyle(
           color: Colors.white,
@@ -34,10 +35,11 @@ class StatusPill extends StatelessWidget {
   }
 }
 
-/// Etiqueta de categoría con ícono.
-class CategoryTag extends StatelessWidget {
-  const CategoryTag(this.label, {super.key});
+/// Etiqueta pequeña con ícono (se usa para la presentación del producto).
+class InfoTag extends StatelessWidget {
+  const InfoTag(this.label, {super.key, this.icon = Icons.straighten});
   final String label;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +52,7 @@ class CategoryTag extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.sell_outlined,
-              size: 12, color: AppColors.textSecondary),
+          Icon(icon, size: 12, color: AppColors.textSecondary),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
@@ -202,8 +203,6 @@ Future<LotAction?> showLotDetailSheet(
             _SheetRow('', relativeExpiry(lot.expiryDate),
                 valueColor: lot.status.color),
             _SheetRow('Cantidad', '${lot.cantidad} unidades'),
-            _SheetRow('Categoría', lot.categoria),
-            _SheetRow('Marca', lot.marca),
             _SheetRow('Presentación', lot.presentacion),
             _SheetRow('Fecha de registro', lot.fechaRegistro),
             const SizedBox(height: 16),

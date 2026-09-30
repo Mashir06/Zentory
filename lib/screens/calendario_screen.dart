@@ -111,7 +111,11 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
   List<ProductGroup> _groupsOf(List<Product> lots) {
     final groups = groupProducts(lots);
     groups.sort((a, b) {
-      final c = compareByExpiry(a.main, b.main);
+      final ea = a.nextExpiry;
+      final eb = b.nextExpiry;
+      final c = ea == null || eb == null
+          ? (ea == null ? (eb == null ? 0 : 1) : -1)
+          : ea.compareTo(eb);
       return c != 0
           ? c
           : a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase());
@@ -411,7 +415,7 @@ class _CalendarLotsCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  ProductThumbnail(bytes: g.withImage.imageBytes, size: 48),
+                  ProductThumbnail(bytes: g.imageBytes, size: 48),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -427,8 +431,10 @@ class _CalendarLotsCard extends StatelessWidget {
                             fontSize: 15,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        CategoryTag(g.categoria),
+                        if (g.presentacion.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          InfoTag(g.presentacion),
+                        ],
                       ],
                     ),
                   ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../models/categories.dart';
 import '../models/product.dart';
 import '../routes.dart';
 import '../services/notification_service.dart';
@@ -22,11 +21,14 @@ class _HomeStats {
   int expiring = 0;
   int expired = 0;
   int tomorrow = 0;
-  final Map<String, int> categories = {
-    for (final c in kHomeCategoryGroups) c: 0,
-  };
-
   int get total => good + expiring + expired;
+
+  /// Lotes por estado, para la gráfica de dona.
+  Map<String, int> get byStatus => {
+        'Buen estado': good,
+        'Por vencer': expiring,
+        'Vencidos': expired,
+      };
 
   static _HomeStats from(List<Product> products) {
     final s = _HomeStats();
@@ -45,8 +47,6 @@ class _HomeStats {
           s.good++;
         }
       }
-      final group = homeGroupFor(p.categoria);
-      s.categories[group] = (s.categories[group] ?? 0) + 1;
     }
     return s;
   }
@@ -60,12 +60,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   bool _loading = true;
   _HomeStats _stats = _HomeStats();
 
-  static const _categoryColors = {
-    'Lácteos': AppColors.catLacteos,
-    'Bebidas': AppColors.catBebidas,
-    'Enlatados': AppColors.catEnlatados,
-    'Panadería': AppColors.catPanaderia,
-    'Otros': AppColors.catOtros,
+  static const _statusColors = {
+    'Buen estado': AppColors.primary,
+    'Por vencer': AppColors.amber,
+    'Vencidos': AppColors.dangerBright,
   };
 
   @override
@@ -183,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           _tomorrowAlert(),
                         ],
                         const SizedBox(height: 20),
-                        _categoriesCard(),
+                        _statusCard(),
                       ],
                     ],
                   ),
@@ -276,12 +274,12 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     );
   }
 
-  Widget _categoriesCard() {
+  Widget _statusCard() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Inventario por categorías',
+          'Inventario por estado',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -293,15 +291,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           child: Row(
             children: [
               DonutChart(
-                values: _stats.categories,
-                colors: _categoryColors,
+                values: _stats.byStatus,
+                colors: _statusColors,
                 size: 130,
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   children: [
-                    for (final group in kHomeCategoryGroups)
+                    for (final group in _statusColors.keys)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
@@ -310,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               width: 12,
                               height: 12,
                               decoration: BoxDecoration(
-                                color: _categoryColors[group],
+                                color: _statusColors[group],
                                 borderRadius: BorderRadius.circular(3),
                               ),
                             ),
@@ -322,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               ),
                             ),
                             Text(
-                              '${_stats.categories[group] ?? 0}',
+                              '${_stats.byStatus[group] ?? 0}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,

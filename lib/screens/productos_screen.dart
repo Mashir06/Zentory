@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../models/categories.dart';
 import '../models/product.dart';
 import '../models/product_lots.dart';
 import '../routes.dart';
@@ -48,9 +47,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
   final _search = TextEditingController();
 
   List<Product> _all = [];
+
+  /// Productos del catálogo (incluye los que aún no tienen lotes).
+  List<CatalogItem> _catalog = [];
   String? _storeId;
   bool _loading = true;
-  String _category = 'Todas';
   String _status = 'Todos';
   _SortOption _sort = _SortOption.expiry;
 
@@ -79,10 +80,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
       final storeId = _storeId ?? await _repo.resolveActiveStoreId();
       final products =
           storeId == null ? <Product>[] : await _repo.fetchProducts(storeId);
+      final catalog = storeId == null
+          ? <CatalogItem>[]
+          : await _repo.fetchCatalog(storeId);
       if (!mounted) return;
       setState(() {
         _storeId = storeId;
         _all = products;
+        _catalog = catalog;
         _labels = lotLabels(products);
         _loading = false;
       });
@@ -100,13 +105,17 @@ class _ProductosScreenState extends State<ProductosScreen> {
   List<ProductGroup> get _groups {
     final query = _search.text.trim().toLowerCase();
     final lots = _all.where((p) {
-      final matchesCat = _category == 'Todas' || p.categoria == _category;
       final matchesStat = _status == 'Todos' || p.status.label == _status;
       final matchesSearch = p.nombre.toLowerCase().contains(query);
-      return matchesCat && matchesStat && matchesSearch;
+      return matchesStat && matchesSearch;
     });
+    // Los productos sin lotes solo se muestran cuando no se filtra por estado.
+    final catalog = _status == 'Todos'
+        ? _catalog.where((c) => c.nombre.toLowerCase().contains(query))
+        : const <CatalogItem>[];
 
-    final groups = groupProducts(lots);
+    final groups = groupProducts(lots, catalog: catalog)
+      ..removeWhere((g) => !g.hasLots && _status != 'Todos');
 
     int byName(ProductGroup a, ProductGroup b) =>
         a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase());
@@ -133,22 +142,25 @@ class _ProductosScreenState extends State<ProductosScreen> {
     return groups;
   }
 
-  int get _activeFilterCount =>
-      (_category != 'Todas' ? 1 : 0) + (_status != 'Todos' ? 1 : 0);
+  int get _activeFilterCount => _status != 'Todos' ? 1 : 0;
 
-  void _clearFilters() => setState(() {
-        _category = 'Todas';
-        _status = 'Todos';
-      });
+  void _clearFilters() => setState(() => _status = 'Todos');
 
   // ---------------------------------------------------------------------------
   // Acciones (mismo funcionamiento que antes)
   // ---------------------------------------------------------------------------
 
+  /// Editar un lote: solo fecha de vencimiento y cantidad.
   Future<void> _edit(Product p) async {
     await Navigator.of(context).pushNamed(
-      Routes.addProduct,
-      arguments: AddProductArgs(productId: p.id),
+      Routes.lotForm,
+      arguments: LotFormArgs(
+        nombre: p.nombre,
+        presentacion: p.presentacion,
+        imagenBase64: p.imagenBase64,
+        lotId: p.id,
+        lotLabel: _labels[p.id],
+      ),
     );
     _load();
   }
@@ -158,7 +170,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
     if (storeId == null) return;
     final ok = await confirmDialog(
       context,
-      title: 'Eliminar producto',
+      title: 'Eliminar lote',
       message: isLot
           ? '¿Deseas eliminar el lote ${lotCode(p)} de "${p.nombre}" '
               '(vence ${p.fechaVencimiento})?'
@@ -177,62 +189,26 @@ class _ProductosScreenState extends State<ProductosScreen> {
     }
   }
 
-  /// Abre el registro con los datos del producto para crear un lote nuevo.
+  /// Nuevo lote del producto: solo pide fecha de vencimiento y cantidad.
   Future<void> _addLot(ProductGroup g) async {
     await Navigator.of(context).pushNamed(
-      Routes.addProduct,
-      arguments: AddProductArgs(lotOfProductId: g.main.id),
+      Routes.lotForm,
+      arguments: LotFormArgs(
+        nombre: g.nombre,
+        presentacion: g.presentacion,
+        imagenBase64: g.imagenBase64,
+      ),
     );
     _load();
   }
 
-  /// "Editar producto": si hay un solo lote lo abre directo; si hay varios,
-  /// pregunta cuál editar (cada lote es un registro independiente).
+  /// Editar producto: nombre, foto y presentación (se aplica a sus lotes).
   Future<void> _editGroup(ProductGroup g) async {
-    if (g.lots.length == 1) return _edit(g.main);
-    final chosen = await showModalBottomSheet<Product>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
-              child: Text(
-                '¿Qué lote deseas editar?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            for (var i = 0; i < g.lots.length; i++)
-              ListTile(
-                leading: const Icon(Icons.layers_outlined,
-                    color: AppColors.textSecondary),
-                title: Text(
-                  '${_labels[g.lots[i].id] ?? lotLabel(i + 1)} · Vence ${g.lots[i].fechaVencimiento}',
-                  style: const TextStyle(color: Colors.white),
-                ),
-                subtitle: Text(
-                  '${g.lots[i].cantidad} unidades',
-                  style: const TextStyle(color: AppColors.textSecondary),
-                ),
-                trailing: StatusPill(g.lots[i].status, small: true),
-                onTap: () => Navigator.pop(ctx, g.lots[i]),
-              ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
+    await Navigator.of(context).pushNamed(
+      Routes.addProduct,
+      arguments: ProductFormArgs(editName: g.nombre),
     );
-    if (chosen != null) await _edit(chosen);
+    _load();
   }
 
   /// Detalle de un lote con sus acciones (editar / eliminar).
@@ -291,7 +267,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
     if (value != null) setState(() => _sort = value);
   }
 
-  /// Hoja de filtros: estado y categoría (se aplican al tocarlos).
+  /// Hoja de filtros por estado (se aplica al tocarlo).
   Future<void> _openFilters() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -309,7 +285,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
           return DraggableScrollableSheet(
             expand: false,
-            initialChildSize: 0.7,
+            initialChildSize: 0.4,
             maxChildSize: 0.9,
             builder: (_, scroll) => ListView(
               controller: scroll,
@@ -329,10 +305,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     ),
                     if (_activeFilterCount > 0)
                       TextButton(
-                        onPressed: () => update(() {
-                          _category = 'Todas';
-                          _status = 'Todos';
-                        }),
+                        onPressed: () => update(() => _status = 'Todos'),
                         child: const Text('Limpiar'),
                       ),
                   ],
@@ -358,29 +331,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         showDot: s != 'Todos',
                         selected: _status == s,
                         onTap: () => update(() => _status = s),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Categoría',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final c in ['Todas', ...kProductCategories])
-                      _FilterChipZ(
-                        label: c,
-                        color: AppColors.primary,
-                        selected: _category == c,
-                        onTap: () => update(() => _category = c),
                       ),
                   ],
                 ),
@@ -566,12 +516,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
             color: _statusColorFor(_status),
             onRemove: () => setState(() => _status = 'Todos'),
           ),
-        if (_category != 'Todas')
-          _RemovableChip(
-            label: _category,
-            color: AppColors.primary,
-            onRemove: () => setState(() => _category = 'Todas'),
-          ),
         TextButton(
           onPressed: _clearFilters,
           style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
@@ -582,7 +526,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   Widget _emptyState() {
-    final empty = _all.isEmpty;
+    final empty = _all.isEmpty && _catalog.isEmpty;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 40),
       child: Column(
@@ -829,7 +773,7 @@ class _ProductGroupCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    ProductThumbnail(bytes: g.withImage.imageBytes, size: 60),
+                    ProductThumbnail(bytes: g.imageBytes, size: 60),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -845,8 +789,10 @@ class _ProductGroupCard extends StatelessWidget {
                               fontSize: 15,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          CategoryTag(g.categoria),
+                          if (g.presentacion.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            InfoTag(g.presentacion),
+                          ],
                         ],
                       ),
                     ),
@@ -933,6 +879,16 @@ class _ProductGroupCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Divider(color: AppColors.border, height: 1),
+          if (!g.hasLots)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'Este producto aún no tiene lotes. Toca "Agregar lote" para '
+                'registrar su fecha de vencimiento y cantidad.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+            ),
           for (var i = 0; i < g.lots.length; i++) ...[
             LotTableRow(
               label: labels[g.lots[i].id] ?? lotLabel(i + 1),

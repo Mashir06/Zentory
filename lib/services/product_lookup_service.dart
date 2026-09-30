@@ -6,14 +6,10 @@ import 'package:http/http.dart' as http;
 class ScannedProduct {
   ScannedProduct({
     required this.nombre,
-    required this.categoria,
-    required this.marca,
     required this.presentacion,
   });
 
   final String nombre;
-  final String categoria;
-  final String marca;
   final String presentacion;
 }
 
@@ -44,14 +40,9 @@ class ProductLookupService {
       return fallback;
     }
 
-    final categories = field('categories', '');
-    final firstCategory = categories.split(',').first.trim();
-
     return ScannedProduct(
       nombre: field('product_name', 'Producto Desconocido'),
-      categoria: firstCategory.isEmpty ? 'Otros' : firstCategory,
-      marca: field('brands', 'N/A'),
-      presentacion: field('quantity', 'N/A'),
+      presentacion: field('quantity', ''),
     );
   }
 }
