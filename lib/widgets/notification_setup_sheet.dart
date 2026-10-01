@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/device_settings.dart';
 import '../services/notification_service.dart';
-import '../services/push_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import 'common.dart';
@@ -31,12 +30,9 @@ Future<void> maybePromptNotificationSetup(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   if (prefs.getBool(_prefPrompted) ?? false) {
     // Ya se mostró la guía. Se vuelve a ofrecer (una vez) si detectamos que
-    // la app fue cerrada a la fuerza y el push no está funcionando.
+    // la app fue cerrada a la fuerza y no está activo el respaldo en calendario.
     if (prefs.getBool(_prefForceStopPrompted) ?? false) return;
-    final storeId = await ZentoryRepository.instance.resolveActiveStoreId();
-    if (storeId != null && await PushService.instance.coversStore(storeId)) {
-      return;
-    }
+    if (await NotificationService.instance.calendarBackupEnabled()) return;
     final status = await DeviceSettings.status();
     if (!status.lastExitForceStopped) return;
     await prefs.setBool(_prefForceStopPrompted, true);
@@ -68,9 +64,7 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
   int _pending = 0;
   bool _autoStartVisited = false;
   bool _alarmClock = false;
-  PushStatus? _push;
-  String? _storeId;
-  bool _sendingPush = false;
+  bool _calendarBackup = false;
   TestScheduleResult? _lastTest;
 
   @override
@@ -96,15 +90,13 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
     final status = await DeviceSettings.status();
     final pending = await NotificationService.instance.pendingCount();
     final alarmClock = await NotificationService.instance.alarmClockMode();
-    final storeId = await ZentoryRepository.instance.resolveActiveStoreId();
-    final push = await PushService.instance.status(storeId);
+    final calendar = await NotificationService.instance.calendarBackupEnabled();
     if (!mounted) return;
     setState(() {
       _status = status;
       _pending = pending;
       _alarmClock = alarmClock;
-      _storeId = storeId;
-      _push = push;
+      _calendarBackup = calendar;
     });
   }
 
@@ -162,41 +154,29 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
     );
   }
 
-  Future<void> _enableGoogleServices() async {
-    await DeviceSettings.openGooglePlayServicesSettings();
+  Future<void> _setCalendarBackup(bool value) async {
+    final ok = await NotificationService.instance.setCalendarBackup(value);
     if (!mounted) return;
-    showMessage(
-      context,
-      'Activa los servicios de Google Play y vuelve a Zentory. En OPPO/'
-      'Xiaomi también puede estar en Ajustes > Cuentas > Servicios básicos '
-      'de Google.',
-      long: true,
-    );
-  }
-
-  Future<void> _retryPush() async {
-    await PushService.instance.retry();
-    await PushService.instance.registerForStore(_storeId);
-    final storeId = _storeId;
-    if (storeId != null) await NotificationService.instance.syncStore(storeId);
-    _refresh();
-  }
-
-  Future<void> _sendPushTest() async {
-    final storeId = _storeId;
-    if (storeId == null) return;
-    setState(() => _sendingPush = true);
-    await PushService.instance.registerForStore(storeId);
-    final error = await PushService.instance.sendTest(storeId);
+    if (!ok) {
+      showMessage(
+        context,
+        'Sin permiso de calendario no se pueden crear los recordatorios.',
+        long: true,
+      );
+      return;
+    }
+    setState(() => _calendarBackup = value);
+    final storeId = await ZentoryRepository.instance.resolveActiveStoreId();
+    await NotificationService.instance.syncStore(storeId);
     if (!mounted) return;
-    setState(() => _sendingPush = false);
-    showMessage(
-      context,
-      error ??
-          'Prueba solicitada. Cierra Zentory con el botón de inicio; el aviso '
-              'debería llegar en unos segundos.',
-      long: true,
-    );
+    if (value) {
+      showMessage(
+        context,
+        'Listo: verás los vencimientos en el calendario "Zentory - '
+        'Vencimientos" y te avisará aunque cierres la app.',
+        long: true,
+      );
+    }
   }
 
   Future<void> _setAlarmClock(bool value) async {
@@ -255,23 +235,19 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
                     Expanded(
                       child: Text(
                         'La última vez Zentory se cerró desde Recientes y el '
-                        'sistema la detuvo: mientras está así no recibe '
-                        'alertas (ni alarmas ni push). Fíjala con el candado '
-                        'en Recientes para que no vuelva a pasar.',
+                        'sistema canceló sus alertas (ya se reprogramaron al '
+                        'abrirla). Para que no vuelva a pasar, fíjala con el '
+                        'candado o activa el respaldo en el calendario.',
                         style: TextStyle(color: Colors.white, fontSize: 13),
                       ),
                     ),
                   ],
                 ),
               ),
-            if (_push != null)
-              _PushCard(
-                status: _push!,
-                sending: _sendingPush,
-                onEnableGoogle: _enableGoogleServices,
-                onRetry: _retryPush,
-                onTest: _storeId == null ? null : _sendPushTest,
-              ),
+            _BackupSwitch(
+              value: _calendarBackup,
+              onChanged: _setCalendarBackup,
+            ),
             _StepTile(
               icon: Icons.notifications_active_outlined,
               title: 'Permitir notificaciones',
@@ -522,103 +498,49 @@ class _StepTile extends StatelessWidget {
   }
 }
 
-/// Estado de las notificaciones push (FCM) y acciones para activarlas.
-class _PushCard extends StatelessWidget {
-  const _PushCard({
-    required this.status,
-    required this.sending,
-    required this.onEnableGoogle,
-    required this.onRetry,
-    required this.onTest,
-  });
+/// Interruptor del respaldo de alertas en el calendario del teléfono.
+class _BackupSwitch extends StatelessWidget {
+  const _BackupSwitch({required this.value, required this.onChanged});
 
-  final PushStatus status;
-  final bool sending;
-  final VoidCallback onEnableGoogle;
-  final VoidCallback onRetry;
-  final VoidCallback? onTest;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final working = status.working;
-    final String title;
-    final String text;
-    if (!status.googleServices) {
-      title = 'Notificaciones push: servicios de Google desactivados';
-      text = 'Las alertas del servidor llegan a través de los servicios de '
-          'Google Play. Actívalos para recibirlas aunque la app esté en '
-          'segundo plano. Mientras tanto se usan las alarmas del teléfono.';
-    } else if (!status.hasToken) {
-      title = 'Notificaciones push: sin registrar';
-      text = status.error ??
-          'No se pudo registrar este teléfono. Revisa tu conexión y vuelve a '
-              'intentarlo.';
-    } else if (!status.serverActive) {
-      title = 'Notificaciones push: servidor sin activar';
-      text = 'Este teléfono está listo, pero el servidor de avisos aún no ha '
-          'revisado la tienda. Mientras tanto se usan las alarmas del '
-          'teléfono.';
-    } else {
-      title = 'Notificaciones push activas';
-      text = 'El servidor revisa los vencimientos cada mañana y avisa a todo '
-          'el personal de la tienda. Las alarmas del teléfono se apagan para '
-          'no recibir avisos dobles.';
-    }
-
     return ZCard(
-      color: working ? AppColors.primaryDark : AppColors.background,
+      color: value
+          ? AppColors.primaryDark
+          : AppColors.background,
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(
-                working ? Icons.cloud_done_outlined : Icons.cloud_off_outlined,
-                color: working ? AppColors.primaryLight : AppColors.warning,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
+          Icon(
+            Icons.event_available,
+            color: value ? AppColors.primaryLight : AppColors.primary,
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Respaldo en el calendario (recomendado)',
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            text,
-            style: TextStyle(
-              color: working ? AppColors.primaryLight : AppColors.textSecondary,
-              fontSize: 12,
+                SizedBox(height: 2),
+                Text(
+                  'Crea un recordatorio por cada lote en el calendario del '
+                  'teléfono. Avisa aunque cierres Zentory por completo.',
+                  style: TextStyle(color: AppColors.textSoft, fontSize: 12),
+                ),
+              ],
             ),
           ),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 4,
-            children: [
-              if (!status.googleServices)
-                TextButton(
-                  onPressed: onEnableGoogle,
-                  child: const Text('Activar servicios de Google'),
-                ),
-              if (!working)
-                TextButton(
-                  onPressed: onRetry,
-                  child: const Text('Reintentar'),
-                ),
-              if (status.hasToken)
-                TextButton(
-                  onPressed: sending ? null : onTest,
-                  child: Text(sending ? 'Enviando...' : 'Probar push'),
-                ),
-            ],
-          ),
+          Switch(value: value, onChanged: onChanged),
         ],
       ),
     );

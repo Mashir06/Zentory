@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../routes.dart';
 import '../services/notification_service.dart';
-import '../services/push_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
@@ -98,13 +97,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           storeId == null ? <Product>[] : await _repo.fetchProducts(storeId);
       // Recrea las alertas de vencimiento cada vez que se abre la app o se
       // vuelve al inicio (algunos sistemas borran las alarmas al cerrar la app).
-      // Registra este teléfono en la tienda para recibir avisos push.
-      PushService.instance.registerForStore(storeId);
       if (storeId == null) {
         NotificationService.instance.clearAll();
       } else {
-        NotificationService.instance
-            .syncProducts(products, storeId: storeId);
+        NotificationService.instance.syncProducts(products);
       }
       if (!mounted) return;
       setState(() {

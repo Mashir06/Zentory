@@ -13,7 +13,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Registrar producto**: nombre, foto (cámara o galería) y presentación. **Agregar lote**: fecha de vencimiento y cantidad.
 - **Escáner** de códigos de barras con consulta a [OpenFoodFacts](https://world.openfoodfacts.org) y linterna.
 - **Calendario** mensual con indicadores de vencimiento por día.
-- **Notificaciones** de vencimiento por push (FCM) a todo el personal de la tienda, con alarmas locales de respaldo.
+- **Notificaciones** locales 3 días y 1 día antes del vencimiento (9:00 a. m.), con sonido propio.
 - Ajustes, privacidad, ayuda por WhatsApp, manual de usuario y preguntas frecuentes.
 
 ## Requisitos
@@ -78,43 +78,22 @@ android/                     Proyecto Android del runner de Flutter
 test/                        Pruebas unitarias
 ```
 
-## Notificaciones de vencimiento
+## Notificaciones en teléfonos con ROM china
 
-Hay dos canales y la app elige sola:
+Las alertas de vencimiento son notificaciones locales programadas (3 días antes, 1 día antes y el día del vencimiento, a las 9:00 a. m.). Sistemas como **ColorOS (OPPO/realme/OnePlus), MIUI/HyperOS (Xiaomi), OriginOS (vivo) o EMUI/HarmonyOS (Huawei/Honor)**, sobre todo en sus versiones para China, cierran las apps en segundo plano y borran sus alarmas. Para que las alertas lleguen igual:
 
-1. **Push (Firebase Cloud Messaging)**, el principal. Una Cloud Function (`functions/index.js`) revisa cada día a las 9:00 (hora de Panamá) los lotes de cada tienda y avisa **a todos los teléfonos registrados en la tienda**: 3 días antes, 1 día antes y el día del vencimiento.
-2. **Alarmas locales del teléfono**, el respaldo. Se usan solo si el push no cubre ese teléfono (sin servicios de Google o con el servidor sin activar). Cuando el push funciona, se apagan para no duplicar avisos.
+- La app **reprograma todas las alertas** de la tienda cada vez que se abre, se vuelve al Inicio o se guarda o elimina un producto.
+- Cada lote tiene sus propias alertas (identificadas por el ID del registro).
+- En **Ajustes → Configurar notificaciones** hay una guía que revisa y abre directamente: permiso de notificaciones, alarmas exactas, restricción de batería e inicio automático/segundo plano del fabricante, además de una **prueba programada a 1 minuto** para comprobarlo con la app cerrada.
+- La guía se abre sola una vez en los teléfonos de esos fabricantes.
 
-Cada teléfono se registra en `tiendas/{tiendaId}/dispositivos/{token}` al abrir la app. El servidor guarda `tiendas/{id}.pushServidor.ultimaEjecucion` en cada revisión; la app lo usa para saber si el push está activo.
-
-En **Ajustes → Configurar notificaciones** se ve el estado del push (servicios de Google, registro del teléfono, servidor), con botones para activar los servicios de Google y **probar un push**, además de los permisos, la batería, el inicio automático y la prueba de alarma local.
-
-### Activar el servidor de avisos (una sola vez)
-
-1. **Plan Blaze:** en la consola de Firebase del proyecto `zentory-base` → Uso y facturación → cambia al plan **Blaze** (pago por uso; con pocas tiendas el costo es prácticamente nulo, pero pide una tarjeta).
-2. **Desplegar las funciones**, con una de estas opciones:
-   - **Desde tu computadora:** instala Node 22 y ejecuta
-     ```bash
-     npm install -g firebase-tools
-     firebase login
-     cd functions && npm install && cd ..
-     firebase deploy --only functions
-     ```
-   - **Automático desde GitHub:** en Google Cloud Console → IAM → Cuentas de servicio, crea una cuenta con los roles *Administrador de Firebase*, *Administrador de Cloud Functions*, *Usuario de cuenta de servicio*, *Administrador de Cloud Scheduler* y *Consumidor de uso de servicios*; descarga su clave JSON y guárdala en GitHub como secreto `FIREBASE_SERVICE_ACCOUNT`. Después, en Actions → "Desplegar Cloud Functions" → **Run workflow**. Cada cambio en `functions/` se desplegará solo.
-3. **Reglas de Firestore:** los usuarios con sesión deben poder escribir en `tiendas/{tiendaId}/dispositivos/{token}` y `tiendas/{tiendaId}/pruebasPush/{id}`.
-
-### Teléfonos con ROM china
-
-- **OPPO / OnePlus / realme / Xiaomi de versión china:** suelen traer los servicios de Google **desactivados**; actívalos (la guía de la app tiene un botón). En OPPO también está en Ajustes → Cuentas → Servicios básicos de Google.
-- **Huawei (desde 2019) y algunos vivo:** no tienen servicios de Google; usan las alarmas locales.
-- **Cerrar la app desde Recientes** hace que algunos sistemas la detengan a la fuerza; en ese estado Android bloquea **tanto las alarmas como el push**. Fija Zentory con el candado en Recientes. La app detecta cuando esto pasó y lo avisa en la guía.
+En OPPO (ColorOS): Ajustes → Apps → Gestión de apps → Zentory → Uso de batería → activar **Permitir actividad en segundo plano** y **Permitir inicio automático**; y fijar Zentory en Recientes con el candado.
 
 ## Pruebas
 
 ```bash
 flutter analyze
 flutter test
-cd functions && npm install && npm test   # Cloud Functions
 ```
 
 ## Versión anterior (Kotlin)
