@@ -6,6 +6,7 @@ import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/store_dialogs.dart';
+import '../l10n/strings.dart';
 
 /// Acciones compartidas por la selección de tienda y el onboarding.
 mixin _StoreSetupActions<T extends StatefulWidget> on State<T> {
@@ -15,13 +16,13 @@ mixin _StoreSetupActions<T extends StatefulWidget> on State<T> {
     String? created;
     final ok = await showStoreFormDialog(
       context,
-      title: 'Crear una nueva tienda',
+      title: tr('Crear una nueva tienda'),
       onSubmit: (nombre, ubicacion) async {
         created = await _repo.createStore(nombre: nombre, ubicacion: ubicacion);
       },
     );
     if (!ok || !mounted) return;
-    showMessage(context, "Tienda '$created' creada", long: true);
+    showMessage(context, tr('Tienda \'{0}\' creada', [created]), long: true);
     Routes.resetTo(context, Routes.home);
   }
 
@@ -32,7 +33,7 @@ mixin _StoreSetupActions<T extends StatefulWidget> on State<T> {
       onSubmit: (code) async => storeName = await _repo.joinStore(code),
     );
     if (!ok || !mounted) return;
-    showMessage(context, 'Te has unido a $storeName');
+    showMessage(context, tr('Te has unido a {0}', [storeName]));
     Routes.resetTo(context, Routes.home);
   }
 
@@ -59,49 +60,48 @@ class _StoreSelectionScreenState extends State<StoreSelectionScreen>
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
                     child: Image.asset('assets/images/logozentory.png', width: 100),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    '¡Bienvenido a Zentory!',
+                  SizedBox(height: 24),
+                  Text(
+                    tr('¡Bienvenido a Zentory!'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Para comenzar a gestionar tus productos, necesitas estar '
-                    'vinculado a una tienda.',
+                  SizedBox(height: 8),
+                  Text(
+                    tr('Para comenzar a gestionar tus productos, necesitas estar vinculado a una tienda.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
                   ),
-                  const SizedBox(height: 36),
+                  SizedBox(height: 36),
                   _OptionCard(
                     icon: Icons.storefront_outlined,
-                    title: 'Crear una nueva tienda',
-                    subtitle: 'Configura tu propio inventario',
+                    title: tr('Crear una nueva tienda'),
+                    subtitle: tr('Configura tu propio inventario'),
                     onTap: createStore,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _OptionCard(
                     icon: Icons.group_add_outlined,
-                    title: 'Unirse a una tienda',
-                    subtitle: 'Ingresa con un código de invitación',
+                    title: tr('Unirse a una tienda'),
+                    subtitle: tr('Ingresa con un código de invitación'),
                     onTap: joinStore,
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   TextButton(
                     onPressed: signOut,
-                    child: const Text(
-                      'Cerrar Sesión',
+                    child: Text(
+                      tr('Cerrar Sesión'),
                       style: TextStyle(color: AppColors.danger),
                     ),
                   ),
@@ -132,7 +132,7 @@ class _OptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ZCard(
       onTap: onTap,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: Row(
         children: [
           Container(
@@ -144,23 +144,23 @@ class _OptionCard extends StatelessWidget {
             ),
             child: Icon(icon, color: AppColors.primary, size: 28),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                   ),
@@ -168,7 +168,7 @@ class _OptionCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          Icon(Icons.chevron_right, color: AppColors.textSecondary),
         ],
       ),
     );
@@ -192,59 +192,59 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    '¡Bienvenido a Zentory!',
+                  Text(
+                    tr('¡Bienvenido a Zentory!'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Para comenzar, necesitas estar vinculado a un Minisuper.',
+                  SizedBox(height: 8),
+                  Text(
+                    tr('Para comenzar, necesitas estar vinculado a un Minisuper.'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
                   ),
-                  const SizedBox(height: 48),
+                  SizedBox(height: 48),
                   ElevatedButton(
                     onPressed: createStore,
                     style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(56),
+                      minimumSize: Size.fromHeight(56),
                     ),
-                    child: const Text('Crear mi propio Minisuper'),
+                    child: Text(tr('Crear mi propio Minisuper')),
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     'o',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   OutlinedButton(
                     onPressed: joinStore,
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(56),
+                      minimumSize: Size.fromHeight(56),
                       foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary, width: 2),
-                      textStyle: const TextStyle(
+                      side: BorderSide(color: AppColors.primary, width: 2),
+                      textStyle: TextStyle(
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    child: const Text('Unirse con código de invitación'),
+                    child: Text(tr('Unirse con código de invitación')),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   TextButton(
                     onPressed: signOut,
-                    child: const Text(
-                      'Cerrar Sesión',
+                    child: Text(
+                      tr('Cerrar Sesión'),
                       style: TextStyle(color: AppColors.danger),
                     ),
                   ),

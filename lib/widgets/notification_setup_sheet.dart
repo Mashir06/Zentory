@@ -5,6 +5,7 @@ import '../services/device_settings.dart';
 import '../services/notification_service.dart';
 import '../theme/app_colors.dart';
 import 'common.dart';
+import '../l10n/strings.dart';
 
 /// Muestra la guía para dejar las notificaciones funcionando en el teléfono.
 Future<void> showNotificationSetupSheet(BuildContext context) {
@@ -12,10 +13,10 @@ Future<void> showNotificationSetupSheet(BuildContext context) {
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.surface,
-    shape: const RoundedRectangleBorder(
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder: (_) => const _NotificationSetupSheet(),
+    builder: (_) => _NotificationSetupSheet(),
   );
 }
 
@@ -113,8 +114,7 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
     if (result == 'none') {
       showMessage(
         context,
-        'No se pudo abrir la pantalla automáticamente. '
-        'Ábrela desde los Ajustes del teléfono.',
+        tr('No se pudo abrir la pantalla automáticamente. Ábrela desde los Ajustes del teléfono.'),
         long: true,
       );
     }
@@ -129,29 +129,26 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
       maxChildSize: 0.95,
       builder: (_, scroll) => ListView(
         controller: scroll,
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 24),
         children: [
-          const Text(
-            'Configurar notificaciones',
+          Text(
+            tr('Configurar notificaciones'),
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             s != null && s.hasAggressiveBatteryManager
-                ? 'Tu ${s.brand.isEmpty ? 'teléfono' : s.brand} puede cerrar '
-                    'Zentory en segundo plano y bloquear las alertas de '
-                    'vencimiento.'
-                : 'Revisa estos ajustes para recibir las alertas de '
-                    'vencimiento aunque la app esté cerrada.',
-            style: const TextStyle(color: AppColors.textSecondary),
+                ? tr('Tu {0} puede cerrar Zentory en segundo plano y bloquear las alertas de vencimiento.', [s.brand.isEmpty ? tr('teléfono') : s.brand])
+                : tr('Revisa estos ajustes para recibir las alertas de vencimiento aunque la app esté cerrada.'),
+            style: TextStyle(color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           if (s == null)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(24),
               child: Center(child: CircularProgressIndicator()),
             )
@@ -159,19 +156,16 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
             if (s.lastExitForceStopped)
               ZCard(
                 color: AppColors.alertBrown,
-                margin: const EdgeInsets.only(bottom: 10),
-                child: const Row(
+                margin: EdgeInsets.only(bottom: 10),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.white),
+                    Icon(Icons.warning_amber_rounded, color: AppColors.onColor),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'La última vez Zentory se cerró desde Recientes y el '
-                        'sistema la detuvo: mientras está así no recibe '
-                        'alertas. Fíjala con el candado en Recientes para '
-                        'que no vuelva a pasar.',
-                        style: TextStyle(color: Colors.white, fontSize: 13),
+                        tr('La última vez Zentory se cerró desde Recientes y el sistema la detuvo: mientras está así no recibe alertas. Fíjala con el candado en Recientes para que no vuelva a pasar.'),
+                        style: TextStyle(color: AppColors.onColor, fontSize: 13),
                       ),
                     ),
                   ],
@@ -179,50 +173,48 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
               ),
             _StepTile(
               icon: Icons.notifications_active_outlined,
-              title: 'Permitir notificaciones',
-              description: 'Zentory necesita permiso para mostrar alertas. '
-                  'Activa también "Pantalla de bloqueo", "Banners" y el sonido.',
+              title: tr('Permitir notificaciones'),
+              description: tr('Zentory necesita permiso para mostrar alertas. Activa también "Pantalla de bloqueo", "Banners" y el sonido.'),
               done: s.notificationsEnabled,
-              actionLabel: s.notificationsEnabled ? 'Revisar' : 'Permitir',
+              actionLabel: s.notificationsEnabled ? tr('Revisar') : tr('Permitir'),
               onAction: s.notificationsEnabled
                   ? () => DeviceSettings.openNotificationSettings()
                   : _fixNotifications,
             ),
             _StepTile(
               icon: Icons.alarm_on_outlined,
-              title: 'Alarmas y recordatorios',
-              description: 'Permite que las alertas lleguen a la hora exacta.',
+              title: tr('Alarmas y recordatorios'),
+              description: tr('Permite que las alertas lleguen a la hora exacta.'),
               done: s.exactAlarmsAllowed,
-              actionLabel: 'Permitir',
+              actionLabel: tr('Permitir'),
               onAction: s.exactAlarmsAllowed ? null : _fixExactAlarms,
             ),
             _StepTile(
               icon: Icons.battery_charging_full_outlined,
-              title: 'Sin restricciones de batería',
-              description: 'Evita que el sistema detenga Zentory para ahorrar '
-                  'batería. Elige "Permitir" o "Sin restricciones".',
+              title: tr('Sin restricciones de batería'),
+              description: tr('Evita que el sistema detenga Zentory para ahorrar batería. Elige "Permitir" o "Sin restricciones".'),
               done: s.ignoringBatteryOptimizations,
-              actionLabel: 'Permitir',
+              actionLabel: tr('Permitir'),
               onAction: s.ignoringBatteryOptimizations ? null : _fixBattery,
             ),
             _StepTile(
               icon: Icons.rocket_launch_outlined,
-              title: 'Inicio automático y segundo plano',
+              title: tr('Inicio automático y segundo plano'),
               description: s.autoStartHint,
               done: null, // El sistema no permite comprobarlo
-              doneLabel: _autoStartVisited ? 'Revisado' : 'Revisar a mano',
-              actionLabel: 'Abrir ajustes',
+              doneLabel: _autoStartVisited ? tr('Revisado') : tr('Revisar a mano'),
+              actionLabel: tr('Abrir ajustes'),
               onAction: _openAutoStart,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             TextButton(
               onPressed: () => DeviceSettings.openAppDetails(),
-              child: const Text('Abrir la información de la app'),
+              child: Text(tr('Abrir la información de la app')),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Listo'),
+              child: Text(tr('Listo')),
             ),
           ],
         ],
@@ -258,31 +250,31 @@ class _StepTile extends StatelessWidget {
         ? AppColors.warning
         : (done! ? AppColors.primary : AppColors.danger);
     final String stateText =
-        doneLabel ?? (done == true ? 'Listo' : 'Pendiente');
+        doneLabel ?? (done == true ? tr('Listo') : tr('Pendiente'));
 
     return ZCard(
       color: AppColors.background,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
+      margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.fromLTRB(14, 14, 14, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Icon(icon, color: stateColor),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: stateColor.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(8),
@@ -299,7 +291,7 @@ class _StepTile extends StatelessWidget {
                       size: 14,
                       color: stateColor,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       stateText,
                       style: TextStyle(
@@ -313,10 +305,10 @@ class _StepTile extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             description,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
           if (onAction != null)
             Align(
@@ -324,7 +316,7 @@ class _StepTile extends StatelessWidget {
               child: TextButton(onPressed: onAction, child: Text(actionLabel)),
             )
           else
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
         ],
       ),
     );

@@ -9,6 +9,7 @@ import '../utils/date_utils.dart';
 import '../widgets/common.dart';
 import '../widgets/lot_widgets.dart';
 import '../widgets/product_card.dart';
+import '../l10n/strings.dart';
 
 enum _ListMode { month, day, all }
 
@@ -28,7 +29,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
   List<Product> _products = [];
 
   /// Número de lote (L001...) de cada registro, igual que en Productos.
-  Map<String, String> _labels = const {};
+  Map<String, String> _labels = {};
   bool _loading = true;
 
   static const _weekDays = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
@@ -53,7 +54,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showMessage(context, 'No se pudieron cargar los productos: $e');
+      showMessage(context, tr('No se pudieron cargar los productos: {0}', [e]));
     }
   }
 
@@ -99,11 +100,11 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
   String get _listTitle {
     switch (_mode) {
       case _ListMode.all:
-        return 'Todos los lotes';
+        return tr('Todos los lotes');
       case _ListMode.day:
-        return 'Lotes que vencen el ${DateUtilsZ.dayOfMonth(_selected)}';
+        return tr('Lotes que vencen el {0}', [DateUtilsZ.dayOfMonth(_selected)]);
       case _ListMode.month:
-        return 'Lotes de ${DateUtilsZ.monthYear(_month)}';
+        return tr('Lotes de {0}', [DateUtilsZ.monthYear(_month)]);
     }
   }
 
@@ -125,8 +126,8 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
 
   String _summary(List<Product> lots) {
     final products = groupProducts(lots).length;
-    return '${lots.length} ${lots.length == 1 ? 'lote' : 'lotes'} de '
-        '$products ${products == 1 ? 'producto' : 'productos'}';
+    return tr(lots.length == 1 ? '{0} lote' : '{0} lotes', [lots.length]) +
+        tr(products == 1 ? ' de {0} producto' : ' de {0} productos', [products]);
   }
 
   @override
@@ -140,40 +141,40 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
           bottom: false,
           child: Column(
             children: [
-              const ZentoryHeader(),
+              ZentoryHeader(),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: _load,
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
                     children: [
                       _monthSelector(),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       _calendarGrid(),
                       if (todayCount > 0) ...[
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         ZCard(
                           color: AppColors.alertBrown,
                           child: Row(
                             children: [
-                              const Icon(Icons.warning_amber_rounded,
-                                  color: Colors.white, size: 30),
-                              const SizedBox(width: 12),
+                              Icon(Icons.warning_amber_rounded,
+                                  color: AppColors.onColor, size: 30),
+                              SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       todayCount == 1
-                                          ? '1 lote vence hoy'
-                                          : '$todayCount lotes vencen hoy',
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                          ? tr('1 lote vence hoy')
+                                          : tr('{0} lotes vencen hoy', [todayCount]),
+                                      style: TextStyle(
+                                        color: AppColors.onColor,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const Text(
-                                      'Revisa tu inventario y evita pérdidas',
+                                    Text(
+                                      tr('Revisa tu inventario y evita pérdidas'),
                                       style: TextStyle(
                                         color: Color(0xFFE0E0E0),
                                         fontSize: 12,
@@ -186,14 +187,14 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                           ),
                         ),
                       ],
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
                             child: Text(
                               _listTitle,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -202,29 +203,29 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                           TextButton(
                             onPressed: () =>
                                 setState(() => _mode = _ListMode.all),
-                            child: const Text('Ver todos'),
+                            child: Text(tr('Ver todos')),
                           ),
                         ],
                       ),
                       if (!_loading && listed.isNotEmpty)
                         Text(
                           _summary(listed),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
                           ),
                         ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       if (_loading)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.all(32),
                           child: Center(child: CircularProgressIndicator()),
                         )
                       else if (listed.isEmpty)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 30),
                           child: Text(
-                            'No hay lotes que venzan en esta fecha',
+                            tr('No hay lotes que venzan en esta fecha'),
                             textAlign: TextAlign.center,
                             style: TextStyle(color: AppColors.textSecondary),
                           ),
@@ -250,7 +251,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const ZentoryBottomNav(current: Routes.calendar),
+      bottomNavigationBar: ZentoryBottomNav(current: Routes.calendar),
     );
   }
 
@@ -258,25 +259,25 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     return Row(
       children: [
         IconButton(
-          tooltip: 'Mes anterior',
+          tooltip: tr('Mes anterior'),
           onPressed: () => _changeMonth(-1),
-          icon: const Icon(Icons.chevron_left, color: Colors.white),
+          icon: Icon(Icons.chevron_left, color: AppColors.textPrimary),
         ),
         Expanded(
           child: Text(
             DateUtilsZ.monthYear(_month),
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
         IconButton(
-          tooltip: 'Mes siguiente',
+          tooltip: tr('Mes siguiente'),
           onPressed: () => _changeMonth(1),
-          icon: const Icon(Icons.chevron_right, color: Colors.white),
+          icon: Icon(Icons.chevron_right, color: AppColors.textPrimary),
         ),
       ],
     );
@@ -289,7 +290,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     final start = DateTime(first.year, first.month, first.day - offset);
 
     return ZCard(
-      padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+      padding: EdgeInsets.fromLTRB(8, 12, 8, 8),
       child: Column(
         children: [
           Row(
@@ -297,9 +298,9 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
               for (final d in _weekDays)
                 Expanded(
                   child: Text(
-                    d,
+                    tr(d),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -308,7 +309,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           for (var week = 0; week < 6; week++)
             Row(
               children: [
@@ -332,9 +333,9 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
     final isToday = DateUtilsZ.isSameDay(day, DateUtilsZ.today());
     final color = _dayColor(_productsOn(day));
 
-    Color textColor = isCurrentMonth ? Colors.white : AppColors.textMuted;
+    Color textColor = isCurrentMonth ? AppColors.textPrimary : AppColors.textMuted;
     if (color != null) textColor = color;
-    if (isSelected) textColor = Colors.white;
+    if (isSelected) textColor = AppColors.onColor;
 
     return InkWell(
       borderRadius: BorderRadius.circular(20),
@@ -374,7 +375,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : color,
+                    color: isSelected ? AppColors.onColor : color,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -403,51 +404,51 @@ class _CalendarLotsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = group;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12),
       child: Material(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         clipBehavior: Clip.antiAlias,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
                   ProductThumbnail(bytes: g.imageBytes, size: 48),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          g.nombre.isEmpty ? 'Sin nombre' : g.nombre,
+                          g.nombre.isEmpty ? tr('Sin nombre') : g.nombre,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
                         ),
                         if (g.presentacion.isNotEmpty) ...[
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           InfoTag(g.presentacion),
                         ],
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       StatusPill(g.status),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text(
-                        '${formatQty(g.totalQty)} un.',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        tr('{0} un.', [formatQty(g.totalQty)]),
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -456,9 +457,9 @@ class _CalendarLotsCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   color: AppColors.background,
                   borderRadius: BorderRadius.circular(12),
@@ -468,7 +469,7 @@ class _CalendarLotsCard extends StatelessWidget {
                   children: [
                     for (var i = 0; i < g.lots.length; i++) ...[
                       if (i > 0)
-                        const Divider(color: AppColors.border, height: 1),
+                        Divider(color: AppColors.border, height: 1),
                       LotTableRow(
                         label: labels[g.lots[i].id] ?? '',
                         lot: g.lots[i],

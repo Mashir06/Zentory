@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/product.dart';
+import '../l10n/strings.dart';
 
 /// Tienda (`tiendas/{id}`) o sucursal (`tiendas/{id}/minisupers/{id}`).
 class Store {
@@ -265,19 +266,19 @@ class ZentoryRepository {
     required String ubicacion,
   }) async {
     final user = currentUser;
-    if (user == null) throw ZentoryException('Debes iniciar sesión');
+    if (user == null) throw ZentoryException(tr('Debes iniciar sesión'));
     final nombreTienda = nombre.trim();
     if (nombreTienda.isEmpty) {
-      throw ZentoryException('El nombre de la tienda es obligatorio');
+      throw ZentoryException(tr('El nombre de la tienda es obligatorio'));
     }
     if (nombreTienda.contains('/')) {
-      throw ZentoryException('El nombre no puede contener "/"');
+      throw ZentoryException(tr('El nombre no puede contener "/"'));
     }
 
     final storeRef = stores.doc(nombreTienda);
     final existing = await storeRef.get();
     if (existing.exists) {
-      throw ZentoryException('Ya existe una tienda llamada "$nombreTienda"');
+      throw ZentoryException(tr('Ya existe una tienda llamada "{0}"', [nombreTienda]));
     }
 
     final userName = await currentUserName(fallback: 'Administrador');
@@ -310,17 +311,17 @@ class ZentoryRepository {
   /// activa. Devuelve el nombre de la tienda.
   Future<String> joinStore(String code) async {
     final user = currentUser;
-    if (user == null) throw ZentoryException('Debes iniciar sesión');
+    if (user == null) throw ZentoryException(tr('Debes iniciar sesión'));
     final normalized = code.trim().toUpperCase();
     if (normalized.isEmpty) {
-      throw ZentoryException('El código es obligatorio');
+      throw ZentoryException(tr('El código es obligatorio'));
     }
 
     final result = await stores
         .where('codigoInvitacion', isEqualTo: normalized)
         .limit(1)
         .get();
-    if (result.docs.isEmpty) throw ZentoryException('Código inválido');
+    if (result.docs.isEmpty) throw ZentoryException(tr('Código inválido'));
 
     final tiendaDoc = result.docs.first;
     final userName = await currentUserName(fallback: 'Trabajador');
@@ -357,7 +358,7 @@ class ZentoryRepository {
   Future<void> deleteBranch(String parentStoreId, String branchId) async {
     if (!await isStoreAdmin(parentStoreId)) {
       throw ZentoryException(
-          'Solo el administrador de la tienda puede eliminar sucursales.');
+          tr('Solo el administrador de la tienda puede eliminar sucursales.'));
     }
     await branches(parentStoreId).doc(branchId).delete();
   }
@@ -384,7 +385,7 @@ class ZentoryRepository {
   Future<void> deleteStore(String storeId) async {
     if (!await isStoreAdmin(storeId)) {
       throw ZentoryException(
-          'Solo el administrador de la tienda puede eliminarla.');
+          tr('Solo el administrador de la tienda puede eliminarla.'));
     }
     const subcollections = ['personal', 'productos', 'catalogo', 'minisupers'];
     for (final coll in subcollections) {
@@ -485,10 +486,10 @@ class ZentoryRepository {
 
   static void _checkName(String nombre) {
     if (nombre.trim().isEmpty) {
-      throw ZentoryException('El nombre del producto es obligatorio');
+      throw ZentoryException(tr('El nombre del producto es obligatorio'));
     }
     if (nombre.contains('/')) {
-      throw ZentoryException('El nombre no puede contener "/"');
+      throw ZentoryException(tr('El nombre no puede contener "/"'));
     }
   }
 
@@ -503,7 +504,7 @@ class ZentoryRepository {
     final name = nombre.trim();
     _checkName(name);
     if (await findProduct(storeId, name) != null) {
-      throw ZentoryException('Ya existe un producto llamado "$name"');
+      throw ZentoryException(tr('Ya existe un producto llamado "{0}"', [name]));
     }
     await catalog(storeId).doc(name).set({
       'nombre': name,
@@ -539,7 +540,7 @@ class ZentoryRepository {
     _checkName(name);
     final renamed = _key(name) != _key(originalName);
     if (renamed && await findProduct(storeId, name) != null) {
-      throw ZentoryException('Ya existe un producto llamado "$name"');
+      throw ZentoryException(tr('Ya existe un producto llamado "{0}"', [name]));
     }
 
     // Ficha del catálogo (se borra la anterior si cambió el nombre).

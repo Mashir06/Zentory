@@ -5,14 +5,16 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get dark {
+  /// Tema según el modo elegido (oscuro o claro), ver [AppColors.isDark].
+  static ThemeData get current {
+    final brightness = AppColors.isDark ? Brightness.dark : Brightness.light;
     final base = ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: brightness,
       fontFamily: 'Inter',
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
-        brightness: Brightness.dark,
+        brightness: brightness,
         primary: AppColors.primary,
         surface: AppColors.surface,
         error: AppColors.danger,
@@ -22,49 +24,49 @@ class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.background,
       canvasColor: AppColors.background,
-      dialogTheme: const DialogThemeData(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
       ),
-      snackBarTheme: const SnackBarThemeData(
+      snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.surface,
-        contentTextStyle: TextStyle(color: Colors.white, fontFamily: 'Inter'),
+        contentTextStyle: TextStyle(color: AppColors.textPrimary, fontFamily: 'Inter'),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        hintStyle: const TextStyle(color: AppColors.textMuted),
-        labelStyle: const TextStyle(color: AppColors.textSecondary),
+        hintStyle: TextStyle(color: AppColors.textMuted),
+        labelStyle: TextStyle(color: AppColors.textSecondary),
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: Size.fromHeight(52),
           // Margen interno moderado: evita que los textos se partan en dos
           // líneas cuando el botón comparte fila con otro.
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
             fontFamily: 'Inter',
             fontWeight: FontWeight.bold,
             fontSize: 16,
@@ -73,10 +75,10 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(color: AppColors.border),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          foregroundColor: AppColors.textPrimary,
+          minimumSize: Size.fromHeight(52),
+          side: BorderSide(color: AppColors.border),
+          padding: EdgeInsets.symmetric(horizontal: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -93,9 +95,9 @@ class AppTheme {
           (s) => s.contains(WidgetState.selected) ? AppColors.primary : null,
         ),
       ),
-      popupMenuTheme: const PopupMenuThemeData(
+      popupMenuTheme: PopupMenuThemeData(
         color: AppColors.surface,
-        textStyle: TextStyle(color: Colors.white, fontFamily: 'Inter'),
+        textStyle: TextStyle(color: AppColors.textPrimary, fontFamily: 'Inter'),
       ),
     );
   }

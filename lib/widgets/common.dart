@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../routes.dart';
 import '../theme/app_colors.dart';
+import '../l10n/strings.dart';
 
 /// Fondo degradado oscuro usado en todas las pantallas.
 class ZentoryBackground extends StatelessWidget {
@@ -11,7 +12,7 @@ class ZentoryBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
       child: child,
     );
   }
@@ -35,35 +36,35 @@ class ZentoryHeader extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+          padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
           child: Row(
             children: [
               if (onBack != null)
                 IconButton(
                   onPressed: onBack,
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  tooltip: 'Atrás',
+                  icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                  tooltip: tr('Atrás'),
                 )
               else
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
               Image.asset('assets/images/logozentory.png', width: 40, height: 40),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'ZENTORY',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
                       ),
                     ),
                     Text(
-                      subtitle,
-                      style: const TextStyle(
+                      tr(subtitle),
+                      style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 11,
                       ),
@@ -75,7 +76,7 @@ class ZentoryHeader extends StatelessWidget {
             ],
           ),
         ),
-        const Divider(height: 1, thickness: 1, color: AppColors.surface),
+        Divider(height: 1, thickness: 1, color: AppColors.surface),
       ],
     );
   }
@@ -90,19 +91,19 @@ class SimpleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
+      padding: EdgeInsets.fromLTRB(4, 8, 12, 8),
       child: Row(
         children: [
           IconButton(
             onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            tooltip: 'Atrás',
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            tooltip: tr('Atrás'),
           ),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -158,7 +159,7 @@ class ZentoryBottomNav extends StatelessWidget {
         onDestinationSelected: (i) => Routes.goToTab(context, _items[i].$1),
         destinations: [
           for (final item in _items)
-            NavigationDestination(icon: Icon(item.$2), label: item.$3),
+            NavigationDestination(icon: Icon(item.$2), label: tr(item.$3)),
         ],
       ),
     );
@@ -190,22 +191,22 @@ Future<bool> confirmDialog(
   final result = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+      title: Text(title, style: TextStyle(color: AppColors.textPrimary)),
       content: Text(
         message,
-        style: const TextStyle(color: AppColors.textSoft),
+        style: TextStyle(color: AppColors.textSoft),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text(
-            'Cancelar',
+          child: Text(
+            tr('Cancelar'),
             style: TextStyle(color: AppColors.textSecondary),
           ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: Text(confirmLabel, style: TextStyle(color: confirmColor)),
+          child: Text(tr(confirmLabel), style: TextStyle(color: confirmColor)),
         ),
       ],
     ),
@@ -218,7 +219,7 @@ class ZCard extends StatelessWidget {
   const ZCard({
     super.key,
     required this.child,
-    this.color = AppColors.surface,
+    this.color,
     this.padding = const EdgeInsets.all(16),
     this.margin = EdgeInsets.zero,
     this.onTap,
@@ -226,7 +227,7 @@ class ZCard extends StatelessWidget {
   });
 
   final Widget child;
-  final Color color;
+  final Color? color;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
   final VoidCallback? onTap;
@@ -237,7 +238,7 @@ class ZCard extends StatelessWidget {
     return Padding(
       padding: margin,
       child: Material(
-        color: color,
+        color: color ?? AppColors.surface,
         borderRadius: BorderRadius.circular(radius),
         clipBehavior: Clip.antiAlias,
         child: InkWell(

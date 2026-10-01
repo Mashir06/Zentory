@@ -11,6 +11,7 @@ import '../models/product.dart';
 import '../utils/image_utils.dart';
 import 'device_settings.dart';
 import 'zentory_repository.dart';
+import '../l10n/strings.dart';
 
 /// Alertas locales de vencimiento de productos.
 ///
@@ -232,7 +233,7 @@ class NotificationService {
     final mode = await _scheduleMode();
     final ids =
         alerts.map((a) => '${a.id}@${a.when.millisecondsSinceEpoch}').join(',');
-    final signature = '${mode.name}|$ids';
+    final signature = '${mode.name}|${currentLanguage.code}|$ids';
     if (!force && signature == _lastSignature) return;
 
     await cancelExpiryAlerts();
@@ -240,7 +241,7 @@ class NotificationService {
       try {
         await _plugin.zonedSchedule(
           a.id,
-          _title,
+          tr(_title),
           a.body,
           // El instante local se pasa a UTC; Android lo programa por tiempo
           // absoluto, así que la hora local se respeta.
@@ -279,9 +280,9 @@ class NotificationService {
         ));
       }
 
-      add(3, '3', 'Está cerca de vencer (3 días)');
-      add(1, '1', 'Vence mañana');
-      add(0, '0', 'Vence hoy');
+      add(3, '3', tr('Está cerca de vencer (3 días)'));
+      add(1, '1', tr('Vence mañana'));
+      add(0, '0', tr('Vence hoy'));
     }
     alerts.sort((a, b) => a.when.compareTo(b.when));
     return alerts.length > _maxScheduled
@@ -347,8 +348,8 @@ class NotificationService {
     if (!_initialized) return;
     await _plugin.show(
       _testNowId,
-      _title,
-      'Prueba de Zentory: ¡Las notificaciones están funcionando correctamente! 🎉',
+      tr(_title),
+      tr('Prueba de Zentory: ¡Las notificaciones están funcionando correctamente! 🎉'),
       _details,
     );
   }
@@ -369,9 +370,8 @@ class NotificationService {
       await _plugin.cancel(_testScheduledId);
       await _plugin.zonedSchedule(
         _testScheduledId,
-        _title,
-        'Prueba programada de Zentory: si ves esto con la app cerrada, las '
-            'alertas de vencimiento te llegarán. ✅',
+        tr(_title),
+        tr('Prueba programada de Zentory: si ves esto con la app cerrada, las alertas de vencimiento te llegarán. ✅'),
         tz.TZDateTime.from(DateTime.now().add(delay), tz.UTC),
         _details,
         androidScheduleMode: mode,

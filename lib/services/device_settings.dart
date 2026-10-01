@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import '../l10n/strings.dart';
 
 /// Estado de los ajustes del teléfono que afectan a las notificaciones
 /// programadas.
@@ -81,25 +82,18 @@ class DeviceNotificationStatus {
   /// Instrucciones para permitir el inicio automático / segundo plano.
   String get autoStartHint {
     if (isOppoFamily) {
-      return 'Ajustes > Apps > Gestión de apps > Zentory > Uso de batería: '
-          'activa "Permitir actividad en segundo plano" y "Permitir inicio '
-          'automático". También puedes fijar Zentory en Recientes '
-          '(mantén pulsada la tarjeta y toca el candado).';
+      return tr('Ajustes > Apps > Gestión de apps > Zentory > Uso de batería: activa "Permitir actividad en segundo plano" y "Permitir inicio automático". También puedes fijar Zentory en Recientes (mantén pulsada la tarjeta y toca el candado).');
     }
     if (isXiaomiFamily) {
-      return 'Ajustes > Apps > Administrar apps > Zentory: activa "Inicio '
-          'automático" y en "Ahorro de batería" elige "Sin restricciones".';
+      return tr('Ajustes > Apps > Administrar apps > Zentory: activa "Inicio automático" y en "Ahorro de batería" elige "Sin restricciones".');
     }
     if (isVivoFamily) {
-      return 'Ajustes > Batería > Consumo en segundo plano: permite Zentory. '
-          'En i Manager > Administrador de apps > Inicio automático, actívalo.';
+      return tr('Ajustes > Batería > Consumo en segundo plano: permite Zentory. En i Manager > Administrador de apps > Inicio automático, actívalo.');
     }
     if (isHuaweiFamily) {
-      return 'Ajustes > Batería > Inicio de apps > Zentory: desactiva '
-          '"Gestionar automáticamente" y activa las tres opciones.';
+      return tr('Ajustes > Batería > Inicio de apps > Zentory: desactiva "Gestionar automáticamente" y activa las tres opciones.');
     }
-    return 'En los ajustes de la app, permite el inicio automático y la '
-        'actividad en segundo plano, y quita cualquier restricción de batería.';
+    return tr('En los ajustes de la app, permite el inicio automático y la actividad en segundo plano, y quita cualquier restricción de batería.');
   }
 }
 

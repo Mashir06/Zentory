@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
+import '../l10n/strings.dart';
 
 /// Diálogo para crear o editar una tienda (equivale a dialog_add_minisuper.xml).
 ///
@@ -43,7 +44,7 @@ Future<bool> showJoinStoreDialog(
 }
 
 String _errorText(Object e) =>
-    e is ZentoryException ? e.message : 'Ocurrió un error: $e';
+    e is ZentoryException ? e.message : tr('Ocurrió un error: {0}', [e]);
 
 class _StoreFormDialog extends StatefulWidget {
   const _StoreFormDialog({
@@ -113,19 +114,19 @@ class _StoreFormDialogState extends State<_StoreFormDialog> {
           controller: _nombre,
           enabled: !_saving,
           textCapitalization: TextCapitalization.words,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Nombre del Minisuper',
+          style: TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: tr('Nombre del Minisuper'),
             fillColor: AppColors.background,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         TextField(
           controller: _ubicacion,
           enabled: !_saving,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Ubicación / Dirección',
+          style: TextStyle(color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: tr('Ubicación / Dirección'),
             fillColor: AppColors.background,
           ),
         ),
@@ -179,19 +180,19 @@ class _JoinStoreDialogState extends State<_JoinStoreDialog> {
   @override
   Widget build(BuildContext context) {
     return _DialogShell(
-      title: 'Unirse a una Tienda',
+      title: tr('Unirse a una Tienda'),
       error: _error,
       saving: _saving,
-      confirmLabel: 'Unirse',
+      confirmLabel: tr('Unirse'),
       onConfirm: _join,
       children: [
         TextField(
           controller: _code,
           enabled: !_saving,
           textCapitalization: TextCapitalization.characters,
-          style: const TextStyle(color: Colors.white, letterSpacing: 2),
-          decoration: const InputDecoration(
-            hintText: 'Código de Invitación',
+          style: TextStyle(color: AppColors.textPrimary, letterSpacing: 2),
+          decoration: InputDecoration(
+            hintText: tr('Código de Invitación'),
             fillColor: AppColors.background,
           ),
         ),
@@ -221,51 +222,51 @@ class _DialogShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: AppColors.surface,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+      insetPadding: EdgeInsets.symmetric(horizontal: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
+              tr(title),
+              style: TextStyle(
+                color: AppColors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             ...children,
             if (error != null) ...[
-              const SizedBox(height: 12),
-              Text(error!, style: const TextStyle(color: AppColors.danger)),
+              SizedBox(height: 12),
+              Text(error!, style: TextStyle(color: AppColors.danger)),
             ],
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: saving ? null : () => Navigator.pop(context, false),
-                    child: const Text('Cancelar'),
+                    child: Text(tr('Cancelar')),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: saving ? null : onConfirm,
                     child: saving
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                             ),
                           )
-                        : Text(confirmLabel),
+                        : Text(tr(confirmLabel)),
                   ),
                 ),
               ],

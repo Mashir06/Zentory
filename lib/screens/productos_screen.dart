@@ -9,6 +9,7 @@ import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/lot_widgets.dart';
 import '../widgets/product_card.dart';
+import '../l10n/strings.dart';
 
 /// Opciones de ordenamiento del listado.
 enum _SortOption {
@@ -16,7 +17,7 @@ enum _SortOption {
   name('Nombre (A–Z)'),
   quantity('Mayor cantidad');
 
-  const _SortOption(this.label);
+  _SortOption(this.label);
   final String label;
 }
 
@@ -57,7 +58,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   /// Número de lote (L001...) de cada registro, sobre el inventario completo
   /// para que no cambie al filtrar (igual que en el Calendario).
-  Map<String, String> _labels = const {};
+  Map<String, String> _labels = {};
 
   /// Productos expandidos (se conserva al recargar tras editar o eliminar).
   final Set<String> _expanded = {};
@@ -94,7 +95,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showMessage(context, 'No se pudieron cargar los productos: $e');
+      showMessage(context, tr('No se pudieron cargar los productos: {0}', [e]));
     }
   }
 
@@ -112,7 +113,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
     // Los productos sin lotes solo se muestran cuando no se filtra por estado.
     final catalog = _status == 'Todos'
         ? _catalog.where((c) => c.nombre.toLowerCase().contains(query))
-        : const <CatalogItem>[];
+        : <CatalogItem>[];
 
     final groups = groupProducts(lots, catalog: catalog)
       ..removeWhere((g) => !g.hasLots && _status != 'Todos');
@@ -170,11 +171,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
     if (storeId == null) return;
     final ok = await confirmDialog(
       context,
-      title: 'Eliminar lote',
+      title: tr('Eliminar lote'),
       message: isLot
-          ? '¿Deseas eliminar el lote ${lotCode(p)} de "${p.nombre}" '
-              '(vence ${p.fechaVencimiento})?'
-          : '¿Deseas eliminar "${p.nombre}" del inventario?',
+          ? tr('¿Deseas eliminar el lote {0} de "{1}" (vence {2})?', [lotCode(p), p.nombre, p.fechaVencimiento])
+          : tr('¿Deseas eliminar "{0}" del inventario?', [p.nombre]),
     );
     if (!ok) return;
     try {
@@ -182,10 +182,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
       // Reprograma las alertas: se quitan las de este lote y se
       // conservan las de los demás lotes del mismo producto.
       await NotificationService.instance.syncStore(storeId);
-      if (mounted) showMessage(context, 'Eliminado');
+      if (mounted) showMessage(context, tr('Eliminado'));
       _load();
     } catch (e) {
-      if (mounted) showMessage(context, 'No se pudo eliminar: $e');
+      if (mounted) showMessage(context, tr('No se pudo eliminar: {0}', [e]));
     }
   }
 
@@ -248,16 +248,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  o.label,
+                  tr(o.label),
                   style: TextStyle(
-                    color: o == _sort ? AppColors.primary : Colors.white,
+                    color: o == _sort ? AppColors.primary : AppColors.textPrimary,
                     fontWeight:
                         o == _sort ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
                 if (o == _sort) ...[
-                  const SizedBox(width: 8),
-                  const Icon(Icons.check, size: 18, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Icon(Icons.check, size: 18, color: AppColors.primary),
                 ],
               ],
             ),
@@ -273,7 +273,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
@@ -289,15 +289,15 @@ class _ProductosScreenState extends State<ProductosScreen> {
             maxChildSize: 0.9,
             builder: (_, scroll) => ListView(
               controller: scroll,
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 24),
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Filtros',
+                        tr('Filtros'),
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -306,27 +306,27 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     if (_activeFilterCount > 0)
                       TextButton(
                         onPressed: () => update(() => _status = 'Todos'),
-                        child: const Text('Limpiar'),
+                        child: Text(tr('Limpiar')),
                       ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Estado',
+                SizedBox(height: 12),
+                Text(
+                  tr('Estado'),
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
                     for (final s in _statusOptions)
                       _FilterChipZ(
-                        label: s,
+                        label: tr(s),
                         color: _statusColorFor(s),
                         showDot: s != 'Todos',
                         selected: _status == s,
@@ -334,10 +334,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Ver resultados'),
+                  child: Text(tr('Ver resultados')),
                 ),
               ],
             ),
@@ -361,23 +361,23 @@ class _ProductosScreenState extends State<ProductosScreen> {
           bottom: false,
           child: Column(
             children: [
-              const ZentoryHeader(),
+              ZentoryHeader(),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: _load,
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                    padding: EdgeInsets.fromLTRB(16, 20, 16, 24),
                     children: [
                       _titleBlock(),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       _toolbar(),
                       if (_activeFilterCount > 0) ...[
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         _activeFilters(),
                       ],
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       if (_loading)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.all(32),
                           child: Center(child: CircularProgressIndicator()),
                         )
@@ -407,7 +407,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const ZentoryBottomNav(current: Routes.productos),
+      bottomNavigationBar: ZentoryBottomNav(current: Routes.productos),
     );
   }
 
@@ -421,29 +421,28 @@ class _ProductosScreenState extends State<ProductosScreen> {
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.inventory_2_outlined,
             color: AppColors.primary,
             size: 28,
           ),
         ),
-        const SizedBox(width: 14),
-        const Expanded(
+        SizedBox(width: 14),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Productos',
+                tr('Productos'),
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(height: 2),
               Text(
-                'Gestiona tus productos, consulta sus lotes y mantén el '
-                'control de tu inventario.',
+                tr('Gestiona tus productos, consulta sus lotes y mantén el control de tu inventario.'),
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             ],
@@ -464,36 +463,36 @@ class _ProductosScreenState extends State<ProductosScreen> {
             Expanded(
               child: TextField(
                 controller: _search,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.textPrimary),
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  hintText: 'Buscar producto...',
+                  hintText: tr('Buscar producto...'),
                   prefixIcon:
-                      const Icon(Icons.search, color: AppColors.textSecondary),
+                      Icon(Icons.search, color: AppColors.textSecondary),
                   suffixIcon: _search.text.isEmpty
                       ? null
                       : IconButton(
-                          tooltip: 'Borrar búsqueda',
-                          icon: const Icon(Icons.close,
+                          tooltip: tr('Borrar búsqueda'),
+                          icon: Icon(Icons.close,
                               color: AppColors.textSecondary),
                           onPressed: _search.clear,
                         ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             _ToolbarButton(
               icon: Icons.tune,
-              label: 'Filtros',
+              label: tr('Filtros'),
               compact: compact,
               badge: _activeFilterCount,
               onTap: _openFilters,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Builder(
               builder: (btnCtx) => _ToolbarButton(
                 icon: Icons.swap_vert,
-                label: 'Ordenar',
+                label: tr('Ordenar'),
                 compact: compact,
                 onTap: () => _pickSort(btnCtx),
               ),
@@ -512,14 +511,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
       children: [
         if (_status != 'Todos')
           _RemovableChip(
-            label: _status,
+            label: tr(_status),
             color: _statusColorFor(_status),
             onRemove: () => setState(() => _status = 'Todos'),
           ),
         TextButton(
           onPressed: _clearFilters,
           style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-          child: const Text('Limpiar filtros'),
+          child: Text(tr('Limpiar filtros')),
         ),
       ],
     );
@@ -528,7 +527,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   Widget _emptyState() {
     final empty = _all.isEmpty && _catalog.isEmpty;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: EdgeInsets.symmetric(vertical: 40),
       child: Column(
         children: [
           Icon(
@@ -536,11 +535,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
             color: AppColors.textMuted,
             size: 48,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(
-            empty ? 'Inventario vacío.' : 'Sin coincidencias.',
+            empty ? tr('Inventario vacío.') : tr('Sin coincidencias.'),
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -593,13 +592,13 @@ class _ToolbarButton extends StatelessWidget {
               Icon(
                 icon,
                 size: 20,
-                color: active ? AppColors.primary : Colors.white,
+                color: active ? AppColors.primary : AppColors.textPrimary,
               ),
               if (!compact) ...[
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
                   label,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
                 ),
               ],
             ],
@@ -622,14 +621,14 @@ class _ToolbarButton extends StatelessWidget {
                 width: 18,
                 height: 18,
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
                   '$badge',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -668,7 +667,7 @@ class _FilterChipZ extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -679,12 +678,12 @@ class _FilterChipZ extends StatelessWidget {
                   decoration:
                       BoxDecoration(color: color, shape: BoxShape.circle),
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
               ],
               Text(
                 label,
                 style: TextStyle(
-                  color: selected ? Colors.white : AppColors.textSoft,
+                  color: selected ? AppColors.textPrimary : AppColors.textSoft,
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
@@ -711,7 +710,7 @@ class _RemovableChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+      padding: EdgeInsets.fromLTRB(12, 4, 4, 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(20),
@@ -720,13 +719,13 @@ class _RemovableChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+          Text(label, style: TextStyle(color: AppColors.textPrimary, fontSize: 12)),
           InkWell(
             onTap: onRemove,
-            customBorder: const CircleBorder(),
-            child: const Padding(
+            customBorder: CircleBorder(),
+            child: Padding(
               padding: EdgeInsets.all(4),
-              child: Icon(Icons.close, size: 14, color: Colors.white),
+              child: Icon(Icons.close, size: 14, color: AppColors.textPrimary),
             ),
           ),
         ],
@@ -760,7 +759,7 @@ class _ProductGroupCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = group;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12),
       child: Material(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -770,50 +769,50 @@ class _ProductGroupCard extends StatelessWidget {
             InkWell(
               onTap: onToggle,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12),
                 child: Row(
                   children: [
                     ProductThumbnail(bytes: g.imageBytes, size: 60),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            g.nombre.isEmpty ? 'Sin nombre' : g.nombre,
+                            g.nombre.isEmpty ? tr('Sin nombre') : g.nombre,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
                           ),
                           if (g.presentacion.isNotEmpty) ...[
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             InfoTag(g.presentacion),
                           ],
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         StatusPill(g.status),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Text.rich(
                           TextSpan(
-                            text: 'Total: ',
-                            style: const TextStyle(
+                            text: tr('Total: '),
+                            style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 12,
                             ),
                             children: [
                               TextSpan(
-                                text: '${formatQty(g.totalQty)} un.',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                text: tr('{0} un.', [formatQty(g.totalQty)]),
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),
@@ -823,11 +822,11 @@ class _ProductGroupCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     AnimatedRotation(
                       turns: expanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
-                      child: const Icon(
+                      duration: Duration(milliseconds: 200),
+                      child: Icon(
                         Icons.keyboard_arrow_down,
                         color: AppColors.textSecondary,
                       ),
@@ -837,12 +836,12 @@ class _ProductGroupCard extends StatelessWidget {
               ),
             ),
             AnimatedSize(
-              duration: const Duration(milliseconds: 200),
+              duration: Duration(milliseconds: 200),
               curve: Curves.easeInOut,
               alignment: Alignment.topCenter,
               child: expanded
                   ? _lotsSection()
-                  : const SizedBox(width: double.infinity),
+                  : SizedBox(width: double.infinity),
             ),
           ],
         ),
@@ -853,8 +852,8 @@ class _ProductGroupCard extends StatelessWidget {
   Widget _lotsSection() {
     final g = group;
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      margin: EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: EdgeInsets.fromLTRB(12, 12, 12, 12),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(14),
@@ -865,26 +864,25 @@ class _ProductGroupCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.layers_outlined, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.layers_outlined, color: AppColors.textPrimary, size: 20),
+              SizedBox(width: 8),
               Text(
-                'Lotes (${g.lots.length})',
-                style: const TextStyle(
-                  color: Colors.white,
+                tr('Lotes ({0})', [g.lots.length]),
+                style: TextStyle(
+                  color: AppColors.textPrimary,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          const Divider(color: AppColors.border, height: 1),
+          SizedBox(height: 8),
+          Divider(color: AppColors.border, height: 1),
           if (!g.hasLots)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                'Este producto aún no tiene lotes. Toca "Agregar lote" para '
-                'registrar su fecha de vencimiento y cantidad.',
+                tr('Este producto aún no tiene lotes. Toca "Agregar lote" para registrar su fecha de vencimiento y cantidad.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
@@ -895,25 +893,25 @@ class _ProductGroupCard extends StatelessWidget {
               lot: g.lots[i],
               onTap: () => onOpenLot(i),
             ),
-            const Divider(color: AppColors.border, height: 1),
+            Divider(color: AppColors.border, height: 1),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onAddLot,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const FittedBox(
+                  icon: Icon(Icons.add, size: 18),
+                  label: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text('Agregar lote', maxLines: 1, softWrap: false),
+                    child: Text(tr('Agregar lote'), maxLines: 1, softWrap: false),
                   ),
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    minimumSize: Size(0, 44),
+                    padding: EdgeInsets.symmetric(horizontal: 12),
                     foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
-                    textStyle: const TextStyle(
+                    side: BorderSide(color: AppColors.primary),
+                    textStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -921,20 +919,20 @@ class _ProductGroupCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: onEdit,
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const FittedBox(
+                  icon: Icon(Icons.edit_outlined, size: 18),
+                  label: FittedBox(
                     fit: BoxFit.scaleDown,
                     child:
-                        Text('Editar producto', maxLines: 1, softWrap: false),
+                        Text(tr('Editar producto'), maxLines: 1, softWrap: false),
                   ),
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(0, 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    textStyle: const TextStyle(
+                    minimumSize: Size(0, 44),
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    textStyle: TextStyle(
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w600,
                       fontSize: 14,

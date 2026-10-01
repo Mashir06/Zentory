@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/form_fields.dart';
+import '../l10n/strings.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,14 +33,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final correo = _correo.text.trim();
     final password = _password.text.trim();
     if (correo.isEmpty || password.isEmpty) {
-      showMessage(context, 'Por favor llena todos los campos');
+      showMessage(context, tr('Por favor llena todos los campos'));
       return;
     }
     setState(() => _loading = true);
     try {
       await AuthService.instance.signInWithEmail(correo, password);
       if (!mounted) return;
-      showMessage(context, '¡Bienvenido!');
+      showMessage(context, tr('¡Bienvenido!'));
       Routes.resetTo(context, Routes.session);
     } catch (e) {
       if (mounted) showMessage(context, AuthService.messageFor(e));
@@ -65,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _forgotPassword() async {
     final correo = _correo.text.trim();
     if (correo.isEmpty) {
-      showMessage(context, 'Por favor, ingresa tu correo primero');
+      showMessage(context, tr('Por favor, ingresa tu correo primero'));
       return;
     }
     try {
@@ -73,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         showMessage(
           context,
-          'Se ha enviado un correo para restablecer tu contraseña',
+          tr('Se ha enviado un correo para restablecer tu contraseña'),
           long: true,
         );
       }
@@ -81,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         showMessage(
           context,
-          'Error al enviar correo: ${AuthService.messageFor(e)}',
+          tr('Error al enviar correo: {0}', [AuthService.messageFor(e)]),
         );
       }
     }
@@ -94,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -102,47 +103,47 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Image.asset(
                       'assets/images/logozentory.png',
                       width: 110,
-                      semanticLabel: 'Logo de Zentory',
+                      semanticLabel: tr('Logo de Zentory'),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    '¡Bienvenido de nuevo!',
+                  SizedBox(height: 24),
+                  Text(
+                    tr('¡Bienvenido de nuevo!'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Iniciar sesión para continuar',
+                  SizedBox(height: 6),
+                  Text(
+                    tr('Iniciar sesión para continuar'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   LabeledField(
-                    label: 'Correo electrónico',
+                    label: tr('Correo electrónico'),
                     controller: _correo,
-                    hint: 'Ingresa tu correo electrónico',
+                    hint: tr('Ingresa tu correo electrónico'),
                     keyboardType: TextInputType.emailAddress,
                     prefixIcon: Icons.mail_outline,
                     textInputAction: TextInputAction.next,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   LabeledField(
-                    label: 'Contraseña',
+                    label: tr('Contraseña'),
                     controller: _password,
-                    hint: 'Ingresa tu contraseña',
+                    hint: tr('Ingresa tu contraseña'),
                     obscureText: !_showPassword,
                     prefixIcon: Icons.lock_outline,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _login(),
                     suffix: IconButton(
                       tooltip: _showPassword
-                          ? 'Ocultar contraseña'
-                          : 'Mostrar contraseña',
+                          ? tr('Ocultar contraseña')
+                          : tr('Mostrar contraseña'),
                       icon: Icon(
                         _showPassword
                             ? Icons.visibility_off_outlined
@@ -157,17 +158,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _forgotPassword,
-                      child: const Text('¿Olvidaste tu contraseña?'),
+                      child: Text(tr('¿Olvidaste tu contraseña?')),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   LoadingButton(
-                    label: 'Iniciar sesión',
+                    label: tr('Iniciar sesión'),
                     loading: _loading,
                     onPressed: _login,
                   ),
-                  const SizedBox(height: 20),
-                  const Row(
+                  SizedBox(height: 20),
+                  Row(
                     children: [
                       Expanded(child: Divider(color: AppColors.border)),
                       Padding(
@@ -180,16 +181,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       Expanded(child: Divider(color: AppColors.border)),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   OutlinedButton.icon(
                     onPressed: _googleLoading ? null : _loginWithGoogle,
                     icon: _googleLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text(
+                        : Text(
                             'G',
                             style: TextStyle(
                               fontSize: 18,
@@ -197,17 +198,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: AppColors.blue,
                             ),
                           ),
-                    label: const Text('Iniciar sesión con Google'),
+                    label: Text(tr('Iniciar sesión con Google')),
                   ),
-                  const SizedBox(height: 28),
+                  SizedBox(height: 28),
                   Text.rich(
                     TextSpan(
-                      text: '¿No tienes una cuenta? ',
-                      style: const TextStyle(color: AppColors.textSecondary),
+                      text: tr('¿No tienes una cuenta? '),
+                      style: TextStyle(color: AppColors.textSecondary),
                       children: [
                         TextSpan(
-                          text: 'Regístrate aquí',
-                          style: const TextStyle(
+                          text: tr('Regístrate aquí'),
+                          style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,

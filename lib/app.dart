@@ -16,54 +16,60 @@ import 'screens/registro_screen.dart';
 import 'screens/session_gate.dart';
 import 'screens/settings_screen.dart';
 import 'screens/store_selection_screen.dart';
+import 'l10n/strings.dart';
+import 'services/app_settings.dart';
+import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
 
-class ZentoryApp extends StatelessWidget {
+class ZentoryApp extends StatefulWidget {
   const ZentoryApp({super.key});
+
+  @override
+  State<ZentoryApp> createState() => _ZentoryAppState();
 
   static Widget _page(String? name, Object? args) {
     switch (name) {
       case Routes.login:
-        return const LoginScreen();
+        return LoginScreen();
       case Routes.register:
-        return const RegistroScreen();
+        return RegistroScreen();
       case Routes.storeSelection:
-        return const StoreSelectionScreen();
+        return StoreSelectionScreen();
       case Routes.onboarding:
-        return const OnboardingScreen();
+        return OnboardingScreen();
       case Routes.home:
-        return const HomeScreen();
+        return HomeScreen();
       case Routes.calendar:
-        return const CalendarioScreen();
+        return CalendarioScreen();
       case Routes.scan:
-        return const QRScreen();
+        return QRScreen();
       case Routes.productos:
-        return const ProductosScreen();
+        return ProductosScreen();
       case Routes.profile:
-        return const ProfileScreen();
+        return ProfileScreen();
       case Routes.settings:
-        return const SettingsScreen();
+        return SettingsScreen();
       case Routes.help:
-        return const AyudaScreen();
+        return AyudaScreen();
       case Routes.faq:
-        return const FaqScreen();
+        return FaqScreen();
       case Routes.privacySettings:
-        return const PrivacySettingsScreen();
+        return PrivacySettingsScreen();
       case Routes.addProduct:
         return ProductFormScreen(
-          args: args is ProductFormArgs ? args : const ProductFormArgs(),
+          args: args is ProductFormArgs ? args : ProductFormArgs(),
         );
       case Routes.lotForm:
         return LotFormScreen(
-          args: args is LotFormArgs ? args : const LotFormArgs(nombre: ''),
+          args: args is LotFormArgs ? args : LotFormArgs(nombre: ''),
         );
       case Routes.session:
       default:
-        return const SessionGate();
+        return SessionGate();
     }
   }
 
-  static Route<dynamic> _onGenerateRoute(RouteSettings settings) {
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final page = _page(settings.name, settings.arguments);
     // Las pestañas de la barra inferior cambian sin animación.
     if (Routes.tabs.contains(settings.name)) {
@@ -77,24 +83,53 @@ class ZentoryApp extends StatelessWidget {
     return MaterialPageRoute<void>(settings: settings, builder: (_) => page);
   }
 
+}
+
+class _ZentoryAppState extends State<ZentoryApp> {
+  @override
+  void initState() {
+    super.initState();
+    AppSettings.instance.revision.addListener(_onSettingsChanged);
+  }
+
+  @override
+  void dispose() {
+    AppSettings.instance.revision.removeListener(_onSettingsChanged);
+    super.dispose();
+  }
+
+  /// Modo oscuro/claro o idioma cambiados: se vuelven a dibujar todas las
+  /// pantallas abiertas (los colores y textos se leen al dibujar), sin perder
+  /// la navegación ni lo que el usuario estaba escribiendo.
+  void _onSettingsChanged() {
+    setState(() {});
+    void rebuild(Element el) {
+      el.markNeedsBuild();
+      el.visitChildren(rebuild);
+    }
+
+    (context as Element).visitChildren(rebuild);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = AppTheme.current;
     return MaterialApp(
       title: 'Zentory',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.dark,
-      locale: const Locale('es'),
-      supportedLocales: const [Locale('es'), Locale('en')],
-      localizationsDelegates: const [
+      theme: theme,
+      darkTheme: theme,
+      themeMode: AppColors.isDark ? ThemeMode.dark : ThemeMode.light,
+      locale: Locale(currentLanguage.code),
+      supportedLocales: [for (final l in AppLanguage.values) Locale(l.code)],
+      localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       navigatorObservers: [routeObserver],
       initialRoute: Routes.session,
-      onGenerateRoute: _onGenerateRoute,
+      onGenerateRoute: ZentoryApp.onGenerateRoute,
     );
   }
 }

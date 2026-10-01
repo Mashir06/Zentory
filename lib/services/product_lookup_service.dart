@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import '../l10n/strings.dart';
 
 /// Datos de un producto obtenidos al escanear su código de barras.
 class ScannedProduct {
@@ -41,7 +42,7 @@ class ProductLookupService {
     }
 
     return ScannedProduct(
-      nombre: field('product_name', 'Producto Desconocido'),
+      nombre: field('product_name', tr('Producto Desconocido')),
       presentacion: field('quantity', ''),
     );
   }

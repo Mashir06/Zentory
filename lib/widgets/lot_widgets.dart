@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../models/product_lots.dart';
 import '../theme/app_colors.dart';
+import '../l10n/strings.dart';
 
 /// Píldora de estado con los colores de Zentory. Sin estado (producto sin
 /// lotes) muestra "Sin lotes".
@@ -23,10 +24,10 @@ class StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        status?.label ?? 'Sin lotes',
+        tr(status?.label ?? 'Sin lotes'),
         maxLines: 1,
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.onColor,
           fontSize: small ? 10 : 11,
           fontWeight: FontWeight.w600,
         ),
@@ -44,7 +45,7 @@ class InfoTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(8),
@@ -53,13 +54,13 @@ class InfoTag extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: AppColors.textSecondary),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.textSoft, fontSize: 11),
+              style: TextStyle(color: AppColors.textSoft, fontSize: 11),
             ),
           ),
         ],
@@ -81,7 +82,7 @@ class LotTableRow extends StatelessWidget {
   final Product lot;
   final VoidCallback onTap;
 
-  static const _value = TextStyle(color: Colors.white, fontSize: 13);
+  static TextStyle get _value => TextStyle(color: AppColors.textPrimary, fontSize: 13);
 
   @override
   Widget build(BuildContext context) {
@@ -89,32 +90,32 @@ class LotTableRow extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
         child: Row(
           children: [
             Expanded(
               flex: 2,
-              child: _cell('Lote', Text(label, style: _value)),
+              child: _cell(tr('Lote'), Text(label, style: _value)),
             ),
             Expanded(
               flex: 3,
               child: _cell(
-                'Vence',
+                tr('Vence'),
                 Text(
-                  lot.expiryDate == null ? 'Sin fecha' : lot.fechaVencimiento,
+                  lot.expiryDate == null ? tr('Sin fecha') : lot.fechaVencimiento,
                   style: _value,
                 ),
               ),
             ),
             Expanded(
               flex: 3,
-              child: _cell('Cantidad', Text(lot.cantidad, style: _value)),
+              child: _cell(tr('Cantidad'), Text(lot.cantidad, style: _value)),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Expanded(
               flex: 3,
               child: _cell(
-                'Estado',
+                tr('Estado'),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
@@ -122,7 +123,7 @@ class LotTableRow extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right,
+            Icon(Icons.chevron_right,
                 color: AppColors.textSecondary, size: 20),
           ],
         ),
@@ -138,9 +139,9 @@ class LotTableRow extends StatelessWidget {
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         value,
       ],
     );
@@ -161,12 +162,12 @@ Future<LotAction?> showLotDetailSheet(
   return showModalBottomSheet<LotAction>(
     context: context,
     backgroundColor: AppColors.surface,
-    shape: const RoundedRectangleBorder(
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (ctx) => SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -178,16 +179,16 @@ Future<LotAction?> showLotDetailSheet(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Lote $label',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        tr('Lote {0}', [label]),
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         '${lot.nombre} · ${lotCode(lot)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12,
                         ),
@@ -198,37 +199,37 @@ Future<LotAction?> showLotDetailSheet(
                 StatusPill(lot.status),
               ],
             ),
-            const SizedBox(height: 16),
-            _SheetRow('Fecha de vencimiento', lot.fechaVencimiento),
+            SizedBox(height: 16),
+            _SheetRow(tr('Fecha de vencimiento'), lot.fechaVencimiento),
             _SheetRow('', relativeExpiry(lot.expiryDate),
                 valueColor: lot.status.color),
-            _SheetRow('Cantidad', '${lot.cantidad} unidades'),
-            _SheetRow('Presentación', lot.presentacion),
-            _SheetRow('Fecha de registro', lot.fechaRegistro),
-            const SizedBox(height: 16),
+            _SheetRow(tr('Cantidad'), tr('{0} unidades', [lot.cantidad])),
+            _SheetRow(tr('Presentación'), lot.presentacion),
+            _SheetRow(tr('Fecha de registro'), lot.fechaRegistro),
+            SizedBox(height: 16),
             if (allowActions)
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => Navigator.pop(ctx, LotAction.delete),
-                      icon: const Icon(Icons.delete_outline, size: 18),
-                      label: const Text('Eliminar'),
+                      icon: Icon(Icons.delete_outline, size: 18),
+                      label: Text(tr('Eliminar')),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.danger,
-                        side: const BorderSide(color: AppColors.danger),
-                        minimumSize: const Size.fromHeight(48),
+                        side: BorderSide(color: AppColors.danger),
+                        minimumSize: Size.fromHeight(48),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => Navigator.pop(ctx, LotAction.edit),
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: const Text('Editar lote'),
+                      icon: Icon(Icons.edit_outlined, size: 18),
+                      label: Text(tr('Editar lote')),
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
+                        minimumSize: Size.fromHeight(48),
                       ),
                     ),
                   ),
@@ -237,7 +238,7 @@ Future<LotAction?> showLotDetailSheet(
             else
               OutlinedButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cerrar'),
+                child: Text(tr('Cerrar')),
               ),
           ],
         ),
@@ -247,15 +248,15 @@ Future<LotAction?> showLotDetailSheet(
 }
 
 class _SheetRow extends StatelessWidget {
-  const _SheetRow(this.label, this.value, {this.valueColor = Colors.white});
+  const _SheetRow(this.label, this.value, {this.valueColor});
   final String label;
   final String value;
-  final Color valueColor;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -263,16 +264,16 @@ class _SheetRow extends StatelessWidget {
             child: Text(
               label,
               style:
-                  const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: valueColor,
+                color: valueColor ?? AppColors.textPrimary,
                 fontSize: 13,
                 fontWeight:
                     label.isEmpty ? FontWeight.w600 : FontWeight.normal,

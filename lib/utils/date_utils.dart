@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import '../l10n/strings.dart';
+
 /// Utilidades de fechas.
 ///
 /// Las fechas de vencimiento se guardan en Firestore como texto con el formato
@@ -47,11 +49,15 @@ class DateUtilsZ {
   static String capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
-  /// "Mayo 2026"
-  static String monthYear(DateTime date) =>
-      capitalize(DateFormat('MMMM yyyy', 'es').format(date));
+  /// "Mayo 2026" (o "October 2026", "2026年10月" según el idioma).
+  static String monthYear(DateTime date) => capitalize(
+      currentLanguage == AppLanguage.es
+          ? DateFormat('MMMM yyyy', 'es').format(date)
+          : DateFormat.yMMMM(currentLanguage.code).format(date));
 
-  /// "28 de mayo"
+  /// "28 de mayo" (o "October 28", "10月28日").
   static String dayOfMonth(DateTime date) =>
-      DateFormat("d 'de' MMMM", 'es').format(date);
+      currentLanguage == AppLanguage.es
+          ? DateFormat("d 'de' MMMM", 'es').format(date)
+          : DateFormat.MMMMd(currentLanguage.code).format(date);
 }

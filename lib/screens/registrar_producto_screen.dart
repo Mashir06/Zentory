@@ -15,6 +15,7 @@ import '../widgets/common.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/notification_setup_sheet.dart';
 import '../widgets/product_card.dart';
+import '../l10n/strings.dart';
 
 enum _PhotoChoice { camera, gallery, remove }
 
@@ -25,7 +26,7 @@ enum _PhotoChoice { camera, gallery, remove }
 /// Crear o editar un producto. Los datos de vencimiento y cantidad van en
 /// cada lote ([LotFormScreen]).
 class ProductFormScreen extends StatefulWidget {
-  const ProductFormScreen({super.key, this.args = const ProductFormArgs()});
+  const ProductFormScreen({super.key, this.args = ProductFormArgs()});
 
   final ProductFormArgs args;
 
@@ -76,7 +77,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       final storeId = await _repo.resolveActiveStoreId();
       if (!mounted) return;
       if (storeId == null) {
-        showMessage(context, 'No tienes una tienda vinculada');
+        showMessage(context, tr('No tienes una tienda vinculada'));
         Navigator.of(context).maybePop();
         return;
       }
@@ -108,7 +109,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showMessage(context, 'Error al cargar: $e');
+      showMessage(context, tr('Error al cargar: {0}', [e]));
     }
   }
 
@@ -137,7 +138,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     final choice = await showModalBottomSheet<_PhotoChoice>(
       context: context,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
@@ -145,23 +146,23 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined,
+              leading: Icon(Icons.photo_camera_outlined,
                   color: AppColors.primary),
-              title: const Text('Cámara', style: TextStyle(color: Colors.white)),
+              title: Text(tr('Cámara'), style: TextStyle(color: AppColors.textPrimary)),
               onTap: () => Navigator.pop(ctx, _PhotoChoice.camera),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined,
+              leading: Icon(Icons.photo_library_outlined,
                   color: AppColors.primary),
               title:
-                  const Text('Galería', style: TextStyle(color: Colors.white)),
+                  Text(tr('Galería'), style: TextStyle(color: AppColors.textPrimary)),
               onTap: () => Navigator.pop(ctx, _PhotoChoice.gallery),
             ),
             if (_imageBytes != null)
               ListTile(
                 leading:
-                    const Icon(Icons.delete_outline, color: AppColors.danger),
-                title: const Text('Quitar foto',
+                    Icon(Icons.delete_outline, color: AppColors.danger),
+                title: Text(tr('Quitar foto'),
                     style: TextStyle(color: AppColors.danger)),
                 onTap: () => Navigator.pop(ctx, _PhotoChoice.remove),
               ),
@@ -192,7 +193,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         _imagenBase64 = ImageUtils.encode(bytes);
       });
     } catch (e) {
-      if (mounted) showMessage(context, 'No se pudo obtener la foto: $e');
+      if (mounted) showMessage(context, tr('No se pudo obtener la foto: {0}', [e]));
     }
   }
 
@@ -213,12 +214,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     final presentacion = _presentacion.text.trim();
     final storeId = _storeId;
     if (nombre.isEmpty) {
-      showMessage(context, 'Escribe el nombre del producto');
+      showMessage(context, tr('Escribe el nombre del producto'));
       return;
     }
     if (storeId == null) return;
     if (_match != null) {
-      showMessage(context, 'Ya existe un producto con ese nombre');
+      showMessage(context, tr('Ya existe un producto con ese nombre'));
       return;
     }
 
@@ -235,7 +236,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         // El nombre aparece en las alertas: se reprograman.
         await NotificationService.instance.syncStore(storeId);
         if (!mounted) return;
-        showMessage(context, 'Producto actualizado');
+        showMessage(context, tr('Producto actualizado'));
         Navigator.of(context).pop(true);
       } else {
         await _repo.createProduct(
@@ -245,7 +246,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           imagenBase64: _imagenBase64,
         );
         if (!mounted) return;
-        showMessage(context, 'Producto creado. Ahora agrega su primer lote.');
+        showMessage(context, tr('Producto creado. Ahora agrega su primer lote.'));
         // Un producto se usa con lotes: se pasa directo a crear el primero.
         Navigator.of(context).pushReplacementNamed(
           Routes.lotForm,
@@ -261,7 +262,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       setState(() => _saving = false);
       showMessage(
         context,
-        e is ZentoryException ? e.message : 'No se pudo guardar: $e',
+        e is ZentoryException ? e.message : tr('No se pudo guardar: {0}', [e]),
       );
     }
   }
@@ -272,8 +273,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     if (storeId == null || name == null) return;
     final ok = await confirmDialog(
       context,
-      title: 'Eliminar producto',
-      message: '¿Deseas eliminar "$name" y todos sus lotes del inventario?',
+      title: tr('Eliminar producto'),
+      message: tr('¿Deseas eliminar "{0}" y todos sus lotes del inventario?', [name]),
     );
     if (!ok) return;
     setState(() => _saving = true);
@@ -281,12 +282,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       await _repo.deleteProductAndLots(storeId, name);
       await NotificationService.instance.syncStore(storeId);
       if (!mounted) return;
-      showMessage(context, 'Producto eliminado');
+      showMessage(context, tr('Producto eliminado'));
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      showMessage(context, 'No se pudo eliminar: $e');
+      showMessage(context, tr('No se pudo eliminar: {0}', [e]));
     }
   }
 
@@ -300,7 +301,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               ZentoryHeader(onBack: () => Navigator.of(context).maybePop()),
               Expanded(
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator())
                     : _form(),
               ),
             ],
@@ -311,115 +312,115 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _form() {
-    final others = _isEditing ? const <ProductGroup>[] : _existing;
+    final others = _isEditing ? <ProductGroup>[] : _existing;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       children: [
         _FormTitle(
           icon: _isEditing ? Icons.edit_outlined : Icons.add_box_outlined,
-          title: _isEditing ? 'Editar producto' : 'Agregar producto',
+          title: _isEditing ? tr('Editar producto') : tr('Agregar producto'),
           subtitle: _isEditing
-              ? 'Los cambios se aplican a todos sus lotes'
-              : 'Registra el producto; luego le agregas sus lotes',
+              ? tr('Los cambios se aplican a todos sus lotes')
+              : tr('Registra el producto; luego le agregas sus lotes'),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         Center(child: _photoPicker()),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         LabeledField(
-          label: 'Nombre del producto *',
+          label: tr('Nombre del producto *'),
           controller: _nombre,
-          hint: 'Ej. Leche Chiricana',
+          hint: tr('Ej. Leche Chiricana'),
           textCapitalization: TextCapitalization.sentences,
         ),
         if (_match != null) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           ZCard(
             color: AppColors.surfaceAlt,
-            padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+            padding: EdgeInsets.fromLTRB(12, 8, 4, 8),
             child: Row(
               children: [
-                const Icon(Icons.info_outline,
+                Icon(Icons.info_outline,
                     color: AppColors.warning, size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '"${_match!.nombre}" ya está registrado.',
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    tr('"{0}" ya está registrado.', [_match!.nombre]),
+                    style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
                   ),
                 ),
                 if (!_isEditing)
                   TextButton(
                     onPressed: () => _addLotTo(_match!),
-                    child: const Text('Agregar lote'),
+                    child: Text(tr('Agregar lote')),
                   ),
               ],
             ),
           ),
         ],
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         LabeledField(
-          label: 'Presentación (tamaño)',
+          label: tr('Presentación (tamaño)'),
           controller: _presentacion,
-          hint: 'Ej. 946 ml, 1 litro, 500 g',
+          hint: tr('Ej. 946 ml, 1 litro, 500 g'),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
         _FormButtons(
           saving: _saving,
-          saveLabel: _isEditing ? 'Guardar cambios' : 'Guardar producto',
+          saveLabel: _isEditing ? tr('Guardar cambios') : tr('Guardar producto'),
           onSave: _save,
         ),
         if (_isEditing) ...[
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           TextButton.icon(
             onPressed: _saving ? null : _delete,
-            icon: const Icon(Icons.delete_outline, color: AppColors.danger),
-            label: const Text(
-              'Eliminar producto y sus lotes',
+            icon: Icon(Icons.delete_outline, color: AppColors.danger),
+            label: Text(
+              tr('Eliminar producto y sus lotes'),
               style: TextStyle(color: AppColors.danger),
             ),
           ),
         ],
         if (others.isNotEmpty) ...[
-          const SizedBox(height: 28),
-          const Text(
-            '¿Ya está registrado?',
+          SizedBox(height: 28),
+          Text(
+            tr('¿Ya está registrado?'),
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Text(
-            'Toca un producto para agregarle un lote nuevo',
+          Text(
+            tr('Toca un producto para agregarle un lote nuevo'),
             style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           for (final g in others)
             ZCard(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(10),
+              margin: EdgeInsets.only(bottom: 10),
+              padding: EdgeInsets.all(10),
               onTap: () => _addLotTo(g),
               child: Row(
                 children: [
                   ProductThumbnail(bytes: g.imageBytes, size: 44),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           g.nombre,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           [
                             if (g.presentacion.isNotEmpty) g.presentacion,
-                            '${g.lots.length} ${g.lots.length == 1 ? 'lote' : 'lotes'}',
+                            tr(g.lots.length == 1 ? '{0} lote' : '{0} lotes', [g.lots.length]),
                           ].join(' · '),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
                           ),
@@ -427,7 +428,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                       ],
                     ),
                   ),
-                  const Icon(Icons.add_circle_outline,
+                  Icon(Icons.add_circle_outline,
                       color: AppColors.primary, size: 22),
                 ],
               ),
@@ -452,15 +453,15 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         clipBehavior: Clip.antiAlias,
         child: _imageBytes != null
             ? Image.memory(_imageBytes!, fit: BoxFit.cover, gaplessPlayback: true)
-            : const Column(
+            : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.add_a_photo_outlined,
                       color: AppColors.primary, size: 34),
                   SizedBox(height: 8),
-                  Text('Agregar foto', style: TextStyle(color: Colors.white)),
+                  Text(tr('Agregar foto'), style: TextStyle(color: AppColors.textPrimary)),
                   Text(
-                    'Opcional',
+                    tr('Opcional'),
                     style:
                         TextStyle(color: AppColors.textSecondary, fontSize: 11),
                   ),
@@ -513,7 +514,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
     if (!granted && mounted) {
       showMessage(
         context,
-        'Las notificaciones están desactivadas. No recibirás alertas de vencimiento.',
+        tr('Las notificaciones están desactivadas. No recibirás alertas de vencimiento.'),
         long: true,
       );
     }
@@ -521,7 +522,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
       final storeId = await _repo.resolveActiveStoreId();
       if (!mounted) return;
       if (storeId == null || widget.args.nombre.trim().isEmpty) {
-        showMessage(context, 'No se encontró el producto');
+        showMessage(context, tr('No se encontró el producto'));
         Navigator.of(context).maybePop();
         return;
       }
@@ -542,7 +543,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showMessage(context, 'Error al cargar: $e');
+      showMessage(context, tr('Error al cargar: {0}', [e]));
     }
   }
 
@@ -553,7 +554,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
       initialDate: _fecha ?? now,
       firstDate: DateTime(now.year - 5),
       lastDate: DateTime(now.year + 15),
-      locale: const Locale('es'),
+      locale: Locale(currentLanguage.code),
     );
     if (picked != null) setState(() => _fecha = picked);
   }
@@ -563,7 +564,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
     final fecha = _fecha;
     final storeId = _storeId;
     if (fecha == null || cantidad.isEmpty) {
-      showMessage(context, 'Indica la fecha de vencimiento y la cantidad');
+      showMessage(context, tr('Indica la fecha de vencimiento y la cantidad'));
       return;
     }
     if (storeId == null) return;
@@ -593,10 +594,10 @@ class _LotFormScreenState extends State<LotFormScreen> {
       await NotificationService.instance.syncStore(storeId);
       if (!mounted) return;
       if (_isEditing) {
-        showMessage(context, 'Lote actualizado');
+        showMessage(context, tr('Lote actualizado'));
         Navigator.of(context).pop(true);
       } else {
-        showMessage(context, 'Lote agregado');
+        showMessage(context, tr('Lote agregado'));
         Navigator.of(context).pushNamedAndRemoveUntil(
           Routes.productos,
           (r) => r.settings.name == Routes.home,
@@ -605,14 +606,14 @@ class _LotFormScreenState extends State<LotFormScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _saving = false);
-      showMessage(context, 'No se pudo guardar: $e');
+      showMessage(context, tr('No se pudo guardar: {0}', [e]));
     }
   }
 
   Future<void> _testNotification() async {
     await NotificationService.instance.requestPermission();
     await NotificationService.instance.sendTestNotification();
-    if (mounted) showMessage(context, 'Enviando notificación de prueba...');
+    if (mounted) showMessage(context, tr('Enviando notificación de prueba...'));
   }
 
   @override
@@ -627,34 +628,34 @@ class _LotFormScreenState extends State<LotFormScreen> {
               ZentoryHeader(
                 onBack: () => Navigator.of(context).maybePop(),
                 trailing: IconButton(
-                  tooltip: 'Probar notificación',
-                  icon: const Icon(Icons.notifications_active_outlined,
-                      color: Colors.white),
+                  tooltip: tr('Probar notificación'),
+                  icon: Icon(Icons.notifications_active_outlined,
+                      color: AppColors.textPrimary),
                   onPressed: _testNotification,
                 ),
               ),
               Expanded(
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator())
                     : ListView(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16),
                         children: [
                           _FormTitle(
                             icon: _isEditing
                                 ? Icons.edit_outlined
                                 : Icons.layers_outlined,
                             title: _isEditing
-                                ? 'Editar lote ${a.lotLabel ?? ''}'.trim()
-                                : 'Agregar lote',
-                            subtitle: 'Fecha de vencimiento y cantidad',
+                                ? tr('Editar lote {0}', [a.lotLabel ?? '']).trim()
+                                : tr('Agregar lote'),
+                            subtitle: tr('Fecha de vencimiento y cantidad'),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           ZCard(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all(12),
                             child: Row(
                               children: [
                                 ProductThumbnail(bytes: imageBytes, size: 52),
-                                const SizedBox(width: 12),
+                                SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -662,8 +663,8 @@ class _LotFormScreenState extends State<LotFormScreen> {
                                     children: [
                                       Text(
                                         a.nombre,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color: AppColors.textPrimary,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15,
                                         ),
@@ -672,7 +673,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
                                           a.presentacion != 'N/A')
                                         Text(
                                           a.presentacion,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.textSecondary,
                                             fontSize: 12,
                                           ),
@@ -683,23 +684,23 @@ class _LotFormScreenState extends State<LotFormScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20),
                           _DateField(
                             value: _fecha,
                             onTap: _pickDate,
                           ),
-                          const SizedBox(height: 14),
+                          SizedBox(height: 14),
                           LabeledField(
-                            label: 'Cantidad *',
+                            label: tr('Cantidad *'),
                             controller: _cantidad,
-                            hint: 'Ej. 10',
+                            hint: tr('Ej. 10'),
                             keyboardType: TextInputType.number,
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
                           _FormButtons(
                             saving: _saving,
                             saveLabel:
-                                _isEditing ? 'Guardar cambios' : 'Guardar lote',
+                                _isEditing ? tr('Guardar cambios') : tr('Guardar lote'),
                             onSave: _save,
                           ),
                         ],
@@ -741,22 +742,22 @@ class _FormTitle extends StatelessWidget {
           ),
           child: Icon(icon, color: AppColors.primary),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                 ),
@@ -788,15 +789,15 @@ class _FormButtons extends StatelessWidget {
           child: OutlinedButton(
             onPressed: saving ? null : () => Navigator.of(context).maybePop(),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: EdgeInsets.symmetric(horizontal: 8),
             ),
-            child: const FittedBox(
+            child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text('Cancelar', maxLines: 1, softWrap: false),
+              child: Text(tr('Cancelar'), maxLines: 1, softWrap: false),
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           flex: 2,
           child: LoadingButton(
@@ -822,20 +823,20 @@ class _DateField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Fecha de vencimiento *',
+        Text(
+          tr('Fecha de vencimiento *'),
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
@@ -843,14 +844,14 @@ class _DateField extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.event_outlined,
+                Icon(Icons.event_outlined,
                     color: AppColors.textSecondary),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    v == null ? 'Selecciona la fecha' : DateUtilsZ.format(v),
+                    v == null ? tr('Selecciona la fecha') : DateUtilsZ.format(v),
                     style: TextStyle(
-                      color: v == null ? AppColors.textMuted : Colors.white,
+                      color: v == null ? AppColors.textMuted : AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -863,7 +864,7 @@ class _DateField extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                const Icon(Icons.arrow_drop_down,
+                Icon(Icons.arrow_drop_down,
                     color: AppColors.textSecondary),
               ],
             ),

@@ -2,32 +2,27 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../l10n/strings.dart';
 
 class FaqScreen extends StatelessWidget {
   const FaqScreen({super.key});
 
-  static const _faqs = [
+  static List<(String, String)> get _faqs => [
     (
-      '¿Cómo agrego un nuevo producto?',
-      "Para agregar un producto, ve a la sección de 'Productos' y presiona el "
-          "botón '+' o utiliza el escáner QR para registrarlo rápidamente.",
+      tr('¿Cómo agrego un nuevo producto?'),
+      tr('Para agregar un producto, ve a la sección de \'Productos\' y presiona el botón \'+\' o utiliza el escáner QR para registrarlo rápidamente.'),
     ),
     (
-      '¿Cómo invito a alguien a mi tienda?',
-      "En tu perfil, encontrarás el 'Código de Invitación' de tu tienda. "
-          'Compártelo con tus empleados para que puedan unirse desde su '
-          'propia cuenta.',
+      tr('¿Cómo invito a alguien a mi tienda?'),
+      tr('En tu perfil, encontrarás el \'Código de Invitación\' de tu tienda. Compártelo con tus empleados para que puedan unirse desde su propia cuenta.'),
     ),
     (
-      '¿Puedo tener varias tiendas?',
-      'Sí, puedes crear múltiples tiendas o sucursales desde tu perfil y '
-          'alternar entre ellas en cualquier momento.',
+      tr('¿Puedo tener varias tiendas?'),
+      tr('Sí, puedes crear múltiples tiendas o sucursales desde tu perfil y alternar entre ellas en cualquier momento.'),
     ),
     (
-      '¿Cómo cambio mi contraseña?',
-      'Por ahora, el cambio de contraseña se gestiona a través del inicio de '
-          'sesión con Google o el sistema de recuperación de Firebase en la '
-          'pantalla de login.',
+      tr('¿Cómo cambio mi contraseña?'),
+      tr('Por ahora, el cambio de contraseña se gestiona a través del inicio de sesión con Google o el sistema de recuperación de Firebase en la pantalla de login.'),
     ),
   ];
 
@@ -38,29 +33,29 @@ class FaqScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleHeader(title: 'Preguntas Frecuentes'),
+              SimpleHeader(title: tr('Preguntas Frecuentes')),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   children: [
                     for (final (q, a) in _faqs)
                       ZCard(
-                        margin: const EdgeInsets.only(bottom: 12),
+                        margin: EdgeInsets.only(bottom: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               q,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               a,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.textSoft,
                                 height: 1.4,
                               ),

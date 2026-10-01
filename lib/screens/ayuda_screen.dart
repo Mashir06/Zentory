@@ -7,6 +7,7 @@ import '../theme/app_colors.dart';
 import '../utils/manual.dart';
 import '../widgets/common.dart';
 import 'settings_screen.dart';
+import '../l10n/strings.dart';
 
 class AyudaScreen extends StatefulWidget {
   const AyudaScreen({super.key});
@@ -53,12 +54,12 @@ class _AyudaScreenState extends State<AyudaScreen> {
 
   Future<void> _openWhatsApp(String phone, String reason) async {
     final message =
-        'Hola, soy $_userName de la tienda $_storeName. $reason';
+        tr('Hola, soy {0} de la tienda {1}. {2}', [_userName, _storeName, reason]);
     final uri = Uri.parse(
       'https://wa.me/$phone?text=${Uri.encodeComponent(message)}',
     );
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && mounted) showMessage(context, 'No se pudo abrir WhatsApp');
+    if (!ok && mounted) showMessage(context, tr('No se pudo abrir WhatsApp'));
   }
 
   Future<void> _openManual() async {
@@ -74,60 +75,60 @@ class _AyudaScreenState extends State<AyudaScreen> {
           child: Column(
             children: [
               ZentoryHeader(
-                subtitle: 'Ayuda y Soporte',
+                subtitle: tr('Ayuda y Soporte'),
                 onBack: () => Navigator.of(context).maybePop(),
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   children: [
-                    const Text(
-                      '¿En qué podemos ayudarte?',
+                    Text(
+                      tr('¿En qué podemos ayudarte?'),
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     SettingsOption(
                       icon: Icons.quiz_outlined,
-                      title: 'Preguntas Frecuentes (FAQ)',
+                      title: tr('Preguntas Frecuentes (FAQ)'),
                       onTap: () => Navigator.of(context).pushNamed(Routes.faq),
                     ),
                     SettingsOption(
                       icon: Icons.support_agent,
-                      title: 'Contactar Soporte',
+                      title: tr('Contactar Soporte'),
                       onTap: () =>
                           setState(() => _showContacts = !_showContacts),
                       trailing: AnimatedRotation(
                         turns: _showContacts ? 0.25 : 0,
-                        duration: const Duration(milliseconds: 200),
-                        child: const Icon(Icons.chevron_right,
+                        duration: Duration(milliseconds: 200),
+                        child: Icon(Icons.chevron_right,
                             color: AppColors.textSecondary),
                       ),
                     ),
                     if (_showContacts)
                       Padding(
-                        padding: const EdgeInsets.only(left: 16),
+                        padding: EdgeInsets.only(left: 16),
                         child: Column(
                           children: [
                             SettingsOption(
                               icon: Icons.chat_outlined,
                               iconColor: AppColors.whatsapp,
-                              title: 'Soporte Técnico',
+                              title: tr('Soporte Técnico'),
                               onTap: () => _openWhatsApp(
                                 '67968449',
-                                'Necesito soporte técnico.',
+                                tr('Necesito soporte técnico.'),
                               ),
                             ),
                             SettingsOption(
                               icon: Icons.chat_outlined,
                               iconColor: AppColors.whatsapp,
-                              title: 'Consultas Generales',
+                              title: tr('Consultas Generales'),
                               onTap: () => _openWhatsApp(
                                 '61857395',
-                                'Tengo una consulta general.',
+                                tr('Tengo una consulta general.'),
                               ),
                             ),
                           ],
@@ -135,7 +136,7 @@ class _AyudaScreenState extends State<AyudaScreen> {
                       ),
                     SettingsOption(
                       icon: Icons.menu_book_outlined,
-                      title: 'Ver Manual de Usuario',
+                      title: tr('Ver Manual de Usuario'),
                       onTap: _openManual,
                     ),
                   ],

@@ -8,6 +8,7 @@ import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
 import '../widgets/common.dart';
 import '../widgets/donut_chart.dart';
+import '../l10n/strings.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -114,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showMessage(context, 'No se pudieron cargar los datos: $e');
+      showMessage(context, tr('No se pudieron cargar los datos: {0}', [e]));
     }
   }
 
@@ -122,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     if (_storeId == null) {
       showMessage(
         context,
-        'Debes unirte a una tienda antes de poder agregar un producto',
+        tr('Debes unirte a una tienda antes de poder agregar un producto'),
       );
       return;
     }
@@ -140,8 +141,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             children: [
               ZentoryHeader(
                 trailing: IconButton(
-                  tooltip: 'Configuración',
-                  icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                  tooltip: tr('Configuración'),
+                  icon: Icon(Icons.settings_outlined, color: AppColors.textPrimary),
                   onPressed: () =>
                       Navigator.of(context).pushNamed(Routes.settings),
                 ),
@@ -150,27 +151,27 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                 child: RefreshIndicator(
                   onRefresh: _load,
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 96),
                     children: [
                       Text(
-                        '¡Hola, $_userName! 👋',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        tr('¡Hola, {0}! 👋', [_userName]),
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Aquí tienes el resumen de tu minisúper',
+                      SizedBox(height: 4),
+                      Text(
+                        tr('Aquí tienes el resumen de tu minisúper'),
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 13,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       if (_loading)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.all(40),
                           child: Center(child: CircularProgressIndicator()),
                         )
@@ -179,10 +180,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       else ...[
                         _statsGrid(),
                         if (_stats.tomorrow > 0) ...[
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           _tomorrowAlert(),
                         ],
-                        const SizedBox(height: 20),
+                        SizedBox(height: 20),
                         _statusCard(),
                       ],
                     ],
@@ -196,11 +197,11 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       floatingActionButton: FloatingActionButton(
         onPressed: _addProduct,
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        tooltip: 'Agregar producto',
-        child: const Icon(Icons.add, size: 30),
+        foregroundColor: AppColors.onColor,
+        tooltip: tr('Agregar producto'),
+        child: Icon(Icons.add, size: 30),
       ),
-      bottomNavigationBar: const ZentoryBottomNav(current: Routes.home),
+      bottomNavigationBar: ZentoryBottomNav(current: Routes.home),
     );
   }
 
@@ -210,31 +211,31 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
         icon: Icons.check_circle_outline,
         color: AppColors.primary,
         value: _stats.good,
-        label: 'En buen estado',
+        label: tr('En buen estado'),
       ),
       _StatCard(
         icon: Icons.schedule,
         color: AppColors.amber,
         value: _stats.expiring,
-        label: 'Por vencer (7 días)',
+        label: tr('Por vencer (7 días)'),
       ),
       _StatCard(
         icon: Icons.warning_amber_rounded,
         color: AppColors.dangerBright,
         value: _stats.expired,
-        label: 'Vencidos',
+        label: tr('Vencidos'),
       ),
       _StatCard(
         icon: Icons.inventory_2_outlined,
         color: AppColors.info,
         value: _stats.total,
-        label: 'Total de productos',
+        label: tr('Total de productos'),
       ),
     ];
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics: NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
       childAspectRatio: 1.45,
@@ -248,29 +249,29 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       onTap: () => Routes.goToTab(context, Routes.productos),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 32),
-          const SizedBox(width: 12),
+          Icon(Icons.warning_amber_rounded, color: AppColors.onColor, size: 32),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${_stats.tomorrow} productos vencen mañana',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  tr('{0} productos vencen mañana', [_stats.tomorrow]),
+                  style: TextStyle(
+                    color: AppColors.onColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
                 ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Revisa tu inventario y evita pérdidas',
+                SizedBox(height: 2),
+                Text(
+                  tr('Revisa tu inventario y evita pérdidas'),
                   style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 12),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: Colors.white),
+          Icon(Icons.chevron_right, color: AppColors.onColor),
         ],
       ),
     );
@@ -280,15 +281,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Inventario por estado',
+        Text(
+          tr('Inventario por estado'),
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         ZCard(
           child: Row(
             children: [
@@ -297,13 +298,13 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                 colors: _statusColors,
                 size: 130,
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
               Expanded(
                 child: Column(
                   children: [
                     for (final group in _statusColors.keys)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        padding: EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           children: [
                             Container(
@@ -314,17 +315,17 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                 borderRadius: BorderRadius.circular(3),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                group,
-                                style: const TextStyle(color: Colors.white),
+                                tr(group),
+                                style: TextStyle(color: AppColors.textPrimary),
                               ),
                             ),
                             Text(
                               '${_stats.byStatus[group] ?? 0}',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -343,31 +344,30 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
 
   Widget _noStoreCard() {
     return ZCard(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: Column(
         children: [
-          const Icon(Icons.storefront_outlined,
+          Icon(Icons.storefront_outlined,
               color: AppColors.primary, size: 48),
-          const SizedBox(height: 12),
-          const Text(
-            '¡Aún no tienes una tienda!',
+          SizedBox(height: 12),
+          Text(
+            tr('¡Aún no tienes una tienda!'),
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Para empezar a gestionar tus productos, necesitas unirte a una '
-            'tienda o crear la tuya desde tu perfil.',
+          SizedBox(height: 8),
+          Text(
+            tr('Para empezar a gestionar tus productos, necesitas unirte a una tienda o crear la tuya desde tu perfil.'),
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pushNamed(Routes.profile),
-            child: const Text('Configurar Tienda'),
+            child: Text(tr('Configurar Tienda')),
           ),
         ],
       ),
@@ -392,7 +392,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return ZCard(
       color: AppColors.surfaceAlt,
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -400,7 +400,7 @@ class _StatCard extends StatelessWidget {
           Row(
             children: [
               Icon(icon, color: color, size: 22),
-              const Spacer(),
+              Spacer(),
               Text(
                 '$value',
                 style: TextStyle(
@@ -416,10 +416,10 @@ class _StatCard extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
               ),
-              const Text(
-                'Productos',
+              Text(
+                tr('Productos'),
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
               ),
             ],

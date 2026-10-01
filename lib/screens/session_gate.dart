@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../routes.dart';
 import '../services/auth_service.dart';
 import '../services/zentory_repository.dart';
+import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../l10n/strings.dart';
 
 /// Decide la pantalla inicial (equivale a "check_session" + "check_store"):
 /// sin sesión → login; con sesión y tienda → inicio; sin tienda → selección.
@@ -61,21 +63,20 @@ class _SessionGateState extends State<SessionGate> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset('assets/images/logozentory.png', width: 120),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               if (_error == null)
-                const CircularProgressIndicator()
+                CircularProgressIndicator()
               else ...[
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'No se pudo comprobar tu tienda. Revisa tu conexión a '
-                    'internet.',
+                    tr('No se pudo comprobar tu tienda. Revisa tu conexión a internet.'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: AppColors.textSecondary),
                   ),
                 ),
-                const SizedBox(height: 16),
-                FilledButton(onPressed: _route, child: const Text('Reintentar')),
+                SizedBox(height: 16),
+                FilledButton(onPressed: _route, child: Text(tr('Reintentar'))),
               ],
             ],
           ),

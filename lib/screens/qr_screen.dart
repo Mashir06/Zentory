@@ -5,6 +5,7 @@ import '../routes.dart';
 import '../services/product_lookup_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../l10n/strings.dart';
 
 /// Escáner de códigos de barras (reemplaza CameraX + ML Kit).
 ///
@@ -43,7 +44,7 @@ class _QRScreenState extends State<QRScreen> {
       if (product == null) {
         showMessage(
           context,
-          'No se encontró información del producto',
+          tr('No se encontró información del producto'),
           long: true,
         );
         return;
@@ -59,7 +60,7 @@ class _QRScreenState extends State<QRScreen> {
       );
       if (mounted) await _controller.start();
     } catch (e) {
-      if (mounted) showMessage(context, 'Error de red: $e');
+      if (mounted) showMessage(context, tr('Error de red: {0}', [e]));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -69,7 +70,7 @@ class _QRScreenState extends State<QRScreen> {
     try {
       await _controller.toggleTorch();
     } catch (_) {
-      if (mounted) showMessage(context, 'La linterna no está disponible');
+      if (mounted) showMessage(context, tr('La linterna no está disponible'));
     }
   }
 
@@ -81,24 +82,24 @@ class _QRScreenState extends State<QRScreen> {
           bottom: false,
           child: Column(
             children: [
-              const ZentoryHeader(),
+              ZentoryHeader(),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   children: [
-                    const Text(
-                      'Escanear producto',
+                    Text(
+                      tr('Escanear producto'),
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(
-                      'Escanea el código de barras del producto',
+                    Text(
+                      tr('Escanea el código de barras del producto'),
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     AspectRatio(
                       aspectRatio: 3 / 4,
                       child: ClipRRect(
@@ -132,11 +133,11 @@ class _QRScreenState extends State<QRScreen> {
                               bottom: 12,
                               child: Text(
                                 _busy
-                                    ? 'Buscando producto...'
-                                    : 'Coloca el código de barras dentro del marco',
+                                    ? tr('Buscando producto...')
+                                    : tr('Coloca el código de barras dentro del marco'),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: AppColors.onColor,
                                   shadows: [
                                     Shadow(blurRadius: 6, color: Colors.black),
                                   ],
@@ -144,7 +145,7 @@ class _QRScreenState extends State<QRScreen> {
                               ),
                             ),
                             if (_busy)
-                              const ColoredBox(
+                              ColoredBox(
                                 color: Color(0x80000000),
                                 child: Center(
                                   child: CircularProgressIndicator(),
@@ -160,13 +161,13 @@ class _QRScreenState extends State<QRScreen> {
                                   return FilledButton.icon(
                                     onPressed: _toggleTorch,
                                     style: FilledButton.styleFrom(
-                                      backgroundColor: const Color(0x99000000),
-                                      foregroundColor: Colors.white,
+                                      backgroundColor: Color(0x99000000),
+                                      foregroundColor: AppColors.onColor,
                                     ),
                                     icon: Icon(
                                       on ? Icons.flash_off : Icons.flash_on,
                                     ),
-                                    label: Text(on ? 'Apagar' : 'Linterna'),
+                                    label: Text(on ? tr('Apagar') : tr('Linterna')),
                                   );
                                 },
                               ),
@@ -175,30 +176,30 @@ class _QRScreenState extends State<QRScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Instrucciones',
+                    SizedBox(height: 20),
+                    Text(
+                      tr('Instrucciones'),
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Row(
+                    SizedBox(height: 10),
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _Step(
                           icon: Icons.center_focus_strong,
-                          text: '1. Enfoca el código de barras',
+                          text: tr('1. Enfoca el código de barras'),
                         ),
                         _Step(
                           icon: Icons.wb_sunny_outlined,
-                          text: '2. Asegúrate de tener buena iluminación',
+                          text: tr('2. Asegúrate de tener buena iluminación'),
                         ),
                         _Step(
                           icon: Icons.pan_tool_outlined,
-                          text: '3. Mantén el dispositivo estable',
+                          text: tr('3. Mantén el dispositivo estable'),
                         ),
                       ],
                     ),
@@ -209,7 +210,7 @@ class _QRScreenState extends State<QRScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: const ZentoryBottomNav(current: Routes.scan),
+      bottomNavigationBar: ZentoryBottomNav(current: Routes.scan),
     );
   }
 }
@@ -223,15 +224,15 @@ class _Step extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+        padding: EdgeInsets.symmetric(horizontal: 4),
         child: Column(
           children: [
             Icon(icon, color: AppColors.primary),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 12,
               ),

@@ -5,6 +5,7 @@ import '../firebase_options.dart';
 import 'device_settings.dart';
 import 'notification_service.dart';
 import 'zentory_repository.dart';
+import '../l10n/strings.dart';
 
 /// Autenticación con Firebase (correo/contraseña y Google).
 class AuthService {
@@ -116,21 +117,21 @@ class AuthService {
     if (error is FirebaseAuthException) {
       switch (error.code) {
         case 'email-already-in-use':
-          return 'Este correo ya está registrado. Intenta iniciar sesión.';
+          return tr('Este correo ya está registrado. Intenta iniciar sesión.');
         case 'invalid-email':
-          return 'El formato del correo electrónico no es válido.';
+          return tr('El formato del correo electrónico no es válido.');
         case 'weak-password':
-          return 'La contraseña debe tener al menos 6 caracteres';
+          return tr('La contraseña debe tener al menos 6 caracteres');
         case 'user-not-found':
         case 'wrong-password':
         case 'invalid-credential':
-          return 'Correo o contraseña incorrectos';
+          return tr('Correo o contraseña incorrectos');
         case 'too-many-requests':
-          return 'Demasiados intentos. Intenta más tarde.';
+          return tr('Demasiados intentos. Intenta más tarde.');
         case 'network-request-failed':
-          return 'Sin conexión a internet';
+          return tr('Sin conexión a internet');
       }
-      return 'Error: ${error.message ?? error.code}';
+      return tr('Error: {0}', [error.message ?? error.code]);
     }
     if (error is GoogleUnavailableException) return error.message;
     if (error is GoogleSignInException) {
@@ -138,19 +139,14 @@ class AuthService {
         case GoogleSignInExceptionCode.canceled:
         case GoogleSignInExceptionCode.clientConfigurationError:
         case GoogleSignInExceptionCode.providerConfigurationError:
-          return 'No se pudo iniciar sesión con Google: esta versión de la app '
-              'no está autorizada en Firebase (falta registrar su huella '
-              'SHA-1). Mientras tanto, usa correo y contraseña. '
-              '(${error.description ?? error.code.name})';
+          return tr('No se pudo iniciar sesión con Google: esta versión de la app no está autorizada en Firebase (falta registrar su huella SHA-1). Mientras tanto, usa correo y contraseña. ({0})', [error.description ?? error.code.name]);
         case GoogleSignInExceptionCode.uiUnavailable:
-          return 'No se pudo mostrar la ventana de Google. Revisa que tengas '
-              'una cuenta de Google en el teléfono y los servicios de Google '
-              'Play actualizados.';
+          return tr('No se pudo mostrar la ventana de Google. Revisa que tengas una cuenta de Google en el teléfono y los servicios de Google Play actualizados.');
         default:
-          return 'Error de Google: ${error.description ?? error.code.name}';
+          return tr('Error de Google: {0}', [error.description ?? error.code.name]);
       }
     }
-    return 'Error: $error';
+    return tr('Error: {0}', [error]);
   }
 }
 

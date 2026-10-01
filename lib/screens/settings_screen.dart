@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../routes.dart';
+import '../services/app_settings.dart';
 import '../services/auth_service.dart';
 import '../services/device_settings.dart';
 import '../services/notification_service.dart';
@@ -10,6 +11,7 @@ import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/notification_setup_sheet.dart';
+import '../l10n/strings.dart';
 
 /// Tarjeta de opción con ícono, título, subtítulo y elemento a la derecha.
 class SettingsOption extends StatelessWidget {
@@ -21,7 +23,7 @@ class SettingsOption extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.iconColor = AppColors.primary,
-    this.titleColor = Colors.white,
+    this.titleColor,
   });
 
   final IconData icon;
@@ -30,13 +32,13 @@ class SettingsOption extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final Color iconColor;
-  final Color titleColor;
+  final Color? titleColor;
 
   @override
   Widget build(BuildContext context) {
     return ZCard(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      margin: EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       onTap: onTap,
       child: Row(
         children: [
@@ -49,7 +51,7 @@ class SettingsOption extends StatelessWidget {
             ),
             child: Icon(icon, color: iconColor, size: 22),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,16 +59,16 @@ class SettingsOption extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    color: titleColor,
+                    color: titleColor ?? AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     subtitle!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
@@ -77,9 +79,9 @@ class SettingsOption extends StatelessWidget {
           ),
           trailing ??
               (onTap != null
-                  ? const Icon(Icons.chevron_right,
+                  ? Icon(Icons.chevron_right,
                       color: AppColors.textSecondary)
-                  : const SizedBox.shrink()),
+                  : SizedBox.shrink()),
         ],
       ),
     );
@@ -87,10 +89,10 @@ class SettingsOption extends StatelessWidget {
 }
 
 Widget settingsSectionTitle(String text) => Padding(
-      padding: const EdgeInsets.fromLTRB(4, 16, 4, 10),
+      padding: EdgeInsets.fromLTRB(4, 16, 4, 10),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 13,
           fontWeight: FontWeight.w600,
@@ -136,6 +138,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  /// Lista de idiomas; el elegido se aplica al instante en toda la app.
+  Future<void> _chooseLanguage() async {
+    final chosen = await showModalBottomSheet<AppLanguage>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 4),
+              child: Text(
+                tr('Elige el idioma de la aplicación'),
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            for (final lang in AppLanguage.values)
+              ListTile(
+                leading: Icon(
+                  lang == currentLanguage
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: AppColors.primary,
+                ),
+                title: Text(
+                  lang.label,
+                  style: TextStyle(color: AppColors.textPrimary),
+                ),
+                onTap: () => Navigator.of(ctx).pop(lang),
+              ),
+            SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null) return;
+    await AppSettings.instance.setLanguage(chosen);
+    // Las alertas ya programadas se rehacen con los textos del nuevo idioma.
+    final storeId = await ZentoryRepository.instance.resolveActiveStoreId();
+    await NotificationService.instance.syncStore(storeId);
+  }
+
   Future<void> _logout() async {
     await AuthService.instance.signOut();
     if (mounted) Routes.resetTo(context, Routes.login);
@@ -149,36 +200,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             children: [
               ZentoryHeader(
-                subtitle: 'Configuración',
+                subtitle: tr('Configuración'),
                 onBack: () => Navigator.of(context).maybePop(),
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   children: [
-                    const Text(
-                      'Ajustes de cuenta',
+                    Text(
+                      tr('Ajustes de cuenta'),
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Text(
-                      'Gestiona tu perfil y preferencias',
+                    Text(
+                      tr('Gestiona tu perfil y preferencias'),
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     SettingsOption(
                       icon: Icons.person_outline,
-                      title: 'Editar Perfil y Tienda',
+                      title: tr('Editar Perfil y Tienda'),
                       onTap: () =>
                           Navigator.of(context).pushNamed(Routes.profile),
                     ),
                     SettingsOption(
                       icon: Icons.notifications_outlined,
-                      title: 'Notificaciones',
-                      subtitle: 'Avisar cuando un producto esté por vencer',
+                      title: tr('Notificaciones'),
+                      subtitle: tr('Avisar cuando un producto esté por vencer'),
                       onTap: () => _setNotifications(!_notifications),
                       trailing: Switch(
                         value: _notifications,
@@ -187,33 +238,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SettingsOption(
                       icon: Icons.tune,
-                      title: 'Configurar notificaciones',
-                      subtitle: 'Permisos, batería y prueba de alertas',
+                      title: tr('Configurar notificaciones'),
+                      subtitle: tr('Permisos, batería y prueba de alertas'),
                       onTap: () => showNotificationSetupSheet(context),
                     ),
                     SettingsOption(
                       icon: Icons.lock_outline,
-                      title: 'Privacidad y Seguridad',
+                      title: tr('Privacidad y Seguridad'),
                       onTap: () => Navigator.of(context)
                           .pushNamed(Routes.privacySettings),
                     ),
-                    settingsSectionTitle('Ayuda'),
+                    settingsSectionTitle(tr('Apariencia')),
+                    SettingsOption(
+                      icon: AppColors.isDark
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
+                      title: tr('Modo oscuro'),
+                      subtitle: AppColors.isDark
+                          ? tr('Modo oscuro')
+                          : tr('Modo claro'),
+                      onTap: () =>
+                          AppSettings.instance.setDarkMode(!AppColors.isDark),
+                      trailing: Switch(
+                        value: AppColors.isDark,
+                        onChanged: AppSettings.instance.setDarkMode,
+                      ),
+                    ),
+                    SettingsOption(
+                      icon: Icons.language,
+                      title: tr('Idioma'),
+                      subtitle: currentLanguage.label,
+                      onTap: _chooseLanguage,
+                    ),
+                    settingsSectionTitle(tr('Ayuda')),
                     SettingsOption(
                       icon: Icons.help_outline,
-                      title: 'Ayuda y Soporte',
+                      title: tr('Ayuda y Soporte'),
                       onTap: () => Navigator.of(context).pushNamed(Routes.help),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     SettingsOption(
                       icon: Icons.logout,
                       iconColor: AppColors.danger,
                       titleColor: AppColors.danger,
-                      title: 'Cerrar Sesión',
-                      trailing: const SizedBox.shrink(),
+                      title: tr('Cerrar Sesión'),
+                      trailing: SizedBox.shrink(),
                       onTap: _logout,
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
+                    SizedBox(height: 24),
+                    Text(
                       'Zentory App v1.0.0',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -227,14 +300,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       InkWell(
                         onTap: () {
                           Clipboard.setData(ClipboardData(text: _sha1!));
-                          showMessage(context, 'Huella SHA-1 copiada');
+                          showMessage(context, tr('Huella SHA-1 copiada'));
                         },
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          padding: EdgeInsets.symmetric(vertical: 6),
                           child: Text(
                             'SHA-1: $_sha1',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.textMuted,
                               fontSize: 10,
                             ),

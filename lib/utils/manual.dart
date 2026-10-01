@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import '../l10n/strings.dart';
 
 /// Copia el manual de usuario (assets/docs/manual.docx) a la caché y lo abre
 /// con la app que el usuario tenga para documentos de Word.
@@ -24,10 +25,10 @@ Future<String?> openWordManual() async {
     );
     if (result.type == ResultType.done) return null;
     if (result.type == ResultType.noAppToOpen) {
-      return 'No tienes una app para abrir documentos de Word.';
+      return tr('No tienes una app para abrir documentos de Word.');
     }
-    return 'No se pudo abrir el manual: ${result.message}';
+    return tr('No se pudo abrir el manual: {0}', [result.message]);
   } catch (_) {
-    return 'No se pudo encontrar el archivo del manual en los recursos de la app.';
+    return tr('No se pudo encontrar el archivo del manual en los recursos de la app.');
   }
 }

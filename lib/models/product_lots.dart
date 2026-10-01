@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../utils/date_utils.dart';
 import 'product.dart';
+import '../l10n/strings.dart';
 
 /// Agrupación de productos en lotes.
 ///
@@ -37,12 +38,12 @@ String formatQty(num value) => value == value.roundToDouble()
 
 /// Texto relativo de vencimiento: "Vence en 3 días", "Venció hace 2 días"...
 String relativeExpiry(DateTime? expiry) {
-  if (expiry == null) return 'Sin fecha de vencimiento';
+  if (expiry == null) return tr('Sin fecha de vencimiento');
   final d = DateUtilsZ.daysFromToday(expiry);
-  if (d < 0) return d == -1 ? 'Venció ayer' : 'Venció hace ${-d} días';
-  if (d == 0) return 'Vence hoy';
-  if (d == 1) return 'Vence mañana';
-  return 'Vence en $d días';
+  if (d < 0) return d == -1 ? tr('Venció ayer') : tr('Venció hace {0} días', [-d]);
+  if (d == 0) return tr('Vence hoy');
+  if (d == 1) return tr('Vence mañana');
+  return tr('Vence en {0} días', [d]);
 }
 
 /// Número de lote para mostrar: L001, L002...

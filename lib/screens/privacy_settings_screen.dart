@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import 'settings_screen.dart';
+import '../l10n/strings.dart';
 
 class PrivacySettingsScreen extends StatelessWidget {
   const PrivacySettingsScreen({super.key});
@@ -11,7 +12,7 @@ class PrivacySettingsScreen extends StatelessWidget {
   Future<void> _changePassword(BuildContext context) async {
     final email = AuthService.instance.currentUser?.email;
     if (email == null) {
-      showMessage(context, 'No se pudo obtener el correo del usuario');
+      showMessage(context, tr('No se pudo obtener el correo del usuario'));
       return;
     }
     try {
@@ -19,7 +20,7 @@ class PrivacySettingsScreen extends StatelessWidget {
       if (context.mounted) {
         showMessage(
           context,
-          'Se ha enviado un correo para restablecer tu contraseña a $email',
+          tr('Se ha enviado un correo para restablecer tu contraseña a {0}', [email]),
           long: true,
         );
       }
@@ -35,32 +36,32 @@ class PrivacySettingsScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const SimpleHeader(title: 'Privacidad y Seguridad'),
+              SimpleHeader(title: tr('Privacidad y Seguridad')),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   children: [
-                    settingsSectionTitle('Seguridad de la cuenta'),
+                    settingsSectionTitle(tr('Seguridad de la cuenta')),
                     SettingsOption(
                       icon: Icons.key_outlined,
-                      title: 'Cambiar Contraseña',
-                      subtitle: 'Recibirás un correo para restablecerla',
+                      title: tr('Cambiar Contraseña'),
+                      subtitle: tr('Recibirás un correo para restablecerla'),
                       onTap: () => _changePassword(context),
                     ),
-                    const SettingsOption(
+                    SettingsOption(
                       icon: Icons.verified_user_outlined,
-                      title: 'Estado de la cuenta',
-                      subtitle: 'Tu cuenta está protegida por Zentory',
+                      title: tr('Estado de la cuenta'),
+                      subtitle: tr('Tu cuenta está protegida por Zentory'),
                     ),
-                    settingsSectionTitle('Datos personales'),
+                    settingsSectionTitle(tr('Datos personales')),
                     SettingsOption(
                       icon: Icons.delete_forever_outlined,
                       iconColor: AppColors.danger,
                       titleColor: AppColors.danger,
-                      title: 'Eliminar mi cuenta',
+                      title: tr('Eliminar mi cuenta'),
                       onTap: () => showMessage(
                         context,
-                        'Opción no disponible en esta versión',
+                        tr('Opción no disponible en esta versión'),
                       ),
                     ),
                   ],

@@ -7,6 +7,7 @@ import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/store_dialogs.dart';
+import '../l10n/strings.dart';
 
 /// Perfil: tiendas del usuario, sucursales y personal.
 class ProfileScreen extends StatefulWidget {
@@ -55,14 +56,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) return;
     try {
       final userDoc = await _repo.userRef(user.uid).get();
-      final data = userDoc.data() ?? const <String, dynamic>{};
+      final data = userDoc.data() ?? <String, dynamic>{};
       final name = (data['nombre'] as String?) ??
           user.displayName ??
           user.email ??
           'Usuario';
       final currentId = data['tiendaId'] as String?;
       final ids = <String>{
-        ...((data['tiendasIds'] as List?)?.whereType<String>() ?? const []),
+        ...((data['tiendasIds'] as List?)?.whereType<String>() ?? []),
         ?currentId,
       }.toList();
 
@@ -91,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         activeId = stores.first.id;
       }
 
-      var role = 'Usuario (Sin tiendas)';
+      var role = tr('Usuario (Sin tiendas)');
       var staff = <StaffMember>[];
       var branches = <Store>[];
       if (activeId != null) {
@@ -108,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
         role = (me?.isAdmin ?? false)
             ? 'Administrador Principal'
-            : 'Trabajador en $activeName';
+            : tr('Trabajador en {0}', [activeName]);
         final branchRes = await _repo.branches(activeId).get();
         branches = branchRes.docs.map(Store.fromDoc).toList();
       }
@@ -126,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      showMessage(context, 'No se pudo cargar el perfil: $e');
+      showMessage(context, tr('No se pudo cargar el perfil: {0}', [e]));
     }
   }
 
@@ -138,20 +139,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     String? created;
     final ok = await showStoreFormDialog(
       context,
-      title: 'Nueva Tienda',
-      confirmLabel: 'Crear',
+      title: tr('Nueva Tienda'),
+      confirmLabel: tr('Crear'),
       onSubmit: (nombre, ubicacion) async {
         created = await _repo.createStore(nombre: nombre, ubicacion: ubicacion);
       },
     );
     if (!ok || !mounted) return;
-    showMessage(context, "Tienda '$created' creada", long: true);
+    showMessage(context, tr('Tienda \'{0}\' creada', [created]), long: true);
     _load();
   }
 
   Future<void> _joinStore() async {
     if (_userName == 'Cargando...') {
-      showMessage(context, 'Espera a que cargue tu perfil');
+      showMessage(context, tr('Espera a que cargue tu perfil'));
       return;
     }
     final ok = await showJoinStoreDialog(
@@ -159,15 +160,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onSubmit: (code) => _repo.joinStore(code),
     );
     if (!ok || !mounted) return;
-    showMessage(context, 'Te has unido a la tienda');
+    showMessage(context, tr('Te has unido a la tienda'));
     _load();
   }
 
   Future<void> _editStore(Store store, {bool isBranch = false}) async {
     final ok = await showStoreFormDialog(
       context,
-      title: 'Editar Tienda',
-      confirmLabel: 'Actualizar',
+      title: tr('Editar Tienda'),
+      confirmLabel: tr('Actualizar'),
       initialNombre: store.nombre,
       initialUbicacion: store.ubicacion,
       onSubmit: (nombre, ubicacion) => _repo.updateStore(
@@ -178,32 +179,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (!ok || !mounted) return;
-    showMessage(context, 'Tienda actualizada');
+    showMessage(context, tr('Tienda actualizada'));
     _load();
   }
 
   Future<void> _deleteStore(Store store, {bool isBranch = false}) async {
     if (isBranch ? !_isAdmin : !_canDelete(store)) {
-      showMessage(context, 'Solo el administrador puede eliminar la tienda.');
+      showMessage(context, tr('Solo el administrador puede eliminar la tienda.'));
       return;
     }
     final confirmed = await confirmDialog(
       context,
-      title: 'Eliminar Tienda',
+      title: tr('Eliminar Tienda'),
       message: isBranch
-          ? "¿Estás seguro de que deseas eliminar la sucursal '${store.nombre}'?"
-          : "¿Estás seguro de que deseas eliminar '${store.nombre}'? Se borrará "
-              'toda la información, incluyendo personal, productos y sucursales.',
+          ? tr('¿Estás seguro de que deseas eliminar la sucursal \'{0}\'?', [store.nombre])
+          : tr('¿Estás seguro de que deseas eliminar \'{0}\'? Se borrará toda la información, incluyendo personal, productos y sucursales.', [store.nombre]),
     );
     if (!confirmed || !mounted) return;
     try {
       if (isBranch) {
         await _repo.deleteBranch(_activeStoreId!, store.id);
-        if (mounted) showMessage(context, 'Sucursal eliminada');
+        if (mounted) showMessage(context, tr('Sucursal eliminada'));
       } else {
         await _repo.deleteStore(store.id);
         if (mounted) {
-          showMessage(context, 'Tienda y toda su información eliminada');
+          showMessage(context, tr('Tienda y toda su información eliminada'));
         }
         // Sin otra tienda, debe crear o unirse a una para seguir.
         if (await _repo.resolveActiveStoreId() == null) {
@@ -212,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
     } catch (e) {
-      if (mounted) showMessage(context, 'No se pudo eliminar: $e');
+      if (mounted) showMessage(context, tr('No se pudo eliminar: {0}', [e]));
     }
     _load();
   }
@@ -222,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _repo.setActiveStore(store.id);
       if (mounted) Routes.resetTo(context, Routes.home);
     } catch (e) {
-      if (mounted) showMessage(context, 'No se pudo cambiar de tienda: $e');
+      if (mounted) showMessage(context, tr('No se pudo cambiar de tienda: {0}', [e]));
     }
   }
 
@@ -231,16 +231,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (storeId == null) return;
     final confirmed = await confirmDialog(
       context,
-      title: 'Eliminar Personal',
+      title: tr('Eliminar Personal'),
       message:
-          "¿Estás seguro de que deseas eliminar a '${member.nombre}' de esta tienda?",
+          tr('¿Estás seguro de que deseas eliminar a \'{0}\' de esta tienda?', [member.nombre]),
     );
     if (!confirmed) return;
     try {
       await _repo.removeStaffMember(storeId, member);
-      if (mounted) showMessage(context, '${member.nombre} eliminado');
+      if (mounted) showMessage(context, tr('{0} eliminado', [member.nombre]));
     } catch (e) {
-      if (mounted) showMessage(context, 'No se pudo eliminar: $e');
+      if (mounted) showMessage(context, tr('No se pudo eliminar: {0}', [e]));
     }
     _load();
   }
@@ -248,7 +248,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _copyCode(String code) {
     if (code.isEmpty) return;
     Clipboard.setData(ClipboardData(text: code));
-    showMessage(context, 'Código copiado: $code');
+    showMessage(context, tr('Código copiado: {0}', [code]));
   }
 
   // ---------------------------------------------------------------------------
@@ -266,30 +266,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               SimpleHeader(
-                title: 'Mi Perfil',
+                title: tr('Mi Perfil'),
                 trailing: TextButton.icon(
                   onPressed: _joinStore,
-                  icon: const Icon(Icons.group_add_outlined, size: 18),
-                  label: const Text('Unirse a Tienda'),
+                  icon: Icon(Icons.group_add_outlined, size: 18),
+                  label: Text(tr('Unirse a Tienda')),
                 ),
               ),
               Expanded(
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator())
                     : RefreshIndicator(
                         onRefresh: _load,
                         child: ListView(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                          padding: EdgeInsets.fromLTRB(16, 8, 16, 32),
                           children: [
                             _profileCard(),
-                            const SizedBox(height: 24),
+                            SizedBox(height: 24),
                             Row(
                               children: [
-                                const Expanded(
+                                Expanded(
                                   child: Text(
-                                    'Mis Minisupers',
+                                    tr('Mis Minisupers'),
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.textPrimary,
                                       fontSize: 17,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -297,37 +297,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                                 TextButton(
                                   onPressed: _addStore,
-                                  child: const Text('+ Agregar'),
+                                  child: Text(tr('+ Agregar')),
                                 ),
                               ],
                             ),
                             if (active == null)
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.symmetric(vertical: 12),
                                 child: Text(
-                                  'Aún no perteneces a ninguna tienda.',
+                                  tr('Aún no perteneces a ninguna tienda.'),
                                   style:
                                       TextStyle(color: AppColors.textSecondary),
                                 ),
                               )
                             else
                               _StoreTile(
-                                title: '${active.nombre} (Actual)',
+                                title: tr('{0} (Actual)', [active.nombre]),
                                 subtitle: active.ubicacion,
                                 code: active.codigoInvitacion,
                                 color: AppColors.primaryDark,
                                 subtitleColor: AppColors.primaryLight,
                                 onCopy: _copyCode,
                                 actions: [
-                                  _TileAction('Editar', AppColors.primaryLight,
+                                  _TileAction(tr('Editar'), AppColors.primaryLight,
                                       () => _editStore(active)),
                                   if (_canDelete(active))
-                                    _TileAction('Eliminar', const Color(0xFFFEF2F2),
+                                    _TileAction(tr('Eliminar'), Color(0xFFFEF2F2),
                                         () => _deleteStore(active)),
                                 ],
                               ),
                             if (_branches.isNotEmpty) ...[
-                              _subHeader('Sucursales vinculadas'),
+                              _subHeader(tr('Sucursales vinculadas')),
                               for (final b in _branches)
                                 _StoreTile(
                                   title: b.nombre,
@@ -335,11 +335,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   code: b.codigoInvitacion,
                                   onCopy: _copyCode,
                                   actions: [
-                                    _TileAction('Editar', AppColors.primary,
+                                    _TileAction(tr('Editar'), AppColors.primary,
                                         () => _editStore(b, isBranch: true)),
                                     if (_isAdmin)
                                       _TileAction(
-                                          'Eliminar',
+                                          tr('Eliminar'),
                                           AppColors.dangerBright,
                                           () =>
                                               _deleteStore(b, isBranch: true)),
@@ -347,37 +347,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                             ],
                             if (others.isNotEmpty) ...[
-                              _subHeader('Otras de mis tiendas'),
+                              _subHeader(tr('Otras de mis tiendas')),
                               for (final s in others)
                                 _StoreTile(
                                   title: s.nombre,
-                                  subtitle: 'Tocar para ver opciones',
+                                  subtitle: tr('Tocar para ver opciones'),
                                   subtitleColor: AppColors.primary,
                                   actions: [
-                                    _TileAction('Seleccionar',
+                                    _TileAction(tr('Seleccionar'),
                                         AppColors.primary, () => _selectStore(s)),
-                                    _TileAction('Editar', AppColors.primary,
+                                    _TileAction(tr('Editar'), AppColors.primary,
                                         () => _editStore(s)),
                                     if (_canDelete(s))
-                                      _TileAction('Eliminar',
+                                      _TileAction(tr('Eliminar'),
                                           AppColors.dangerBright,
                                           () => _deleteStore(s)),
                                   ],
                                 ),
                             ],
-                            const SizedBox(height: 24),
-                            const Text(
-                              'Administrar Personal',
+                            SizedBox(height: 24),
+                            Text(
+                              tr('Administrar Personal'),
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             if (_staff.isEmpty)
-                              const Text(
-                                'No hay personal registrado.',
+                              Text(
+                                tr('No hay personal registrado.'),
                                 style: TextStyle(color: AppColors.textSecondary),
                               ),
                             for (final m in _staff) _staffTile(m, active),
@@ -394,7 +394,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _profileCard() {
     return ZCard(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: Row(
         children: [
           CircleAvatar(
@@ -402,30 +402,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
             backgroundColor: AppColors.primary.withValues(alpha: 0.2),
             child: Text(
               _userName.isNotEmpty ? _userName[0].toUpperCase() : '?',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.primary,
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _userName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  tr(_userName),
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
-                  _userRole,
-                  style: const TextStyle(color: AppColors.primary),
+                  tr(_userRole),
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ],
             ),
@@ -436,39 +436,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _subHeader(String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
+        padding: EdgeInsets.fromLTRB(4, 16, 4, 8),
         child: Text(
           text,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
       );
 
   Widget _staffTile(StaffMember m, Store? active) {
     final canDelete = _isAdmin && m.nombre != _userName;
     return ZCard(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.all(12),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             backgroundColor: AppColors.border,
-            child: Icon(Icons.person_outline, color: Colors.white),
+            child: Icon(Icons.person_outline, color: AppColors.textPrimary),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   m.nombre,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  '${m.rol} - ${active?.nombre ?? ''}',
-                  style: const TextStyle(
+                  '${tr(m.rol)} - ${active?.nombre ?? ''}',
+                  style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
@@ -478,8 +478,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           if (canDelete)
             IconButton(
-              tooltip: 'Eliminar',
-              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+              tooltip: tr('Eliminar'),
+              icon: Icon(Icons.delete_outline, color: AppColors.danger),
               onPressed: () => _removeStaff(m),
             ),
         ],
@@ -503,8 +503,8 @@ class _StoreTile extends StatefulWidget {
     required this.actions,
     this.code,
     this.onCopy,
-    this.color = AppColors.surface,
-    this.subtitleColor = AppColors.textSecondary,
+    this.color,
+    this.subtitleColor,
   });
 
   final String title;
@@ -512,8 +512,8 @@ class _StoreTile extends StatefulWidget {
   final String? code;
   final ValueChanged<String>? onCopy;
   final List<_TileAction> actions;
-  final Color color;
-  final Color subtitleColor;
+  final Color? color;
+  final Color? subtitleColor;
 
   @override
   State<_StoreTile> createState() => _StoreTileState();
@@ -526,47 +526,47 @@ class _StoreTileState extends State<_StoreTile> {
   Widget build(BuildContext context) {
     final code = widget.code;
     return ZCard(
-      color: widget.color,
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+      color: widget.color ?? AppColors.surface,
+      margin: EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.fromLTRB(20, 16, 12, 12),
       onTap: () => setState(() => _expanded = !_expanded),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             widget.title,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.bold,
             ),
           ),
           if (widget.subtitle.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               widget.subtitle,
-              style: TextStyle(color: widget.subtitleColor, fontSize: 13),
+              style: TextStyle(color: widget.subtitleColor ?? AppColors.textSecondary, fontSize: 13),
             ),
           ],
           if (code != null && code.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             InkWell(
               onTap: () => widget.onCopy?.call(code),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Código: $code',
+                      tr('Código: {0}', [code]),
                       style: TextStyle(
-                        color: widget.subtitleColor,
+                        color: widget.subtitleColor ?? AppColors.textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Icon(Icons.copy, size: 14, color: widget.subtitleColor),
+                    SizedBox(width: 6),
+                    Icon(Icons.copy, size: 14, color: widget.subtitleColor ?? AppColors.textSecondary),
                   ],
                 ),
               ),
