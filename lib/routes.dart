@@ -57,6 +57,8 @@ class ProductFormArgs {
     this.editName,
     this.qrNombre,
     this.qrPresentacion,
+    this.qrImagenBase64,
+    this.codigoBarras,
   });
 
   /// Nombre del producto a editar; `null` para crear uno nuevo.
@@ -65,6 +67,11 @@ class ProductFormArgs {
   /// Datos obtenidos al escanear un código de barras.
   final String? qrNombre;
   final String? qrPresentacion;
+  final String? qrImagenBase64;
+
+  /// Código de barras escaneado: se guarda en el producto para reconocerlo
+  /// al instante la próxima vez.
+  final String? codigoBarras;
 }
 
 /// Argumentos del formulario de **lote** (fecha de vencimiento y cantidad).

@@ -11,7 +11,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Inicio**: resumen de lotes en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por estado.
 - **Productos**: cada producto con sus lotes; búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.
 - **Registrar producto**: nombre, foto (cámara o galería) y presentación. **Agregar lote**: fecha de vencimiento y cantidad.
-- **Escáner** de códigos de barras con consulta a [OpenFoodFacts](https://world.openfoodfacts.org) y linterna.
+- **Escáner** de códigos de barras: rellena solo nombre, tamaño y foto con [OpenFoodFacts](https://world.openfoodfacts.org); recuerda el código de cada producto registrado, así que al volver a escanearlo abre directo su lote. Con linterna.
 - **Calendario** mensual con indicadores de vencimiento por día.
 - **Notificaciones** locales 3 días y 1 día antes del vencimiento (9:00 a. m.), con sonido propio.
 - Ajustes, privacidad, ayuda por WhatsApp, manual de usuario y preguntas frecuentes.
