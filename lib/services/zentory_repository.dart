@@ -499,33 +499,18 @@ class ZentoryRepository {
     required String nombre,
     required String presentacion,
     String? imagenBase64,
-    String? codigoBarras,
   }) async {
     final name = nombre.trim();
     _checkName(name);
     if (await findProduct(storeId, name) != null) {
       throw ZentoryException('Ya existe un producto llamado "$name"');
     }
-    final code = codigoBarras?.trim();
     await catalog(storeId).doc(name).set({
       'nombre': name,
       'presentacion': presentacion.trim(),
       'imagen': imagenBase64,
       'fechaCreacion': Timestamp.now(),
-      if (code != null && code.isNotEmpty) 'codigoBarras': code,
     });
-  }
-
-  /// Producto del catálogo de la tienda con ese código de barras, si ya se
-  /// registró antes escaneándolo.
-  Future<CatalogItem?> findProductByBarcode(
-      String storeId, List<String> codes) async {
-    final res = await catalog(storeId)
-        .where('codigoBarras', whereIn: codes.take(10).toList())
-        .limit(1)
-        .get();
-    if (res.docs.isEmpty) return null;
-    return CatalogItem.fromMap(res.docs.first.data());
   }
 
   /// Busca un producto del catálogo sin distinguir mayúsculas ni espacios.

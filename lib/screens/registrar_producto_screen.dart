@@ -60,7 +60,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   void initState() {
     super.initState();
-    _setImage(widget.args.qrImagenBase64);
     _nombre.addListener(_checkExisting);
     _init();
   }
@@ -244,7 +243,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           nombre: nombre,
           presentacion: presentacion,
           imagenBase64: _imagenBase64,
-          codigoBarras: widget.args.codigoBarras,
         );
         if (!mounted) return;
         showMessage(context, 'Producto creado. Ahora agrega su primer lote.');

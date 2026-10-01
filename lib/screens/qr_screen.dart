@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../models/product.dart';
 import '../routes.dart';
 import '../services/product_lookup_service.dart';
-import '../services/zentory_repository.dart';
-import '../utils/image_utils.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 
 /// Escáner de códigos de barras (reemplaza CameraX + ML Kit).
 ///
-/// Al leer un código: si la tienda ya registró ese producto, abre directo el
-/// formulario del lote; si no, busca nombre, tamaño y foto en OpenFoodFacts y
-/// abre el formulario del producto ya rellenado (o vacío si no se encontró).
+/// Al leer un código consulta OpenFoodFacts y abre el formulario de registro
+/// con los datos del producto.
 class QRScreen extends StatefulWidget {
   const QRScreen({super.key});
 
@@ -25,7 +21,6 @@ class _QRScreenState extends State<QRScreen> {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
   );
-  final _repo = ZentoryRepository.instance;
   bool _busy = false;
 
   @override
@@ -43,73 +38,31 @@ class _QRScreenState extends State<QRScreen> {
 
     setState(() => _busy = true);
     try {
-      final codes = ProductLookupService.barcodeVariants(code);
-      final storeId = await _repo.resolveActiveStoreId();
-
-      // 1) Producto que la tienda ya registró con este código: directo al
-      //    formulario del lote.
-      if (storeId != null) {
-        CatalogItem? known;
-        try {
-          known = await _repo.findProductByBarcode(storeId, codes);
-        } catch (_) {}
-        if (known != null) {
-          await _open(
-            Routes.lotForm,
-            LotFormArgs(
-              nombre: known.nombre,
-              presentacion: known.presentacion,
-              imagenBase64: known.imagenBase64,
-            ),
-          );
-          return;
-        }
-      }
-
-      // 2) Base pública OpenFoodFacts: rellena nombre, tamaño y foto.
-      ScannedProduct? product;
-      String? lookupError;
-      try {
-        product = await ProductLookupService.lookup(code);
-      } catch (e) {
-        lookupError = '$e';
-      }
-      String? imagen;
-      if (product != null) {
-        final bytes = await ProductLookupService.downloadImage(product.imageUrl);
-        if (bytes != null) imagen = ImageUtils.encode(bytes);
-      }
+      final product = await ProductLookupService.lookup(code);
       if (!mounted) return;
       if (product == null) {
         showMessage(
           context,
-          lookupError != null
-              ? 'Sin conexión para buscar el producto. Escribe el nombre y el '
-                  'tamaño; la próxima vez se llenarán solos.'
-              : 'Producto no encontrado en la base pública. Escribe el nombre '
-                  'y el tamaño; la próxima vez se llenarán solos.',
+          'No se encontró información del producto',
           long: true,
         );
+        return;
       }
-      await _open(
+      await _controller.stop();
+      if (!mounted) return;
+      await Navigator.of(context).pushNamed(
         Routes.addProduct,
-        ProductFormArgs(
-          qrNombre: product?.nombre,
-          qrPresentacion: product?.presentacion,
-          qrImagenBase64: imagen,
-          codigoBarras: code,
+        arguments: ProductFormArgs(
+          qrNombre: product.nombre,
+          qrPresentacion: product.presentacion,
         ),
       );
+      if (mounted) await _controller.start();
+    } catch (e) {
+      if (mounted) showMessage(context, 'Error de red: $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  Future<void> _open(String route, Object args) async {
-    await _controller.stop();
-    if (!mounted) return;
-    await Navigator.of(context).pushNamed(route, arguments: args);
-    if (mounted) await _controller.start();
   }
 
   Future<void> _toggleTorch() async {
