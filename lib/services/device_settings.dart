@@ -150,27 +150,12 @@ class DeviceSettings {
 
   static Future<bool> openAppDetails() => _call('openAppDetails');
 
-  // --- Calendario del teléfono (respaldo de alertas) ----------------------
+  // --- Limpieza del antiguo respaldo en calendario ------------------------
 
   static Future<bool> hasCalendarPermission() => _call('hasCalendarPermission');
 
-  /// Pide el permiso de calendario. Devuelve `true` si quedó concedido.
-  static Future<bool> requestCalendarPermission() =>
-      _call('requestCalendarPermission');
-
-  /// Reemplaza los eventos del calendario de Zentory. Cada evento lleva
-  /// `title`, `description`, `startMillis` y `reminders` (minutos antes).
-  /// Devuelve cuántos se crearon, o `null` si falló.
-  static Future<int?> syncCalendar(List<Map<String, Object?>> events) async {
-    try {
-      return await _channel
-          .invokeMethod<int>('syncCalendar', {'events': events});
-    } catch (e) {
-      debugPrint('No se pudo sincronizar el calendario: $e');
-      return null;
-    }
-  }
-
+  /// Borra el calendario "Zentory - Vencimientos" que creaban las versiones
+  /// anteriores de la app.
   static Future<void> removeCalendar() async {
     try {
       await _channel.invokeMethod<bool>('removeCalendar');

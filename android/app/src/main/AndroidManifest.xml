@@ -13,8 +13,8 @@
     <!-- Permite pedir que el sistema no restrinja la batería de Zentory
          (imprescindible en ROMs chinas para que lleguen las alertas) -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <!-- Respaldo opcional: recordatorios de vencimiento en el calendario del
-         teléfono, que siguen llegando aunque Zentory esté cerrada -->
+    <!-- Temporal: solo para borrar el calendario que creaban versiones
+         anteriores ("respaldo en calendario", ya retirado) -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />

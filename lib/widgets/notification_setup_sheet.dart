@@ -30,9 +30,8 @@ Future<void> maybePromptNotificationSetup(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   if (prefs.getBool(_prefPrompted) ?? false) {
     // Ya se mostró la guía. Se vuelve a ofrecer (una vez) si detectamos que
-    // la app fue cerrada a la fuerza y no está activo el respaldo en calendario.
+    // la app fue cerrada a la fuerza.
     if (prefs.getBool(_prefForceStopPrompted) ?? false) return;
-    if (await NotificationService.instance.calendarBackupEnabled()) return;
     final status = await DeviceSettings.status();
     if (!status.lastExitForceStopped) return;
     await prefs.setBool(_prefForceStopPrompted, true);
@@ -64,7 +63,6 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
   int _pending = 0;
   bool _autoStartVisited = false;
   bool _alarmClock = false;
-  bool _calendarBackup = false;
   TestScheduleResult? _lastTest;
 
   @override
@@ -90,13 +88,11 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
     final status = await DeviceSettings.status();
     final pending = await NotificationService.instance.pendingCount();
     final alarmClock = await NotificationService.instance.alarmClockMode();
-    final calendar = await NotificationService.instance.calendarBackupEnabled();
     if (!mounted) return;
     setState(() {
       _status = status;
       _pending = pending;
       _alarmClock = alarmClock;
-      _calendarBackup = calendar;
     });
   }
 
@@ -152,31 +148,6 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
               'minutos. Activa "Alarmas y recordatorios".',
       long: true,
     );
-  }
-
-  Future<void> _setCalendarBackup(bool value) async {
-    final ok = await NotificationService.instance.setCalendarBackup(value);
-    if (!mounted) return;
-    if (!ok) {
-      showMessage(
-        context,
-        'Sin permiso de calendario no se pueden crear los recordatorios.',
-        long: true,
-      );
-      return;
-    }
-    setState(() => _calendarBackup = value);
-    final storeId = await ZentoryRepository.instance.resolveActiveStoreId();
-    await NotificationService.instance.syncStore(storeId);
-    if (!mounted) return;
-    if (value) {
-      showMessage(
-        context,
-        'Listo: verás los vencimientos en el calendario "Zentory - '
-        'Vencimientos" y te avisará aunque cierres la app.',
-        long: true,
-      );
-    }
   }
 
   Future<void> _setAlarmClock(bool value) async {
@@ -235,19 +206,15 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
                     Expanded(
                       child: Text(
                         'La última vez Zentory se cerró desde Recientes y el '
-                        'sistema canceló sus alertas (ya se reprogramaron al '
-                        'abrirla). Para que no vuelva a pasar, fíjala con el '
-                        'candado o activa el respaldo en el calendario.',
+                        'sistema la detuvo: mientras está así no recibe '
+                        'alertas. Fíjala con el candado en Recientes para '
+                        'que no vuelva a pasar.',
                         style: TextStyle(color: Colors.white, fontSize: 13),
                       ),
                     ),
                   ],
                 ),
               ),
-            _BackupSwitch(
-              value: _calendarBackup,
-              onChanged: _setCalendarBackup,
-            ),
             _StepTile(
               icon: Icons.notifications_active_outlined,
               title: 'Permitir notificaciones',
@@ -492,55 +459,6 @@ class _StepTile extends StatelessWidget {
             )
           else
             const SizedBox(height: 6),
-        ],
-      ),
-    );
-  }
-}
-
-/// Interruptor del respaldo de alertas en el calendario del teléfono.
-class _BackupSwitch extends StatelessWidget {
-  const _BackupSwitch({required this.value, required this.onChanged});
-
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return ZCard(
-      color: value
-          ? AppColors.primaryDark
-          : AppColors.background,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-      child: Row(
-        children: [
-          Icon(
-            Icons.event_available,
-            color: value ? AppColors.primaryLight : AppColors.primary,
-          ),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Respaldo en el calendario (recomendado)',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Crea un recordatorio por cada lote en el calendario del '
-                  'teléfono. Avisa aunque cierres Zentory por completo.',
-                  style: TextStyle(color: AppColors.textSoft, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Switch(value: value, onChanged: onChanged),
         ],
       ),
     );

@@ -31,7 +31,6 @@ class MainActivity : FlutterActivity() {
 
     private val io = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
-    private var pendingCalendarResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -47,13 +46,7 @@ class MainActivity : FlutterActivity() {
                         "openAppDetails" -> result.success(openAppDetails())
                         "hasGooglePlayServices" -> result.success(hasGooglePlayServices())
                         "getSigningSha1" -> result.success(signingSha1())
-                        "requestCalendarPermission" -> requestCalendarPermission(result)
                         "hasCalendarPermission" -> result.success(hasCalendarPermission())
-                        "syncCalendar" -> {
-                            @Suppress("UNCHECKED_CAST")
-                            val events = (call.argument<List<Map<String, Any?>>>("events")) ?: emptyList()
-                            runInBackground(result) { CalendarBackup.sync(this, events) }
-                        }
                         "removeCalendar" -> runInBackground(result) { CalendarBackup.remove(this) }
                         else -> result.notImplemented()
                     }
@@ -98,36 +91,11 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    // --- Calendario (respaldo de alertas) ---------------------------------
+    // --- Calendario: solo limpieza del antiguo respaldo ---------------------
 
     private fun hasCalendarPermission(): Boolean =
         checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
             checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
-
-    private fun requestCalendarPermission(result: MethodChannel.Result) {
-        if (hasCalendarPermission()) {
-            result.success(true)
-            return
-        }
-        pendingCalendarResult?.success(false)
-        pendingCalendarResult = result
-        requestPermissions(
-            arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR),
-            REQUEST_CALENDAR,
-        )
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CALENDAR) {
-            pendingCalendarResult?.success(hasCalendarPermission())
-            pendingCalendarResult = null
-        }
-    }
 
     /** Ejecuta trabajo de calendario fuera del hilo principal. */
     private fun runInBackground(result: MethodChannel.Result, work: () -> Any?) {
@@ -228,7 +196,6 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val CHANNEL = "zentory/device"
-        private const val REQUEST_CALENDAR = 4817
 
         /** Pantallas conocidas de inicio automático / segundo plano por fabricante. */
         private val AUTOSTART_COMPONENTS = listOf(

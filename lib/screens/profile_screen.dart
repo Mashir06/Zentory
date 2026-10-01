@@ -29,6 +29,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool get _isAdmin => _userRole == 'Administrador Principal';
 
+  /// Solo el administrador puede eliminar una tienda; los trabajadores no.
+  bool _canDelete(Store store) {
+    final uid = _repo.currentUser?.uid;
+    if (uid == null) return false;
+    if (store.isAdministeredBy(uid: uid, name: _userName)) return true;
+    return store.id == _activeStoreId && _isAdmin;
+  }
+
   Store? get _activeStore {
     for (final s in _stores) {
       if (s.id == _activeStoreId) return s;
@@ -175,6 +183,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _deleteStore(Store store, {bool isBranch = false}) async {
+    if (isBranch ? !_isAdmin : !_canDelete(store)) {
+      showMessage(context, 'Solo el administrador puede eliminar la tienda.');
+      return;
+    }
     final confirmed = await confirmDialog(
       context,
       title: 'Eliminar Tienda',
@@ -304,8 +316,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 actions: [
                                   _TileAction('Editar', AppColors.primaryLight,
                                       () => _editStore(active)),
-                                  _TileAction('Eliminar', const Color(0xFFFEF2F2),
-                                      () => _deleteStore(active)),
+                                  if (_canDelete(active))
+                                    _TileAction('Eliminar', const Color(0xFFFEF2F2),
+                                        () => _deleteStore(active)),
                                 ],
                               ),
                             if (_branches.isNotEmpty) ...[
@@ -319,11 +332,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   actions: [
                                     _TileAction('Editar', AppColors.primary,
                                         () => _editStore(b, isBranch: true)),
-                                    _TileAction(
-                                        'Eliminar',
-                                        AppColors.dangerBright,
-                                        () =>
-                                            _deleteStore(b, isBranch: true)),
+                                    if (_isAdmin)
+                                      _TileAction(
+                                          'Eliminar',
+                                          AppColors.dangerBright,
+                                          () =>
+                                              _deleteStore(b, isBranch: true)),
                                   ],
                                 ),
                             ],
@@ -339,8 +353,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         AppColors.primary, () => _selectStore(s)),
                                     _TileAction('Editar', AppColors.primary,
                                         () => _editStore(s)),
-                                    _TileAction('Eliminar',
-                                        AppColors.dangerBright, () => _deleteStore(s)),
+                                    if (_canDelete(s))
+                                      _TileAction('Eliminar',
+                                          AppColors.dangerBright,
+                                          () => _deleteStore(s)),
                                   ],
                                 ),
                             ],

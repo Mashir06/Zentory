@@ -7,7 +7,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 ## Funciones
 
 - **Inicio de sesión** con correo/contraseña o Google, registro y recuperación de contraseña (Firebase Auth).
-- **Tiendas**: crear una tienda, unirse con código de invitación, sucursales, cambiar de tienda activa y administrar al personal.
+- **Tiendas**: crear una tienda, unirse con código de invitación, sucursales, cambiar de tienda activa y administrar al personal. Solo el administrador puede eliminar la tienda o sus sucursales; los trabajadores no.
 - **Inicio**: resumen de lotes en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por estado.
 - **Productos**: cada producto con sus lotes; búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.
 - **Registrar producto**: nombre, foto (cámara o galería) y presentación. **Agregar lote**: fecha de vencimiento y cantidad.

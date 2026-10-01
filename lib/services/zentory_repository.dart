@@ -12,12 +12,21 @@ class Store {
     required this.nombre,
     required this.ubicacion,
     required this.codigoInvitacion,
+    this.adminUid,
+    this.adminNombre,
   });
 
   final String id;
   final String nombre;
   final String ubicacion;
   final String codigoInvitacion;
+  final String? adminUid;
+  final String? adminNombre;
+
+  /// `true` si el usuario es el administrador que creó la tienda.
+  bool isAdministeredBy({required String uid, String? name}) =>
+      (adminUid != null && adminUid == uid) ||
+      (adminUid == null && name != null && adminNombre == name);
 
   factory Store.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final d = doc.data() ?? const <String, dynamic>{};
@@ -26,6 +35,8 @@ class Store {
       nombre: (d['nombre'] ?? 'Tienda').toString(),
       ubicacion: (d['ubicacion'] ?? '').toString(),
       codigoInvitacion: (d['codigoInvitacion'] ?? '').toString(),
+      adminUid: d['adminUid'] as String?,
+      adminNombre: d['adminNombre'] as String?,
     );
   }
 }
@@ -288,12 +299,39 @@ class ZentoryRepository {
     return ref.update({'nombre': nombre.trim(), 'ubicacion': ubicacion.trim()});
   }
 
-  Future<void> deleteBranch(String parentStoreId, String branchId) =>
-      branches(parentStoreId).doc(branchId).delete();
+  /// Elimina una sucursal. Solo el administrador de la tienda principal.
+  Future<void> deleteBranch(String parentStoreId, String branchId) async {
+    if (!await isStoreAdmin(parentStoreId)) {
+      throw ZentoryException(
+          'Solo el administrador de la tienda puede eliminar sucursales.');
+    }
+    await branches(parentStoreId).doc(branchId).delete();
+  }
+
+  /// `true` si el usuario actual es administrador de la tienda: la creó
+  /// (`adminUid`) o figura con rol "Administrador" en su personal.
+  Future<bool> isStoreAdmin(String storeId) async {
+    final user = currentUser;
+    if (user == null) return false;
+    final doc = await stores.doc(storeId).get();
+    final store = Store.fromDoc(doc);
+    final name = await currentUserName(fallback: '');
+    if (store.isAdministeredBy(uid: user.uid, name: name)) return true;
+    final staffRes = await staff(storeId).get();
+    for (final d in staffRes.docs) {
+      final m = StaffMember.fromDoc(d);
+      if ((m.uid == user.uid || m.docId == name) && m.isAdmin) return true;
+    }
+    return false;
+  }
 
   /// Elimina una tienda con todas sus subcolecciones y la quita de los perfiles
-  /// de su personal.
+  /// de su personal. Solo el administrador puede hacerlo.
   Future<void> deleteStore(String storeId) async {
+    if (!await isStoreAdmin(storeId)) {
+      throw ZentoryException(
+          'Solo el administrador de la tienda puede eliminarla.');
+    }
     const subcollections = ['personal', 'productos', 'catalogo', 'minisupers'];
     for (final coll in subcollections) {
       try {
