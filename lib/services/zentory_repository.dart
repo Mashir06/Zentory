@@ -170,40 +170,68 @@ class ZentoryRepository {
     if (tiendaId != null && tiendaId.isNotEmpty) {
       if (await _belongsToStore(tiendaId, user.uid, userName)) return tiendaId;
       if (userDoc.exists) {
-        await userRef(user.uid).update({
-          'tiendaId': FieldValue.delete(),
-          'tiendasIds': FieldValue.arrayRemove([tiendaId]),
-        });
+        try {
+          await userRef(user.uid).update({
+            'tiendaId': FieldValue.delete(),
+            'tiendasIds': FieldValue.arrayRemove([tiendaId]),
+          });
+        } catch (_) {}
       }
     }
 
     final candidates = {user.uid, if (userName.isNotEmpty) userName}.toList();
 
     String? found;
-    final asAdmin =
-        await stores.where('adminUid', whereIn: candidates).limit(1).get();
-    if (asAdmin.docs.isNotEmpty) {
-      found = asAdmin.docs.first.id;
-    } else {
-      final asWorker = await _db
-          .collectionGroup('personal')
-          .where('uid', whereIn: candidates)
-          .limit(1)
-          .get();
-      if (asWorker.docs.isNotEmpty) {
-        found = asWorker.docs.first.reference.parent.parent?.id;
+    try {
+      final asAdmin =
+          await stores.where('adminUid', whereIn: candidates).limit(1).get();
+      if (asAdmin.docs.isNotEmpty) found = asAdmin.docs.first.id;
+    } on FirebaseException catch (e) {
+      if (_isNetworkError(e)) rethrow;
+    }
+    if (found == null) {
+      try {
+        final asWorker = await _db
+            .collectionGroup('personal')
+            .where('uid', whereIn: candidates)
+            .limit(1)
+            .get();
+        if (asWorker.docs.isNotEmpty) {
+          found = asWorker.docs.first.reference.parent.parent?.id;
+        }
+      } on FirebaseException catch (e) {
+        if (_isNetworkError(e)) rethrow;
       }
     }
 
     if (found != null && userDoc.exists) {
-      await userRef(user.uid).update({'tiendaId': found});
+      try {
+        await userRef(user.uid).update({'tiendaId': found});
+      } catch (_) {}
     }
     return found;
   }
 
+  /// Errores de Firestore que indican falta de conexión.
+  static bool isNetworkError(Object e) =>
+      e is FirebaseException && _isNetworkError(e);
+
+  static bool _isNetworkError(FirebaseException e) =>
+      e.code == 'unavailable' || e.code == 'deadline-exceeded';
+
   /// `true` si la tienda existe y el usuario es su administrador o parte de
   /// su personal.
   Future<bool> _belongsToStore(String storeId, String uid, String name) async {
+    try {
+      return await _checkMembership(storeId, uid, name);
+    } on FirebaseException catch (e) {
+      // Sin permiso para leerla (p. ej. ya no existe o lo quitaron): no es suya.
+      if (e.code == 'permission-denied' || e.code == 'not-found') return false;
+      rethrow;
+    }
+  }
+
+  Future<bool> _checkMembership(String storeId, String uid, String name) async {
     final doc = await stores.doc(storeId).get();
     if (!doc.exists) return false;
     final store = Store.fromDoc(doc);

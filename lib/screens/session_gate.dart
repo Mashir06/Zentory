@@ -37,9 +37,13 @@ class _SessionGateState extends State<SessionGate> {
       storeId = await ZentoryRepository.instance.resolveActiveStoreId();
     } catch (e) {
       // Sin conexión no se sabe si tiene tienda: se ofrece reintentar en vez
-      // de mandarlo a crear una.
-      if (mounted) setState(() => _error = '$e');
-      return;
+      // de mandarlo a crear una. Otros errores no bloquean la entrada.
+      if (ZentoryRepository.isNetworkError(e)) {
+        if (mounted) setState(() => _error = '$e');
+        return;
+      }
+      debugPrint('No se pudo comprobar la tienda: $e');
+      storeId = null;
     }
     if (!mounted) return;
     Routes.resetTo(
