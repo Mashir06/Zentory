@@ -93,15 +93,17 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     try {
       final name = await _repo.currentUserName();
       final storeId = await _repo.resolveActiveStoreId();
-      final products =
-          storeId == null ? <Product>[] : await _repo.fetchProducts(storeId);
+      if (storeId == null) {
+        // Ya no pertenece a ninguna tienda (la eliminaron o lo quitaron del
+        // personal): debe crear o unirse a una para seguir.
+        NotificationService.instance.clearAll();
+        if (mounted) Routes.resetTo(context, Routes.storeSelection);
+        return;
+      }
+      final products = await _repo.fetchProducts(storeId);
       // Recrea las alertas de vencimiento cada vez que se abre la app o se
       // vuelve al inicio (algunos sistemas borran las alarmas al cerrar la app).
-      if (storeId == null) {
-        NotificationService.instance.clearAll();
-      } else {
-        NotificationService.instance.syncProducts(products);
-      }
+      NotificationService.instance.syncProducts(products);
       if (!mounted) return;
       setState(() {
         _userName = name;

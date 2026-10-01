@@ -205,6 +205,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (mounted) {
           showMessage(context, 'Tienda y toda su información eliminada');
         }
+        // Sin otra tienda, debe crear o unirse a una para seguir.
+        if (await _repo.resolveActiveStoreId() == null) {
+          if (mounted) Routes.resetTo(context, Routes.storeSelection);
+          return;
+        }
       }
     } catch (e) {
       if (mounted) showMessage(context, 'No se pudo eliminar: $e');

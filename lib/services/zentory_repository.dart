@@ -152,19 +152,31 @@ class ZentoryRepository {
         fallback;
   }
 
-  /// Devuelve el ID de la tienda activa del usuario.
+  /// Devuelve el ID de la tienda activa del usuario, o `null` si no
+  /// pertenece a ninguna (la app le pide entonces crear o unirse a una).
   ///
-  /// Si el perfil no tiene `tiendaId`, busca (como hacía la app Kotlin) una
-  /// tienda donde sea administrador o trabajador, y la guarda como activa.
+  /// La tienda guardada en el perfil (`tiendaId`) solo se acepta si todavía
+  /// existe y el usuario sigue siendo parte de ella; si la eliminaron o lo
+  /// quitaron del personal, se descarta. Si no hay una válida, busca (como
+  /// hacía la app Kotlin) una tienda donde sea administrador o trabajador, y
+  /// la guarda como activa.
   Future<String?> resolveActiveStoreId() async {
     final user = currentUser;
     if (user == null) return null;
     final userDoc = await userRef(user.uid).get();
     final data = userDoc.data();
-    final tiendaId = data?['tiendaId'] as String?;
-    if (tiendaId != null && tiendaId.isNotEmpty) return tiendaId;
-
     final userName = (data?['nombre'] as String?) ?? user.displayName ?? '';
+    final tiendaId = data?['tiendaId'] as String?;
+    if (tiendaId != null && tiendaId.isNotEmpty) {
+      if (await _belongsToStore(tiendaId, user.uid, userName)) return tiendaId;
+      if (userDoc.exists) {
+        await userRef(user.uid).update({
+          'tiendaId': FieldValue.delete(),
+          'tiendasIds': FieldValue.arrayRemove([tiendaId]),
+        });
+      }
+    }
+
     final candidates = {user.uid, if (userName.isNotEmpty) userName}.toList();
 
     String? found;
@@ -187,6 +199,20 @@ class ZentoryRepository {
       await userRef(user.uid).update({'tiendaId': found});
     }
     return found;
+  }
+
+  /// `true` si la tienda existe y el usuario es su administrador o parte de
+  /// su personal.
+  Future<bool> _belongsToStore(String storeId, String uid, String name) async {
+    final doc = await stores.doc(storeId).get();
+    if (!doc.exists) return false;
+    final store = Store.fromDoc(doc);
+    if (store.isAdministeredBy(uid: uid, name: name)) return true;
+    final byUid =
+        await staff(storeId).where('uid', isEqualTo: uid).limit(1).get();
+    if (byUid.docs.isNotEmpty) return true;
+    if (name.isEmpty) return false;
+    return (await staff(storeId).doc(name).get()).exists;
   }
 
   Future<void> setActiveStore(String storeId) {

@@ -21,17 +21,25 @@ class _SessionGateState extends State<SessionGate> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _route());
   }
 
+  String? _error;
+
+  /// Sin tienda no se entra a la app: se va obligatoriamente a la pantalla
+  /// de crear o unirse a una tienda.
   Future<void> _route() async {
     final user = AuthService.instance.currentUser;
     if (user == null) {
       if (mounted) Routes.resetTo(context, Routes.login);
       return;
     }
+    if (_error != null) setState(() => _error = null);
     String? storeId;
     try {
       storeId = await ZentoryRepository.instance.resolveActiveStoreId();
-    } catch (_) {
-      storeId = null;
+    } catch (e) {
+      // Sin conexión no se sabe si tiene tienda: se ofrece reintentar en vez
+      // de mandarlo a crear una.
+      if (mounted) setState(() => _error = '$e');
+      return;
     }
     if (!mounted) return;
     Routes.resetTo(
@@ -50,7 +58,21 @@ class _SessionGateState extends State<SessionGate> {
             children: [
               Image.asset('assets/images/logozentory.png', width: 120),
               const SizedBox(height: 24),
-              const CircularProgressIndicator(),
+              if (_error == null)
+                const CircularProgressIndicator()
+              else ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    'No se pudo comprobar tu tienda. Revisa tu conexión a '
+                    'internet.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(onPressed: _route, child: const Text('Reintentar')),
+              ],
             ],
           ),
         ),
