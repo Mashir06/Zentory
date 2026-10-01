@@ -7,7 +7,7 @@ import android.provider.CalendarContract
 /**
  * Limpieza del antiguo "respaldo en calendario" (versión 9 y 10 de la app).
  *
- * Esa función se retiró al pasar a notificaciones push (FCM). Este objeto solo
+ * Esa función se retiró. Este objeto solo
  * borra, una vez, el calendario local "Zentory - Vencimientos" que se hubiera
  * creado, para que sus recordatorios dejen de sonar.
  */
