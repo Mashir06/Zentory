@@ -153,7 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _login,
                   ),
                   SizedBox(height: 28),
-                  Text.rich(                  SizedBox(height: 28),
                   Text.rich(
                     TextSpan(
                       text: tr('¿No tienes una cuenta? '),
