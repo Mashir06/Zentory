@@ -403,6 +403,27 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         Center(child: _photoPicker()),
         SizedBox(height: 16),
         LabeledField(
+          label: tr('Código de barras *'),
+          controller: _codigo,
+          hint: tr('Escanéalo o escríbelo'),
+          prefixIcon: Icons.qr_code_2,
+          suffix: _scanning
+              ? Padding(
+                  padding: EdgeInsets.all(14),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : IconButton(
+                  tooltip: tr('Escanear código'),
+                  onPressed: _scan,
+                  icon: Icon(Icons.qr_code_scanner, color: AppColors.primary),
+                ),
+        ),
+        SizedBox(height: 14),
+        LabeledField(
           label: tr('Nombre del producto *'),
           controller: _nombre,
           hint: tr('Ej. Leche Chiricana'),
@@ -438,27 +459,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           label: tr('Presentación (tamaño)'),
           controller: _presentacion,
           hint: tr('Ej. 946 ml, 1 litro, 500 g'),
-        ),
-        SizedBox(height: 14),
-        LabeledField(
-          label: tr('Código de barras *'),
-          controller: _codigo,
-          hint: tr('Escanéalo o escríbelo'),
-          prefixIcon: Icons.qr_code_2,
-          suffix: _scanning
-              ? Padding(
-                  padding: EdgeInsets.all(14),
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
-              : IconButton(
-                  tooltip: tr('Escanear código'),
-                  onPressed: _scan,
-                  icon: Icon(Icons.qr_code_scanner, color: AppColors.primary),
-                ),
         ),
         SizedBox(height: 24),
         _FormButtons(
