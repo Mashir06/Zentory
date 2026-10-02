@@ -17,7 +17,7 @@ enum _SortOption {
   name('Nombre (A–Z)'),
   quantity('Mayor cantidad');
 
-  _SortOption(this.label);
+  const _SortOption(this.label);
   final String label;
 }
 

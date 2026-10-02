@@ -26,7 +26,7 @@ enum _PhotoChoice { camera, gallery, remove }
 /// Crear o editar un producto. Los datos de vencimiento y cantidad van en
 /// cada lote ([LotFormScreen]).
 class ProductFormScreen extends StatefulWidget {
-  const ProductFormScreen({super.key, this.args = ProductFormArgs()});
+  const ProductFormScreen({super.key, this.args = const ProductFormArgs()});
 
   final ProductFormArgs args;
 

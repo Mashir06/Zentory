@@ -11,11 +11,14 @@ enum ProductStatus {
   good('Buen estado', AppColors.primary),
   expiring('Por vencer', AppColors.warning),
   expired('Vencido', AppColors.danger),
-  noDate('Sin fecha', AppColors.textSecondary);
+  noDate('Sin fecha', null);
 
-  const ProductStatus(this.label, this.color);
+  const ProductStatus(this.label, this._color);
   final String label;
-  final Color color;
+  final Color? _color;
+
+  /// "Sin fecha" usa el gris de texto del modo actual (oscuro o claro).
+  Color get color => _color ?? AppColors.textSecondary;
 
   /// Vencido si faltan 0 días o menos, por vencer si faltan 7 o menos.
   static ProductStatus fromExpiry(DateTime? expiry) {
