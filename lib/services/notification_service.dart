@@ -31,7 +31,7 @@ import '../l10n/strings.dart';
 /// * Los permisos y ajustes del fabricante se revisan en
 ///   `NotificationSetupSheet` (Ajustes > Configurar notificaciones).
 ///
-/// Por cada lote se avisa a las 9:00 a. m.: 3 días antes, 1 día antes y el día
+/// Por cada lote se avisa a las 7:00 a. m.: 3 días antes, 1 día antes y el día
 /// del vencimiento.
 class NotificationService {
   NotificationService._();
@@ -58,7 +58,7 @@ class NotificationService {
   static const _testScheduledId = 998;
 
   /// Hora del aviso.
-  static const _alertHour = 9;
+  static const _alertHour = 7;
 
   /// Android limita cuántas alarmas puede tener una app; se programan solo
   /// las más próximas (el resto se programa en siguientes resincronizaciones).

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/product.dart';
+import '../utils/date_utils.dart';
 import '../l10n/strings.dart';
 
 /// Tienda (`tiendas/{id}`) o sucursal (`tiendas/{id}/minisupers/{id}`).
@@ -453,9 +454,40 @@ class ZentoryRepository {
   // Productos y catálogo
   // ---------------------------------------------------------------------------
 
+  /// Días después del vencimiento en que un lote se borra solo.
+  static const expiredLotRetentionDays = 3;
+
+  /// Lotes de la tienda. Los que vencieron hace [expiredLotRetentionDays]
+  /// días o más se borran automáticamente y no se devuelven.
   Future<List<Product>> fetchProducts(String storeId) async {
     final result = await products(storeId).get();
-    return result.docs.map(Product.fromDoc).toList();
+    final lots = <Product>[];
+    final expired = <DocumentReference<Map<String, dynamic>>>[];
+    for (final doc in result.docs) {
+      final lot = Product.fromDoc(doc);
+      final expiry = lot.expiryDate;
+      if (expiry != null &&
+          DateUtilsZ.daysFromToday(expiry) <= -expiredLotRetentionDays) {
+        expired.add(doc.reference);
+      } else {
+        lots.add(lot);
+      }
+    }
+    if (expired.isNotEmpty) {
+      try {
+        for (var i = 0; i < expired.length; i += 450) {
+          final batch = _db.batch();
+          for (final ref in expired.skip(i).take(450)) {
+            batch.delete(ref);
+          }
+          await batch.commit();
+        }
+      } catch (_) {
+        // Si no se pudieron borrar, se reintenta la próxima vez; igual no se
+        // muestran.
+      }
+    }
+    return lots;
   }
 
   Future<Map<String, dynamic>?> fetchProductData(

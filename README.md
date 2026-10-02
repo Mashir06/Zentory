@@ -9,11 +9,11 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Inicio de sesión** con correo/contraseña o Google, registro y recuperación de contraseña (Firebase Auth).
 - **Tiendas**: crear una tienda, unirse con código de invitación, sucursales, cambiar de tienda activa y administrar al personal. Solo el administrador puede eliminar la tienda o sus sucursales; los trabajadores no.
 - **Inicio**: resumen de lotes en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por estado.
-- **Productos**: cada producto con sus lotes; búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.
+- **Productos**: cada producto con sus lotes (los lotes se borran solos 3 días después de vencer); búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.
 - **Registrar producto**: nombre, foto (cámara o galería) y presentación. **Agregar lote**: fecha de vencimiento y cantidad.
 - **Escáner** de códigos de barras con consulta a [OpenFoodFacts](https://world.openfoodfacts.org) y linterna.
 - **Calendario** mensual con indicadores de vencimiento por día.
-- **Notificaciones** locales 3 días y 1 día antes del vencimiento (9:00 a. m.), con sonido propio.
+- **Notificaciones** locales 3 días y 1 día antes del vencimiento (7:00 a. m.), con sonido propio.
 - Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, ayuda por WhatsApp, manual de usuario y preguntas frecuentes.
 
 ## Requisitos
@@ -80,7 +80,7 @@ test/                        Pruebas unitarias
 
 ## Notificaciones en teléfonos con ROM china
 
-Las alertas de vencimiento son notificaciones locales programadas (3 días antes, 1 día antes y el día del vencimiento, a las 9:00 a. m.). Sistemas como **ColorOS (OPPO/realme/OnePlus), MIUI/HyperOS (Xiaomi), OriginOS (vivo) o EMUI/HarmonyOS (Huawei/Honor)**, sobre todo en sus versiones para China, cierran las apps en segundo plano y borran sus alarmas. Para que las alertas lleguen igual:
+Las alertas de vencimiento son notificaciones locales programadas (3 días antes, 1 día antes y el día del vencimiento, a las 7:00 a. m.). Sistemas como **ColorOS (OPPO/realme/OnePlus), MIUI/HyperOS (Xiaomi), OriginOS (vivo) o EMUI/HarmonyOS (Huawei/Honor)**, sobre todo en sus versiones para China, cierran las apps en segundo plano y borran sus alarmas. Para que las alertas lleguen igual:
 
 - La app **reprograma todas las alertas** de la tienda cada vez que se abre, se vuelve al Inicio o se guarda o elimina un producto.
 - Cada lote tiene sus propias alertas (identificadas por el ID del registro).
