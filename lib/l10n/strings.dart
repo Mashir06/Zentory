@@ -695,8 +695,6 @@ const Map<String, String> _en = {
       'Code saved. No product information was found; enter the name and size.',
   'Código de barras':
       'Barcode',
-  'Opcional: escanéalo o escríbelo':
-      'Optional: scan it or type it',
   'Escanear código':
       'Scan code',
   'Escanear código de barras':
@@ -705,6 +703,10 @@ const Map<String, String> _en = {
       'Tap the \'+\' button to add a product. In the form you can scan its barcode: if the product is already registered, you\'ll go straight to adding a batch.',
   'Ve a Configuración > Privacidad y Seguridad > Cambiar Contraseña, o usa "¿Olvidaste tu contraseña?" en la pantalla de inicio de sesión. Te llegará un correo para crear una nueva.':
       'Go to Settings > Privacy & Security > Change password, or use "Forgot your password?" on the sign-in screen. You\'ll receive an email to create a new one.',
+  'Código de barras *':
+      'Barcode *',
+  'Escanéalo o escríbelo':
+      'Scan it or type it',
 };
 
 const Map<String, String> _zh = {
@@ -1368,8 +1370,6 @@ const Map<String, String> _zh = {
       '代码已保存。未找到商品信息，请填写名称和规格。',
   'Código de barras':
       '条形码',
-  'Opcional: escanéalo o escríbelo':
-      '可选：扫描或手动输入',
   'Escanear código':
       '扫描代码',
   'Escanear código de barras':
@@ -1378,4 +1378,8 @@ const Map<String, String> _zh = {
       '点击“+”按钮添加商品。在表单中可以扫描条形码：如果商品已登记，会直接进入添加批次。',
   'Ve a Configuración > Privacidad y Seguridad > Cambiar Contraseña, o usa "¿Olvidaste tu contraseña?" en la pantalla de inicio de sesión. Te llegará un correo para crear una nueva.':
       '前往 设置 > 隐私与安全 > 修改密码，或在登录页面点击“忘记密码？”。您将收到一封用于设置新密码的邮件。',
+  'Código de barras *':
+      '条形码 *',
+  'Escanéalo o escríbelo':
+      '扫描或手动输入',
 };

@@ -283,6 +283,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       showMessage(context, tr('Escribe el nombre del producto'));
       return;
     }
+    if (_codigo.text.trim().isEmpty) {
+      showMessage(context, tr('Escanea el código de barras del producto'));
+      return;
+    }
     if (storeId == null) return;
     if (_match != null) {
       showMessage(context, tr('Ya existe un producto con ese nombre'));
@@ -435,9 +439,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         ),
         SizedBox(height: 14),
         LabeledField(
-          label: tr('Código de barras'),
+          label: tr('Código de barras *'),
           controller: _codigo,
-          hint: tr('Opcional: escanéalo o escríbelo'),
+          hint: tr('Escanéalo o escríbelo'),
           prefixIcon: Icons.qr_code_2,
           suffix: IconButton(
             tooltip: tr('Escanear código'),
