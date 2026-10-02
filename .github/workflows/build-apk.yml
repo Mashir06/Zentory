@@ -68,7 +68,17 @@ jobs:
 
       # Un APK por tipo de procesador: mucho más livianos que uno universal.
       - name: Compilar APK
-        run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}
+        run: |
+          set -o pipefail
+          flutter build apk --release --split-per-abi --build-number=${{ github.run_number }} 2>&1 | tee compilacion.txt
+
+      # Si algo falla, los errores se muestran como avisos del workflow (se ven
+      # sin iniciar sesión en GitHub).
+      - name: Mostrar errores
+        if: failure()
+        run: |
+          { grep -E "error •|Error:|error:" analisis.txt compilacion.txt pruebas.txt 2>/dev/null || true; } \
+            | head -40 | while IFS= read -r line; do echo "::error::${line:0:900}"; done
 
       - name: Renombrar APK
         run: |
