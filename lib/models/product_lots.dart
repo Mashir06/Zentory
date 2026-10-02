@@ -55,11 +55,20 @@ String lotCode(Product p) {
   return '#${(id.length > 6 ? id.substring(0, 6) : id).toUpperCase()}';
 }
 
-/// Clave de agrupación: el nombre del producto sin mayúsculas ni espacios
-/// extremos.
+/// Clave que identifica a un producto: su código de barras. Así puede haber
+/// varios productos con el mismo nombre (p. ej. Coca-Cola en distintos
+/// tamaños). Los productos antiguos sin código se identifican por el nombre
+/// (sin mayúsculas ni espacios extremos).
+String productKey(String nombre, String? codigoBarras) {
+  final code = codigoBarras?.trim() ?? '';
+  if (code.isNotEmpty) return 'c:$code';
+  return nombre.trim().toLowerCase();
+}
+
+/// Clave de agrupación de un lote.
 String groupKeyOf(Product p) {
-  final name = p.nombre.trim().toLowerCase();
-  return name.isEmpty ? 'id:${p.id}' : name;
+  final key = productKey(p.nombre, p.codigoBarras);
+  return key.isEmpty ? 'id:${p.id}' : key;
 }
 
 int compareByExpiry(Product a, Product b) {
@@ -101,8 +110,16 @@ class ProductGroup {
 
   String get nombre => info?.nombre ?? first?.nombre ?? '';
 
-  /// Código de barras guardado en la ficha del producto, si tiene.
-  String? get codigoBarras => info?.codigoBarras;
+  /// Código de barras del producto, si tiene.
+  String? get codigoBarras {
+    final fromInfo = info?.codigoBarras ?? '';
+    if (fromInfo.isNotEmpty) return fromInfo;
+    for (final l in lots) {
+      final c = l.codigoBarras ?? '';
+      if (c.isNotEmpty) return c;
+    }
+    return null;
+  }
 
   String get presentacion {
     final fromInfo = info?.presentacion.trim() ?? '';
@@ -149,7 +166,7 @@ List<ProductGroup> groupProducts(
   }
   final infos = <String, CatalogItem>{};
   for (final c in catalog) {
-    final key = c.nombre.trim().toLowerCase();
+    final key = productKey(c.nombre, c.codigoBarras);
     if (key.isEmpty) continue;
     infos.putIfAbsent(key, () => c);
     map.putIfAbsent(key, () => []);

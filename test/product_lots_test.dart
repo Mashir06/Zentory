@@ -60,4 +60,28 @@ void main() {
     expect(jugo.lots.length, 1);
     expect(jugo.presentacion, '250 ml');
   });
+
+  test('mismo nombre con distinto código = productos distintos', () {
+    Product lot(String id, String code) => Product(
+          id: id,
+          nombre: 'Coca-Cola',
+          presentacion: 'N/A',
+          fechaVencimiento: '1/1/2030',
+          fechaRegistro: 'N/A',
+          cantidad: '1',
+          codigoBarras: code,
+        );
+    final groups = groupProducts(
+      [lot('a', '111'), lot('b', '222'), lot('c', '111')],
+      catalog: [
+        CatalogItem(nombre: 'Coca-Cola', presentacion: '600 ml', codigoBarras: '111'),
+        CatalogItem(nombre: 'Coca-Cola', presentacion: '2 L', codigoBarras: '222'),
+      ],
+    );
+    expect(groups.length, 2);
+    final chica = groups.firstWhere((g) => g.key == 'c:111');
+    expect(chica.lots.length, 2);
+    expect(chica.presentacion, '600 ml');
+    expect(groups.firstWhere((g) => g.key == 'c:222').presentacion, '2 L');
+  });
 }

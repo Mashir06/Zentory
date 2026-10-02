@@ -520,13 +520,15 @@ class ZentoryRepository {
     if (nombre.trim().isEmpty) {
       throw ZentoryException(tr('El nombre del producto es obligatorio'));
     }
-    if (nombre.contains('/')) {
-      throw ZentoryException(tr('El nombre no puede contener "/"'));
-    }
   }
 
-  /// Crea un producto nuevo en el catálogo. Lanza [ZentoryException] si ya
-  /// existe uno con el mismo nombre.
+  /// ID del documento del catálogo: el código de barras (o el nombre en
+  /// productos antiguos sin código).
+  static String _catalogId(String nombre, String code) =>
+      (code.isNotEmpty ? code : nombre).replaceAll('/', '-');
+
+  /// Crea un producto nuevo en el catálogo. Puede haber varios productos con
+  /// el mismo nombre; lo que no se puede repetir es el código de barras.
   Future<void> createProduct({
     required String storeId,
     required String nombre,
@@ -536,12 +538,9 @@ class ZentoryRepository {
   }) async {
     final name = nombre.trim();
     _checkName(name);
-    if (await findProduct(storeId, name) != null) {
-      throw ZentoryException(tr('Ya existe un producto llamado "{0}"', [name]));
-    }
     final code = codigoBarras?.trim() ?? '';
-    await _checkBarcodeFree(storeId, code, exceptName: null);
-    await catalog(storeId).doc(name).set({
+    await _checkBarcodeFree(storeId, code, exceptCode: null);
+    await catalog(storeId).doc(_catalogId(name, code)).set({
       'nombre': name,
       'presentacion': presentacion.trim(),
       'imagen': imagenBase64,
@@ -579,35 +578,41 @@ class ZentoryRepository {
   Future<void> _checkBarcodeFree(
     String storeId,
     String code, {
-    required String? exceptName,
+    required String? exceptCode,
   }) async {
     if (code.isEmpty) return;
     final other = await findProductByBarcode(storeId, code);
-    if (other != null &&
-        (exceptName == null || _key(other.nombre) != _key(exceptName))) {
-      throw ZentoryException(
-          tr('Ese código de barras ya pertenece a "{0}"', [other.nombre]));
+    if (other == null) return;
+    final otherCode = other.codigoBarras ?? '';
+    final except = exceptCode?.trim() ?? '';
+    if (except.isNotEmpty && barcodeVariants(except).contains(otherCode)) {
+      return;
     }
+    throw ZentoryException(
+        tr('Ese código de barras ya pertenece a "{0}"', [other.nombre]));
   }
 
-  /// Busca un producto del catálogo sin distinguir mayúsculas ni espacios.
+  /// Busca un producto antiguo (sin código) por su nombre, sin distinguir
+  /// mayúsculas ni espacios.
   Future<CatalogItem?> findProduct(String storeId, String nombre) async {
     final name = nombre.trim();
-    if (name.isEmpty || name.contains('/')) return null;
-    final exact = await catalog(storeId).doc(name).get();
-    if (exact.data() != null) return CatalogItem.fromMap(exact.data()!);
+    if (name.isEmpty) return null;
     final all = await fetchCatalog(storeId);
     for (final item in all) {
-      if (_key(item.nombre) == _key(name)) return item;
+      if ((item.codigoBarras ?? '').isEmpty && _key(item.nombre) == _key(name)) {
+        return item;
+      }
     }
     return null;
   }
 
-  /// Actualiza nombre, presentación y foto de un producto y de **todos** sus
-  /// lotes. [originalName] es el nombre actual del producto.
+  /// Actualiza nombre, presentación, foto y código de un producto y de
+  /// **todos** sus lotes. El producto se identifica por [originalCode] (o
+  /// por [originalName] si es un producto antiguo sin código).
   Future<void> updateProduct({
     required String storeId,
     required String originalName,
+    String? originalCode,
     required String nombre,
     required String presentacion,
     String? imagenBase64,
@@ -615,19 +620,16 @@ class ZentoryRepository {
   }) async {
     final name = nombre.trim();
     _checkName(name);
-    final renamed = _key(name) != _key(originalName);
-    if (renamed && await findProduct(storeId, name) != null) {
-      throw ZentoryException(tr('Ya existe un producto llamado "{0}"', [name]));
-    }
     final code = codigoBarras?.trim() ?? '';
-    await _checkBarcodeFree(storeId, code, exceptName: originalName);
+    await _checkBarcodeFree(storeId, code, exceptCode: originalCode);
 
-    // Ficha del catálogo (se borra la anterior si cambió el nombre).
-    final oldDocs = await _catalogDocsFor(storeId, originalName);
+    // Ficha del catálogo (se borra la anterior si cambió su ID).
+    final newId = _catalogId(name, code);
+    final oldDocs = await _catalogDocsFor(storeId, originalName, originalCode);
     for (final d in oldDocs) {
-      if (d.id != name) await d.reference.delete();
+      if (d.id != newId) await d.reference.delete();
     }
-    await catalog(storeId).doc(name).set({
+    await catalog(storeId).doc(newId).set({
       'nombre': name,
       'presentacion': presentacion.trim(),
       'imagen': imagenBase64,
@@ -635,7 +637,7 @@ class ZentoryRepository {
     }, SetOptions(merge: true));
 
     // Todos los lotes del producto
-    final lots = await _lotDocsFor(storeId, originalName);
+    final lots = await _lotDocsFor(storeId, originalName, originalCode);
     for (var i = 0; i < lots.length; i += 450) {
       final batch = _db.batch();
       for (final d in lots.skip(i).take(450)) {
@@ -643,6 +645,7 @@ class ZentoryRepository {
           'nombre': name,
           'presentacion': presentacion.trim(),
           'imagen': imagenBase64,
+          'codigoBarras': code.isEmpty ? FieldValue.delete() : code,
         });
       }
       await batch.commit();
@@ -650,10 +653,11 @@ class ZentoryRepository {
   }
 
   /// Elimina el producto del catálogo y **todos** sus lotes.
-  Future<void> deleteProductAndLots(String storeId, String nombre) async {
+  Future<void> deleteProductAndLots(
+      String storeId, String nombre, String? codigoBarras) async {
     final docs = [
-      ...await _catalogDocsFor(storeId, nombre),
-      ...await _lotDocsFor(storeId, nombre),
+      ...await _catalogDocsFor(storeId, nombre, codigoBarras),
+      ...await _lotDocsFor(storeId, nombre, codigoBarras),
     ];
     for (var i = 0; i < docs.length; i += 450) {
       final batch = _db.batch();
@@ -664,20 +668,29 @@ class ZentoryRepository {
     }
   }
 
+  /// ¿El documento (ficha o lote) pertenece al producto indicado?
+  static bool _belongs(
+      Map<String, dynamic> data, String fallbackName, String nombre, String? code) {
+    final c = code?.trim() ?? '';
+    final docCode = (data['codigoBarras'] as String?)?.trim() ?? '';
+    if (c.isNotEmpty) return barcodeVariants(c).contains(docCode);
+    return docCode.isEmpty &&
+        _key((data['nombre'] ?? fallbackName).toString()) == _key(nombre);
+  }
+
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _catalogDocsFor(
-      String storeId, String nombre) async {
+      String storeId, String nombre, String? code) async {
     final res = await catalog(storeId).get();
     return res.docs
-        .where((d) =>
-            _key((d.data()['nombre'] ?? d.id).toString()) == _key(nombre))
+        .where((d) => _belongs(d.data(), d.id, nombre, code))
         .toList();
   }
 
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _lotDocsFor(
-      String storeId, String nombre) async {
+      String storeId, String nombre, String? code) async {
     final res = await products(storeId).get();
     return res.docs
-        .where((d) => _key((d.data()['nombre'] ?? '').toString()) == _key(nombre))
+        .where((d) => _belongs(d.data(), '', nombre, code))
         .toList();
   }
 
@@ -687,25 +700,32 @@ class ZentoryRepository {
     required String nombre,
     required String presentacion,
     String? imagenBase64,
+    String? codigoBarras,
     required String cantidad,
     required String fechaVencimiento,
   }) async {
+    final name = nombre.trim();
+    final code = codigoBarras?.trim() ?? '';
     await products(storeId).add({
-      'nombre': nombre.trim(),
+      'nombre': name,
       'presentacion': presentacion.trim(),
       'imagen': imagenBase64,
+      if (code.isNotEmpty) 'codigoBarras': code,
       'cantidad': cantidad,
       'fechaVencimiento': fechaVencimiento,
       'fechaRegistro': Timestamp.now(),
       'usuarioId': currentUser?.uid,
     });
     // Asegura que el producto exista en el catálogo (datos antiguos).
-    final name = nombre.trim();
-    if (!name.contains('/') && await findProduct(storeId, name) == null) {
-      await catalog(storeId).doc(name).set({
+    final exists = code.isNotEmpty
+        ? await findProductByBarcode(storeId, code) != null
+        : await findProduct(storeId, name) != null;
+    if (!exists && name.isNotEmpty) {
+      await catalog(storeId).doc(_catalogId(name, code)).set({
         'nombre': name,
         'presentacion': presentacion.trim(),
         'imagen': imagenBase64,
+        if (code.isNotEmpty) 'codigoBarras': code,
       });
     }
   }

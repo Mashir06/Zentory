@@ -7,7 +7,6 @@ import '../models/product.dart';
 import '../models/product_lots.dart';
 import '../routes.dart';
 import '../services/notification_service.dart';
-import '../services/product_lookup_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
@@ -53,9 +52,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   /// Productos ya registrados (para no duplicarlos).
   List<ProductGroup> _existing = [];
 
-  /// Producto existente con el mismo nombre que se está escribiendo.
-  ProductGroup? _match;
-
   bool _loading = true;
   bool _saving = false;
   bool _scanning = false;
@@ -65,7 +61,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   @override
   void initState() {
     super.initState();
-    _nombre.addListener(_checkExisting);
     _init();
   }
 
@@ -94,7 +89,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
       final editName = widget.args.editName;
       if (editName != null) {
-        final key = editName.trim().toLowerCase();
+        final key = productKey(editName, widget.args.editCode);
         for (final g in groups) {
           if (g.key == key) {
             _nombre.text = g.nombre;
@@ -111,7 +106,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         _existing = groups;
         _loading = false;
       });
-      _checkExisting();
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -124,88 +118,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _imageBytes = ImageUtils.decode(_imagenBase64);
   }
 
-  /// Avisa si ya existe un producto con el nombre escrito.
-  void _checkExisting() {
-    final key = _nombre.text.trim().toLowerCase();
-    ProductGroup? match;
-    final original = widget.args.editName?.trim().toLowerCase();
-    if (key.isNotEmpty && key != original) {
-      for (final g in _existing) {
-        if (g.key == key) {
-          match = g;
-          break;
-        }
-      }
-    }
-    if (match != _match) setState(() => _match = match);
-  }
-
-  Future<void> _pickPhoto() async {
-    final choice = await showModalBottomSheet<_PhotoChoice>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.photo_camera_outlined,
-                  color: AppColors.primary),
-              title: Text(tr('Cámara'), style: TextStyle(color: AppColors.textPrimary)),
-              onTap: () => Navigator.pop(ctx, _PhotoChoice.camera),
-            ),
-            ListTile(
-              leading: Icon(Icons.photo_library_outlined,
-                  color: AppColors.primary),
-              title:
-                  Text(tr('Galería'), style: TextStyle(color: AppColors.textPrimary)),
-              onTap: () => Navigator.pop(ctx, _PhotoChoice.gallery),
-            ),
-            if (_imageBytes != null)
-              ListTile(
-                leading:
-                    Icon(Icons.delete_outline, color: AppColors.danger),
-                title: Text(tr('Quitar foto'),
-                    style: TextStyle(color: AppColors.danger)),
-                onTap: () => Navigator.pop(ctx, _PhotoChoice.remove),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (choice == null) return;
-    if (choice == _PhotoChoice.remove) {
-      setState(() => _setImage(null));
-      return;
-    }
-    final source = choice == _PhotoChoice.camera
-        ? ImageSource.camera
-        : ImageSource.gallery;
-    try {
-      // JPEG de 400 px de ancho al 70 % de calidad (igual que antes).
-      final file = await _picker.pickImage(
-        source: source,
-        maxWidth: 400,
-        imageQuality: 70,
-      );
-      if (file == null) return;
-      final bytes = await file.readAsBytes();
-      if (!mounted) return;
-      setState(() {
-        _imageBytes = bytes;
-        _imagenBase64 = ImageUtils.encode(bytes);
-      });
-    } catch (e) {
-      if (mounted) showMessage(context, tr('No se pudo obtener la foto: {0}', [e]));
-    }
-  }
-
   /// Escanea el código de barras. Si ya pertenece a un producto de la
-  /// tienda, se pasa directo a crearle un lote; si no, se guarda en el
-  /// formulario y se intenta rellenar nombre y tamaño con OpenFoodFacts.
+  /// tienda, se pasa directo a crearle un lote; si no, solo se escribe el
+  /// código en el formulario (el nombre y el tamaño los pone el usuario).
   Future<void> _scan() async {
     // Se abre con una ruta tipada para recibir el código leído.
     final code = await Navigator.of(context).push<String>(
@@ -217,9 +132,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     try {
       final existing = await _repo.findProductByBarcode(storeId, code);
       if (!mounted) return;
-      final original = widget.args.editName?.trim().toLowerCase();
-      if (existing != null &&
-          existing.nombre.trim().toLowerCase() != original) {
+      final originalCode = widget.args.editCode?.trim() ?? '';
+      final sameProduct = existing != null &&
+          originalCode.isNotEmpty &&
+          ZentoryRepository.barcodeVariants(originalCode)
+              .contains(existing.codigoBarras ?? '');
+      if (existing != null && !sameProduct) {
         if (_isEditing) {
           showMessage(context,
               tr('Ese código de barras ya pertenece a "{0}"', [existing.nombre]));
@@ -233,33 +151,12 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             nombre: existing.nombre,
             presentacion: existing.presentacion,
             imagenBase64: existing.imagenBase64,
+            codigoBarras: existing.codigoBarras,
           ),
         );
         return;
       }
       _codigo.text = code;
-      // Solo se rellenan los campos vacíos (no se pisa lo ya escrito).
-      if (_nombre.text.trim().isEmpty || _presentacion.text.trim().isEmpty) {
-        ScannedProduct? found;
-        try {
-          found = await ProductLookupService.lookup(code);
-        } catch (_) {
-          found = null;
-        }
-        if (!mounted) return;
-        if (found == null) {
-          showMessage(
-            context,
-            tr('Código guardado. No se encontró información del producto; escribe el nombre y el tamaño.'),
-            long: true,
-          );
-        } else {
-          if (_nombre.text.trim().isEmpty) _nombre.text = found.nombre;
-          if (_presentacion.text.trim().isEmpty) {
-            _presentacion.text = found.presentacion;
-          }
-        }
-      }
     } catch (e) {
       if (mounted) showMessage(context, tr('Error al cargar: {0}', [e]));
     } finally {
@@ -275,6 +172,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         nombre: g.nombre,
         presentacion: g.presentacion,
         imagenBase64: g.imagenBase64,
+        codigoBarras: g.codigoBarras,
       ),
     );
   }
@@ -292,10 +190,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
       return;
     }
     if (storeId == null) return;
-    if (_match != null) {
-      showMessage(context, tr('Ya existe un producto con ese nombre'));
-      return;
-    }
 
     setState(() => _saving = true);
     try {
@@ -303,6 +197,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         await _repo.updateProduct(
           storeId: storeId,
           originalName: widget.args.editName!,
+          originalCode: widget.args.editCode,
           nombre: nombre,
           presentacion: presentacion,
           imagenBase64: _imagenBase64,
@@ -330,6 +225,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             nombre: nombre,
             presentacion: presentacion,
             imagenBase64: _imagenBase64,
+            codigoBarras: _codigo.text.trim(),
           ),
         );
       }
@@ -355,7 +251,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     if (!ok) return;
     setState(() => _saving = true);
     try {
-      await _repo.deleteProductAndLots(storeId, name);
+      await _repo.deleteProductAndLots(storeId, name, widget.args.editCode);
       await NotificationService.instance.syncStore(storeId);
       if (!mounted) return;
       showMessage(context, tr('Producto eliminado'));
@@ -429,31 +325,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           hint: tr('Ej. Leche Chiricana'),
           textCapitalization: TextCapitalization.sentences,
         ),
-        if (_match != null) ...[
-          SizedBox(height: 8),
-          ZCard(
-            color: AppColors.surfaceAlt,
-            padding: EdgeInsets.fromLTRB(12, 8, 4, 8),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline,
-                    color: AppColors.warning, size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    tr('"{0}" ya está registrado.', [_match!.nombre]),
-                    style: TextStyle(color: AppColors.textPrimary, fontSize: 13),
-                  ),
-                ),
-                if (!_isEditing)
-                  TextButton(
-                    onPressed: () => _addLotTo(_match!),
-                    child: Text(tr('Agregar lote')),
-                  ),
-              ],
-            ),
-          ),
-        ],
         SizedBox(height: 14),
         LabeledField(
           label: tr('Presentación (tamaño)'),
@@ -683,6 +554,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
           nombre: widget.args.nombre,
           presentacion: widget.args.presentacion,
           imagenBase64: widget.args.imagenBase64,
+          codigoBarras: widget.args.codigoBarras,
           cantidad: cantidad,
           fechaVencimiento: fechaStr,
         );

@@ -55,12 +55,16 @@ class Routes {
 class ProductFormArgs {
   const ProductFormArgs({
     this.editName,
+    this.editCode,
     this.qrNombre,
     this.qrPresentacion,
   });
 
   /// Nombre del producto a editar; `null` para crear uno nuevo.
   final String? editName;
+
+  /// Código de barras del producto a editar (lo identifica).
+  final String? editCode;
 
   /// Datos obtenidos al escanear un código de barras.
   final String? qrNombre;
@@ -73,6 +77,7 @@ class LotFormArgs {
     required this.nombre,
     this.presentacion = '',
     this.imagenBase64,
+    this.codigoBarras,
     this.lotId,
     this.lotLabel,
   });
@@ -81,6 +86,7 @@ class LotFormArgs {
   final String nombre;
   final String presentacion;
   final String? imagenBase64;
+  final String? codigoBarras;
 
   /// ID del lote a editar; `null` para crear uno nuevo.
   final String? lotId;

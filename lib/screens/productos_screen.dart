@@ -159,6 +159,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
         nombre: p.nombre,
         presentacion: p.presentacion,
         imagenBase64: p.imagenBase64,
+        codigoBarras: p.codigoBarras,
         lotId: p.id,
         lotLabel: _labels[p.id],
       ),
@@ -197,6 +198,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
         nombre: g.nombre,
         presentacion: g.presentacion,
         imagenBase64: g.imagenBase64,
+        codigoBarras: g.codigoBarras,
       ),
     );
     _load();
@@ -206,7 +208,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   Future<void> _editGroup(ProductGroup g) async {
     await Navigator.of(context).pushNamed(
       Routes.addProduct,
-      arguments: ProductFormArgs(editName: g.nombre),
+      arguments: ProductFormArgs(editName: g.nombre, editCode: g.codigoBarras),
     );
     _load();
   }

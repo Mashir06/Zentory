@@ -41,6 +41,7 @@ class Product {
     required this.fechaRegistro,
     required this.cantidad,
     this.imagenBase64,
+    this.codigoBarras,
   })  : expiryDate = DateUtilsZ.parse(fechaVencimiento),
         imageBytes = ImageUtils.decode(imagenBase64);
 
@@ -53,6 +54,9 @@ class Product {
   final String fechaRegistro;
   final String cantidad;
   final String? imagenBase64;
+
+  /// Código de barras del producto al que pertenece el lote.
+  final String? codigoBarras;
 
   final DateTime? expiryDate;
   final Uint8List? imageBytes;
@@ -78,6 +82,7 @@ class Product {
       fechaRegistro: regStr,
       cantidad: (data['cantidad'] ?? '0').toString(),
       imagenBase64: data['imagen'] as String?,
+      codigoBarras: (data['codigoBarras'] as String?)?.trim(),
     );
   }
 }
