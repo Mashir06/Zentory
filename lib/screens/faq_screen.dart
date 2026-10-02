@@ -10,7 +10,7 @@ class FaqScreen extends StatelessWidget {
   static List<(String, String)> get _faqs => [
     (
       tr('¿Cómo agrego un nuevo producto?'),
-      tr('Para agregar un producto, ve a la sección de \'Productos\' y presiona el botón \'+\' o utiliza el escáner QR para registrarlo rápidamente.'),
+      tr('Toca el botón \'+\' para agregar un producto. En el formulario puedes escanear su código de barras: si el producto ya está registrado, pasarás directo a agregarle un lote.'),
     ),
     (
       tr('¿Cómo invito a alguien a mi tienda?'),
@@ -22,7 +22,7 @@ class FaqScreen extends StatelessWidget {
     ),
     (
       tr('¿Cómo cambio mi contraseña?'),
-      tr('Por ahora, el cambio de contraseña se gestiona a través del inicio de sesión con Google o el sistema de recuperación de Firebase en la pantalla de login.'),
+      tr('Ve a Configuración > Privacidad y Seguridad > Cambiar Contraseña, o usa "¿Olvidaste tu contraseña?" en la pantalla de inicio de sesión. Te llegará un correo para crear una nueva.'),
     ),
   ];
 

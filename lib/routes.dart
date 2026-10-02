@@ -22,7 +22,7 @@ class Routes {
   static const lotForm = '/lot_form';
 
   /// Pestañas de la barra inferior (se muestran sin animación).
-  static const tabs = {home, productos, scan, calendar};
+  static const tabs = {home, productos, calendar};
 
   /// Reemplaza toda la pila (equivale a `popUpTo(0)`).
   static void resetTo(BuildContext context, String route) {

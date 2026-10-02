@@ -532,18 +532,62 @@ class ZentoryRepository {
     required String nombre,
     required String presentacion,
     String? imagenBase64,
+    String? codigoBarras,
   }) async {
     final name = nombre.trim();
     _checkName(name);
     if (await findProduct(storeId, name) != null) {
       throw ZentoryException(tr('Ya existe un producto llamado "{0}"', [name]));
     }
+    final code = codigoBarras?.trim() ?? '';
+    await _checkBarcodeFree(storeId, code, exceptName: null);
     await catalog(storeId).doc(name).set({
       'nombre': name,
       'presentacion': presentacion.trim(),
       'imagen': imagenBase64,
       'fechaCreacion': Timestamp.now(),
+      if (code.isNotEmpty) 'codigoBarras': code,
     });
+  }
+
+  /// Variantes de un código: algunos lectores devuelven UPC-A (12 dígitos) y
+  /// otros EAN-13 (el mismo con un 0 delante).
+  static List<String> barcodeVariants(String code) {
+    final c = code.trim();
+    if (c.isEmpty) return const [];
+    final out = <String>[c];
+    if (RegExp(r'^\d+$').hasMatch(c)) {
+      if (c.length == 12) out.add('0$c');
+      if (c.length == 13 && c.startsWith('0')) out.add(c.substring(1));
+    }
+    return out;
+  }
+
+  /// Producto del catálogo que tiene ese código de barras, si existe.
+  Future<CatalogItem?> findProductByBarcode(String storeId, String code) async {
+    final codes = barcodeVariants(code);
+    if (codes.isEmpty) return null;
+    final res = await catalog(storeId)
+        .where('codigoBarras', whereIn: codes)
+        .limit(1)
+        .get();
+    if (res.docs.isEmpty) return null;
+    return CatalogItem.fromMap(res.docs.first.data());
+  }
+
+  /// Un código de barras solo puede pertenecer a un producto.
+  Future<void> _checkBarcodeFree(
+    String storeId,
+    String code, {
+    required String? exceptName,
+  }) async {
+    if (code.isEmpty) return;
+    final other = await findProductByBarcode(storeId, code);
+    if (other != null &&
+        (exceptName == null || _key(other.nombre) != _key(exceptName))) {
+      throw ZentoryException(
+          tr('Ese código de barras ya pertenece a "{0}"', [other.nombre]));
+    }
   }
 
   /// Busca un producto del catálogo sin distinguir mayúsculas ni espacios.
@@ -567,6 +611,7 @@ class ZentoryRepository {
     required String nombre,
     required String presentacion,
     String? imagenBase64,
+    String? codigoBarras,
   }) async {
     final name = nombre.trim();
     _checkName(name);
@@ -574,6 +619,8 @@ class ZentoryRepository {
     if (renamed && await findProduct(storeId, name) != null) {
       throw ZentoryException(tr('Ya existe un producto llamado "{0}"', [name]));
     }
+    final code = codigoBarras?.trim() ?? '';
+    await _checkBarcodeFree(storeId, code, exceptName: originalName);
 
     // Ficha del catálogo (se borra la anterior si cambió el nombre).
     final oldDocs = await _catalogDocsFor(storeId, originalName);
@@ -584,6 +631,7 @@ class ZentoryRepository {
       'nombre': name,
       'presentacion': presentacion.trim(),
       'imagen': imagenBase64,
+      'codigoBarras': code.isEmpty ? FieldValue.delete() : code,
     }, SetOptions(merge: true));
 
     // Todos los lotes del producto

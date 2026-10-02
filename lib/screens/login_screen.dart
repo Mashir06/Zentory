@@ -20,7 +20,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _password = TextEditingController();
   bool _showPassword = false;
   bool _loading = false;
-  bool _googleLoading = false;
 
   @override
   void dispose() {
@@ -46,20 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) showMessage(context, AuthService.messageFor(e));
     } finally {
       if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _loginWithGoogle() async {
-    setState(() => _googleLoading = true);
-    try {
-      final ok = await AuthService.instance.signInWithGoogle();
-      if (ok && mounted) Routes.resetTo(context, Routes.session);
-    } catch (e) {
-      if (mounted) {
-        showMessage(context, AuthService.messageFor(e), long: true);
-      }
-    } finally {
-      if (mounted) setState(() => _googleLoading = false);
     }
   }
 
@@ -167,40 +152,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     loading: _loading,
                     onPressed: _login,
                   ),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: AppColors.border)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          'O',
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: AppColors.border)),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  OutlinedButton.icon(
-                    onPressed: _googleLoading ? null : _loginWithGoogle,
-                    icon: _googleLoading
-                        ? SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            'G',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.blue,
-                            ),
-                          ),
-                    label: Text(tr('Iniciar sesión con Google')),
-                  ),
                   SizedBox(height: 28),
+                  Text.rich(                  SizedBox(height: 28),
                   Text.rich(
                     TextSpan(
                       text: tr('¿No tienes una cuenta? '),

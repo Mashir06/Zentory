@@ -93,8 +93,6 @@ const Map<String, String> _en = {
       '{0} units',
   '¿Cómo agrego un nuevo producto?':
       'How do I add a new product?',
-  'Para agregar un producto, ve a la sección de \'Productos\' y presiona el botón \'+\' o utiliza el escáner QR para registrarlo rápidamente.':
-      'To add a product, go to the \'Products\' section and tap the \'+\' button, or use the scanner to register it quickly.',
   '¿Cómo invito a alguien a mi tienda?':
       'How do I invite someone to my store?',
   'En tu perfil, encontrarás el \'Código de Invitación\' de tu tienda. Compártelo con tus empleados para que puedan unirse desde su propia cuenta.':
@@ -105,8 +103,6 @@ const Map<String, String> _en = {
       'Yes, you can create multiple stores or branches from your profile and switch between them at any time.',
   '¿Cómo cambio mi contraseña?':
       'How do I change my password?',
-  'Por ahora, el cambio de contraseña se gestiona a través del inicio de sesión con Google o el sistema de recuperación de Firebase en la pantalla de login.':
-      'For now, password changes are handled through Google sign-in or the password recovery option on the login screen.',
   'Preguntas Frecuentes':
       'Frequently Asked Questions',
   'No se pudieron cargar los datos: {0}':
@@ -173,8 +169,6 @@ const Map<String, String> _en = {
       'Forgot your password?',
   'Iniciar sesión':
       'Sign in',
-  'Iniciar sesión con Google':
-      'Sign in with Google',
   '¿No tienes una cuenta? ':
       'Don\'t have an account? ',
   'Regístrate aquí':
@@ -469,8 +463,6 @@ const Map<String, String> _en = {
       'Help',
   'Cerrar Sesión':
       'Sign out',
-  'Huella SHA-1 copiada':
-      'SHA-1 fingerprint copied',
   'Crear una nueva tienda':
       'Create a new store',
   'Te has unido a {0}':
@@ -591,12 +583,6 @@ const Map<String, String> _en = {
       'No internet connection',
   'Error: {0}':
       'Error: {0}',
-  'No se pudo iniciar sesión con Google: esta versión de la app no está autorizada en Firebase (falta registrar su huella SHA-1). Mientras tanto, usa correo y contraseña. ({0})':
-      'Couldn\'t sign in with Google: this version of the app isn\'t authorized in Firebase (its SHA-1 fingerprint isn\'t registered). Meanwhile, use email and password. ({0})',
-  'No se pudo mostrar la ventana de Google. Revisa que tengas una cuenta de Google en el teléfono y los servicios de Google Play actualizados.':
-      'Couldn\'t show the Google window. Make sure there\'s a Google account on the phone and Google Play services are up to date.',
-  'Error de Google: {0}':
-      'Google error: {0}',
   'Debes iniciar sesión':
       'You must sign in',
   'El nombre de la tienda es obligatorio':
@@ -659,8 +645,6 @@ const Map<String, String> _en = {
       'Highest quantity',
   'Inicio':
       'Home',
-  'Escanear':
-      'Scan',
   'Calendario':
       'Calendar',
   'LUN':
@@ -703,6 +687,24 @@ const Map<String, String> _en = {
       'Language',
   'Elige el idioma de la aplicación':
       'Choose the app language',
+  'Ese código de barras ya pertenece a "{0}"':
+      'That barcode already belongs to "{0}"',
+  '"{0}" ya está registrado. Agrega un lote nuevo.':
+      '"{0}" is already registered. Add a new batch.',
+  'Código guardado. No se encontró información del producto; escribe el nombre y el tamaño.':
+      'Code saved. No product information was found; enter the name and size.',
+  'Código de barras':
+      'Barcode',
+  'Opcional: escanéalo o escríbelo':
+      'Optional: scan it or type it',
+  'Escanear código':
+      'Scan code',
+  'Escanear código de barras':
+      'Scan barcode',
+  'Toca el botón \'+\' para agregar un producto. En el formulario puedes escanear su código de barras: si el producto ya está registrado, pasarás directo a agregarle un lote.':
+      'Tap the \'+\' button to add a product. In the form you can scan its barcode: if the product is already registered, you\'ll go straight to adding a batch.',
+  'Ve a Configuración > Privacidad y Seguridad > Cambiar Contraseña, o usa "¿Olvidaste tu contraseña?" en la pantalla de inicio de sesión. Te llegará un correo para crear una nueva.':
+      'Go to Settings > Privacy & Security > Change password, or use "Forgot your password?" on the sign-in screen. You\'ll receive an email to create a new one.',
 };
 
 const Map<String, String> _zh = {
@@ -764,8 +766,6 @@ const Map<String, String> _zh = {
       '{0} 件',
   '¿Cómo agrego un nuevo producto?':
       '如何添加新商品？',
-  'Para agregar un producto, ve a la sección de \'Productos\' y presiona el botón \'+\' o utiliza el escáner QR para registrarlo rápidamente.':
-      '要添加商品，请进入“商品”页面并点击“+”按钮，或使用扫描器快速登记。',
   '¿Cómo invito a alguien a mi tienda?':
       '如何邀请他人加入我的店铺？',
   'En tu perfil, encontrarás el \'Código de Invitación\' de tu tienda. Compártelo con tus empleados para que puedan unirse desde su propia cuenta.':
@@ -776,8 +776,6 @@ const Map<String, String> _zh = {
       '可以，您可以在个人资料中创建多个店铺或分店，并随时切换。',
   '¿Cómo cambio mi contraseña?':
       '如何修改密码？',
-  'Por ahora, el cambio de contraseña se gestiona a través del inicio de sesión con Google o el sistema de recuperación de Firebase en la pantalla de login.':
-      '目前，修改密码需通过 Google 登录，或在登录页面使用找回密码功能。',
   'Preguntas Frecuentes':
       '常见问题',
   'No se pudieron cargar los datos: {0}':
@@ -844,8 +842,6 @@ const Map<String, String> _zh = {
       '忘记密码？',
   'Iniciar sesión':
       '登录',
-  'Iniciar sesión con Google':
-      '使用 Google 登录',
   '¿No tienes una cuenta? ':
       '还没有账户？',
   'Regístrate aquí':
@@ -1140,8 +1136,6 @@ const Map<String, String> _zh = {
       '帮助',
   'Cerrar Sesión':
       '退出登录',
-  'Huella SHA-1 copiada':
-      '已复制 SHA-1 指纹',
   'Crear una nueva tienda':
       '创建新店铺',
   'Te has unido a {0}':
@@ -1262,12 +1256,6 @@ const Map<String, String> _zh = {
       '无网络连接',
   'Error: {0}':
       '错误：{0}',
-  'No se pudo iniciar sesión con Google: esta versión de la app no está autorizada en Firebase (falta registrar su huella SHA-1). Mientras tanto, usa correo y contraseña. ({0})':
-      '无法使用 Google 登录：此版本的应用未在 Firebase 中授权（尚未登记其 SHA-1 指纹）。请暂时使用邮箱和密码登录。（{0}）',
-  'No se pudo mostrar la ventana de Google. Revisa que tengas una cuenta de Google en el teléfono y los servicios de Google Play actualizados.':
-      '无法显示 Google 登录窗口。请确认手机上有 Google 账户，且 Google Play 服务已更新。',
-  'Error de Google: {0}':
-      'Google 错误：{0}',
   'Debes iniciar sesión':
       '请先登录',
   'El nombre de la tienda es obligatorio':
@@ -1330,8 +1318,6 @@ const Map<String, String> _zh = {
       '数量最多',
   'Inicio':
       '首页',
-  'Escanear':
-      '扫描',
   'Calendario':
       '日历',
   'LUN':
@@ -1374,4 +1360,22 @@ const Map<String, String> _zh = {
       '语言',
   'Elige el idioma de la aplicación':
       '选择应用语言',
+  'Ese código de barras ya pertenece a "{0}"':
+      '该条形码已属于“{0}”',
+  '"{0}" ya está registrado. Agrega un lote nuevo.':
+      '“{0}”已登记，请添加新批次。',
+  'Código guardado. No se encontró información del producto; escribe el nombre y el tamaño.':
+      '代码已保存。未找到商品信息，请填写名称和规格。',
+  'Código de barras':
+      '条形码',
+  'Opcional: escanéalo o escríbelo':
+      '可选：扫描或手动输入',
+  'Escanear código':
+      '扫描代码',
+  'Escanear código de barras':
+      '扫描条形码',
+  'Toca el botón \'+\' para agregar un producto. En el formulario puedes escanear su código de barras: si el producto ya está registrado, pasarás directo a agregarle un lote.':
+      '点击“+”按钮添加商品。在表单中可以扫描条形码：如果商品已登记，会直接进入添加批次。',
+  'Ve a Configuración > Privacidad y Seguridad > Cambiar Contraseña, o usa "¿Olvidaste tu contraseña?" en la pantalla de inicio de sesión. Te llegará un correo para crear una nueva.':
+      '前往 设置 > 隐私与安全 > 修改密码，或在登录页面点击“忘记密码？”。您将收到一封用于设置新密码的邮件。',
 };

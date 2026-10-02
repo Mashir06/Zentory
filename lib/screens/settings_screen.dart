@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../routes.dart';
 import '../services/app_settings.dart';
 import '../services/auth_service.dart';
-import '../services/device_settings.dart';
 import '../services/notification_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
@@ -109,14 +107,10 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifications = true;
-  String? _sha1;
 
   @override
   void initState() {
     super.initState();
-    DeviceSettings.signingSha1().then((v) {
-      if (mounted) setState(() => _sha1 = v);
-    });
     SharedPreferences.getInstance().then((prefs) {
       if (!mounted) return;
       setState(() => _notifications =
@@ -294,26 +288,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontSize: 12,
                       ),
                     ),
-                    // Huella de la firma: se registra en Firebase para que
-                    // funcione el inicio de sesión con Google. Toca para copiar.
-                    if (_sha1 != null)
-                      InkWell(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: _sha1!));
-                          showMessage(context, tr('Huella SHA-1 copiada'));
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 6),
-                          child: Text(
-                            'SHA-1: $_sha1',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),

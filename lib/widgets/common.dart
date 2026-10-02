@@ -116,7 +116,7 @@ class SimpleHeader extends StatelessWidget {
   }
 }
 
-/// Barra de navegación inferior: Inicio, Productos, Escanear, Calendario.
+/// Barra de navegación inferior: Inicio, Productos, Calendario.
 class ZentoryBottomNav extends StatelessWidget {
   const ZentoryBottomNav({super.key, required this.current});
 
@@ -125,7 +125,6 @@ class ZentoryBottomNav extends StatelessWidget {
   static const _items = [
     (Routes.home, Icons.home_rounded, 'Inicio'),
     (Routes.productos, Icons.inventory_2_outlined, 'Productos'),
-    (Routes.scan, Icons.qr_code_scanner, 'Escanear'),
     (Routes.calendar, Icons.calendar_month_outlined, 'Calendario'),
   ];
 

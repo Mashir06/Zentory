@@ -7,6 +7,7 @@ import '../models/product.dart';
 import '../models/product_lots.dart';
 import '../routes.dart';
 import '../services/notification_service.dart';
+import '../services/product_lookup_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
@@ -41,6 +42,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   late final _nombre = TextEditingController(text: widget.args.qrNombre ?? '');
   late final _presentacion =
       TextEditingController(text: widget.args.qrPresentacion ?? '');
+  final _codigo = TextEditingController();
 
   String? _imagenBase64;
   Uint8List? _imageBytes;
@@ -55,6 +57,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   bool _loading = true;
   bool _saving = false;
+  bool _scanning = false;
 
   bool get _isEditing => widget.args.editName != null;
 
@@ -69,6 +72,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   void dispose() {
     _nombre.dispose();
     _presentacion.dispose();
+    _codigo.dispose();
     super.dispose();
   }
 
@@ -94,6 +98,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           if (g.key == key) {
             _nombre.text = g.nombre;
             _presentacion.text = g.presentacion;
+            _codigo.text = g.codigoBarras ?? '';
             _setImage(g.imagenBase64);
             break;
           }
@@ -197,6 +202,67 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     }
   }
 
+  /// Escanea el código de barras. Si ya pertenece a un producto de la
+  /// tienda, se pasa directo a crearle un lote; si no, se guarda en el
+  /// formulario y se intenta rellenar nombre y tamaño con OpenFoodFacts.
+  Future<void> _scan() async {
+    final code = await Navigator.of(context).pushNamed<String>(Routes.scan);
+    final storeId = _storeId;
+    if (code == null || code.isEmpty || storeId == null || !mounted) return;
+    setState(() => _scanning = true);
+    try {
+      final existing = await _repo.findProductByBarcode(storeId, code);
+      if (!mounted) return;
+      final original = widget.args.editName?.trim().toLowerCase();
+      if (existing != null &&
+          existing.nombre.trim().toLowerCase() != original) {
+        if (_isEditing) {
+          showMessage(context,
+              tr('Ese código de barras ya pertenece a "{0}"', [existing.nombre]));
+          return;
+        }
+        showMessage(context,
+            tr('"{0}" ya está registrado. Agrega un lote nuevo.', [existing.nombre]));
+        Navigator.of(context).pushReplacementNamed(
+          Routes.lotForm,
+          arguments: LotFormArgs(
+            nombre: existing.nombre,
+            presentacion: existing.presentacion,
+            imagenBase64: existing.imagenBase64,
+          ),
+        );
+        return;
+      }
+      _codigo.text = code;
+      // Solo se rellenan los campos vacíos (no se pisa lo ya escrito).
+      if (_nombre.text.trim().isEmpty || _presentacion.text.trim().isEmpty) {
+        ScannedProduct? found;
+        try {
+          found = await ProductLookupService.lookup(code);
+        } catch (_) {
+          found = null;
+        }
+        if (!mounted) return;
+        if (found == null) {
+          showMessage(
+            context,
+            tr('Código guardado. No se encontró información del producto; escribe el nombre y el tamaño.'),
+            long: true,
+          );
+        } else {
+          if (_nombre.text.trim().isEmpty) _nombre.text = found.nombre;
+          if (_presentacion.text.trim().isEmpty) {
+            _presentacion.text = found.presentacion;
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) showMessage(context, tr('Error al cargar: {0}', [e]));
+    } finally {
+      if (mounted) setState(() => _scanning = false);
+    }
+  }
+
   /// Abre el formulario de lote para un producto ya registrado.
   void _addLotTo(ProductGroup g) {
     Navigator.of(context).pushReplacementNamed(
@@ -232,6 +298,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           nombre: nombre,
           presentacion: presentacion,
           imagenBase64: _imagenBase64,
+          codigoBarras: _codigo.text.trim(),
         );
         // El nombre aparece en las alertas: se reprograman.
         await NotificationService.instance.syncStore(storeId);
@@ -244,6 +311,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           nombre: nombre,
           presentacion: presentacion,
           imagenBase64: _imagenBase64,
+          codigoBarras: _codigo.text.trim(),
         );
         if (!mounted) return;
         showMessage(context, tr('Producto creado. Ahora agrega su primer lote.'));
@@ -323,6 +391,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               ? tr('Los cambios se aplican a todos sus lotes')
               : tr('Registra el producto; luego le agregas sus lotes'),
         ),
+        SizedBox(height: 16),
+        _scanButton(),
         SizedBox(height: 20),
         Center(child: _photoPicker()),
         SizedBox(height: 16),
@@ -362,6 +432,18 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           label: tr('Presentación (tamaño)'),
           controller: _presentacion,
           hint: tr('Ej. 946 ml, 1 litro, 500 g'),
+        ),
+        SizedBox(height: 14),
+        LabeledField(
+          label: tr('Código de barras'),
+          controller: _codigo,
+          hint: tr('Opcional: escanéalo o escríbelo'),
+          prefixIcon: Icons.qr_code_2,
+          suffix: IconButton(
+            tooltip: tr('Escanear código'),
+            onPressed: _scanning ? null : _scan,
+            icon: Icon(Icons.qr_code_scanner, color: AppColors.primary),
+          ),
         ),
         SizedBox(height: 24),
         _FormButtons(
@@ -435,6 +517,28 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             ),
         ],
       ],
+    );
+  }
+
+  /// Botón grande para escanear: rellena el producto o, si ya existe, lleva
+  /// directo a crearle un lote.
+  Widget _scanButton() {
+    return OutlinedButton.icon(
+      onPressed: _scanning ? null : _scan,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        side: BorderSide(color: AppColors.primary),
+      ),
+      icon: _scanning
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(Icons.qr_code_scanner),
+      label: Text(_scanning
+          ? tr('Buscando producto...')
+          : tr('Escanear código de barras')),
     );
   }
 

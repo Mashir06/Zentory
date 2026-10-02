@@ -34,8 +34,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'zentory-base.firebasestorage.app',
   );
 
-  /// Cliente OAuth "web" (client_type 3) necesario para obtener el idToken
-  /// de Google Sign-In (equivale a R.string.default_web_client_id).
-  static const String googleServerClientId =
-      '794054120945-k88i9nt9bjo2g61pki7g4kfs01nhqtqj.apps.googleusercontent.com';
 }

@@ -89,6 +89,7 @@ class CatalogItem {
     required this.nombre,
     required this.presentacion,
     this.imagenBase64,
+    this.codigoBarras,
   }) : imageBytes = ImageUtils.decode(imagenBase64);
 
   final String nombre;
@@ -96,9 +97,13 @@ class CatalogItem {
   final String? imagenBase64;
   final Uint8List? imageBytes;
 
+  /// Código de barras del producto (opcional), para reconocerlo al escanear.
+  final String? codigoBarras;
+
   factory CatalogItem.fromMap(Map<String, dynamic> data) => CatalogItem(
         nombre: (data['nombre'] ?? '').toString(),
         presentacion: (data['presentacion'] ?? '').toString(),
         imagenBase64: data['imagen'] as String?,
+        codigoBarras: (data['codigoBarras'] as String?)?.trim(),
       );
 }

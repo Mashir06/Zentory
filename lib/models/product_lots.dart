@@ -101,6 +101,9 @@ class ProductGroup {
 
   String get nombre => info?.nombre ?? first?.nombre ?? '';
 
+  /// Código de barras guardado en la ficha del producto, si tiene.
+  String? get codigoBarras => info?.codigoBarras;
+
   String get presentacion {
     final fromInfo = info?.presentacion.trim() ?? '';
     if (fromInfo.isNotEmpty && fromInfo != 'N/A') return fromInfo;

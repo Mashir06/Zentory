@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../routes.dart';
-import '../services/product_lookup_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../l10n/strings.dart';
 
 /// Escáner de códigos de barras (reemplaza CameraX + ML Kit).
 ///
-/// Al leer un código consulta OpenFoodFacts y abre el formulario de registro
-/// con los datos del producto.
+/// Se abre desde "Agregar producto" y devuelve el código leído con
+/// `Navigator.pop`; el formulario decide qué hacer con él.
 class QRScreen extends StatefulWidget {
   const QRScreen({super.key});
 
@@ -22,7 +20,7 @@ class _QRScreenState extends State<QRScreen> {
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
   );
-  bool _busy = false;
+  bool _done = false;
 
   @override
   void dispose() {
@@ -30,40 +28,14 @@ class _QRScreenState extends State<QRScreen> {
     super.dispose();
   }
 
-  Future<void> _onDetect(BarcodeCapture capture) async {
-    if (_busy) return;
+  void _onDetect(BarcodeCapture capture) {
+    if (_done) return;
     final code = capture.barcodes
-        .map((b) => b.rawValue)
+        .map((b) => b.rawValue?.trim())
         .firstWhere((v) => v != null && v.isNotEmpty, orElse: () => null);
     if (code == null) return;
-
-    setState(() => _busy = true);
-    try {
-      final product = await ProductLookupService.lookup(code);
-      if (!mounted) return;
-      if (product == null) {
-        showMessage(
-          context,
-          tr('No se encontró información del producto'),
-          long: true,
-        );
-        return;
-      }
-      await _controller.stop();
-      if (!mounted) return;
-      await Navigator.of(context).pushNamed(
-        Routes.addProduct,
-        arguments: ProductFormArgs(
-          qrNombre: product.nombre,
-          qrPresentacion: product.presentacion,
-        ),
-      );
-      if (mounted) await _controller.start();
-    } catch (e) {
-      if (mounted) showMessage(context, tr('Error de red: {0}', [e]));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    _done = true;
+    Navigator.of(context).pop(code);
   }
 
   Future<void> _toggleTorch() async {
@@ -82,7 +54,7 @@ class _QRScreenState extends State<QRScreen> {
           bottom: false,
           child: Column(
             children: [
-              ZentoryHeader(),
+              ZentoryHeader(onBack: () => Navigator.of(context).maybePop()),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.all(16),
@@ -132,9 +104,7 @@ class _QRScreenState extends State<QRScreen> {
                               right: 12,
                               bottom: 12,
                               child: Text(
-                                _busy
-                                    ? tr('Buscando producto...')
-                                    : tr('Coloca el código de barras dentro del marco'),
+                                tr('Coloca el código de barras dentro del marco'),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: AppColors.onColor,
@@ -144,13 +114,6 @@ class _QRScreenState extends State<QRScreen> {
                                 ),
                               ),
                             ),
-                            if (_busy)
-                              ColoredBox(
-                                color: Color(0x80000000),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
                             Positioned(
                               top: 12,
                               right: 12,
@@ -210,7 +173,6 @@ class _QRScreenState extends State<QRScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: ZentoryBottomNav(current: Routes.scan),
     );
   }
 }

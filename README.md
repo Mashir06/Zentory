@@ -6,12 +6,12 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 
 ## Funciones
 
-- **Inicio de sesión** con correo/contraseña o Google, registro y recuperación de contraseña (Firebase Auth).
+- **Inicio de sesión** con correo y contraseña, registro y recuperación de contraseña (Firebase Auth).
 - **Tiendas**: crear una tienda, unirse con código de invitación, sucursales, cambiar de tienda activa y administrar al personal. Solo el administrador puede eliminar la tienda o sus sucursales; los trabajadores no.
 - **Inicio**: resumen de lotes en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por estado.
 - **Productos**: cada producto con sus lotes (los lotes se borran solos 3 días después de vencer); búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.
 - **Registrar producto**: nombre, foto (cámara o galería) y presentación. **Agregar lote**: fecha de vencimiento y cantidad.
-- **Escáner** de códigos de barras con consulta a [OpenFoodFacts](https://world.openfoodfacts.org) y linterna.
+- **Escáner** de códigos de barras dentro de "Agregar producto": guarda el código en el producto y rellena nombre y tamaño con [OpenFoodFacts](https://world.openfoodfacts.org). Si el código ya pertenece a un producto de la tienda, abre directo el formulario de su nuevo lote.
 - **Calendario** mensual con indicadores de vencimiento por día.
 - **Notificaciones** locales 3 días y 1 día antes del vencimiento (7:00 a. m.), con sonido propio.
 - Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, ayuda por WhatsApp, manual de usuario y preguntas frecuentes.
@@ -41,7 +41,6 @@ flutter build apk --release
 La app usa el mismo proyecto de Firebase que la versión Kotlin (`zentory-base`) y conserva el paquete `com.example.zentoryapp`, así que los usuarios y datos existentes siguen funcionando.
 
 - Android: `android/app/google-services.json` y `lib/firebase_options.dart`.
-- **Inicio de sesión con Google**: la huella SHA-1 de la llave con la que firmes la app debe estar registrada en la consola de Firebase (Configuración del proyecto → Tus apps → Android). Obtén la de depuración con `cd android && ./gradlew signingReport`.
 - Para agregar iOS o web: `dart pub global activate flutterfire_cli` y luego `flutterfire configure`.
 
 ### Estructura de datos en Firestore
