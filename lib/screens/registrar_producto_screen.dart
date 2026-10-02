@@ -118,6 +118,69 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     _imageBytes = ImageUtils.decode(_imagenBase64);
   }
 
+  Future<void> _pickPhoto() async {
+    final choice = await showModalBottomSheet<_PhotoChoice>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.photo_camera_outlined,
+                  color: AppColors.primary),
+              title: Text(tr('Cámara'), style: TextStyle(color: AppColors.textPrimary)),
+              onTap: () => Navigator.pop(ctx, _PhotoChoice.camera),
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library_outlined,
+                  color: AppColors.primary),
+              title:
+                  Text(tr('Galería'), style: TextStyle(color: AppColors.textPrimary)),
+              onTap: () => Navigator.pop(ctx, _PhotoChoice.gallery),
+            ),
+            if (_imageBytes != null)
+              ListTile(
+                leading:
+                    Icon(Icons.delete_outline, color: AppColors.danger),
+                title: Text(tr('Quitar foto'),
+                    style: TextStyle(color: AppColors.danger)),
+                onTap: () => Navigator.pop(ctx, _PhotoChoice.remove),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null) return;
+    if (choice == _PhotoChoice.remove) {
+      setState(() => _setImage(null));
+      return;
+    }
+    final source = choice == _PhotoChoice.camera
+        ? ImageSource.camera
+        : ImageSource.gallery;
+    try {
+      // JPEG de 400 px de ancho al 70 % de calidad (igual que antes).
+      final file = await _picker.pickImage(
+        source: source,
+        maxWidth: 400,
+        imageQuality: 70,
+      );
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _imageBytes = bytes;
+        _imagenBase64 = ImageUtils.encode(bytes);
+      });
+    } catch (e) {
+      if (mounted) showMessage(context, tr('No se pudo obtener la foto: {0}', [e]));
+    }
+  }
+
   /// Escanea el código de barras. Si ya pertenece a un producto de la
   /// tienda, se pasa directo a crearle un lote; si no, solo se escribe el
   /// código en el formulario (el nombre y el tamaño los pone el usuario).
