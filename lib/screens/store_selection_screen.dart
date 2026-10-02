@@ -65,7 +65,7 @@ class _StoreSelectionScreenState extends State<StoreSelectionScreen>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
-                    child: Image.asset('assets/images/logozentory.png', width: 100),
+                    child: Image.asset(AppColors.logoAsset, width: 100),
                   ),
                   SizedBox(height: 24),
                   Text(

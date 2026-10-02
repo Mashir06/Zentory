@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'routes.dart';
@@ -130,6 +131,13 @@ class _ZentoryAppState extends State<ZentoryApp> {
       navigatorObservers: [routeObserver],
       initialRoute: Routes.session,
       onGenerateRoute: ZentoryApp.onGenerateRoute,
+      // Íconos de la barra de estado claros u oscuros según el modo.
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: AppColors.isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
+        child: child ?? SizedBox.shrink(),
+      ),
     );
   }
 }

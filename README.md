@@ -14,7 +14,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Escáner** de códigos de barras con consulta a [OpenFoodFacts](https://world.openfoodfacts.org) y linterna.
 - **Calendario** mensual con indicadores de vencimiento por día.
 - **Notificaciones** locales 3 días y 1 día antes del vencimiento (9:00 a. m.), con sonido propio.
-- Ajustes, privacidad, ayuda por WhatsApp, manual de usuario y preguntas frecuentes.
+- Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, ayuda por WhatsApp, manual de usuario y preguntas frecuentes.
 
 ## Requisitos
 

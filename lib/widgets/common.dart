@@ -47,7 +47,7 @@ class ZentoryHeader extends StatelessWidget {
                 )
               else
                 SizedBox(width: 8),
-              Image.asset('assets/images/logozentory.png', width: 40, height: 40),
+              Image.asset(AppColors.logoAsset, width: 40, height: 40),
               SizedBox(width: 10),
               Expanded(
                 child: Column(

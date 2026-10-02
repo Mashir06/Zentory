@@ -75,7 +75,7 @@ class _RegistroScreenState extends State<RegistroScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
-                    child: Image.asset('assets/images/logozentory.png', width: 90),
+                    child: Image.asset(AppColors.logoAsset, width: 90),
                   ),
                   SizedBox(height: 20),
                   Text(

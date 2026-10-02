@@ -101,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Center(
                     child: Image.asset(
-                      'assets/images/logozentory.png',
+                      AppColors.logoAsset,
                       width: 110,
                       semanticLabel: tr('Logo de Zentory'),
                     ),

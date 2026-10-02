@@ -62,7 +62,7 @@ class _SessionGateState extends State<SessionGate> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/images/logozentory.png', width: 120),
+              Image.asset(AppColors.logoAsset, width: 120),
               SizedBox(height: 24),
               if (_error == null)
                 CircularProgressIndicator()

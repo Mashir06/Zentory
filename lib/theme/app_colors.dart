@@ -42,6 +42,11 @@ class AppColors {
   static const alertBrown = Color(0xFF9A4A0D);
   static const whatsapp = Color(0xFF25D366);
 
+  /// Logo: en modo claro se usa la versión con las letras oscuras.
+  static String get logoAsset => isDark
+      ? 'assets/images/logozentory.png'
+      : 'assets/images/logozentory_light.png';
+
   static LinearGradient get backgroundGradient => LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
