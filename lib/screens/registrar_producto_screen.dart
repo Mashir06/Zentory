@@ -16,6 +16,7 @@ import '../widgets/common.dart';
 import '../widgets/form_fields.dart';
 import '../widgets/notification_setup_sheet.dart';
 import '../widgets/product_card.dart';
+import 'qr_screen.dart';
 import '../l10n/strings.dart';
 
 enum _PhotoChoice { camera, gallery, remove }
@@ -206,7 +207,10 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   /// tienda, se pasa directo a crearle un lote; si no, se guarda en el
   /// formulario y se intenta rellenar nombre y tamaño con OpenFoodFacts.
   Future<void> _scan() async {
-    final code = await Navigator.of(context).pushNamed<String>(Routes.scan);
+    // Se abre con una ruta tipada para recibir el código leído.
+    final code = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(builder: (_) => QRScreen()),
+    );
     final storeId = _storeId;
     if (code == null || code.isEmpty || storeId == null || !mounted) return;
     setState(() => _scanning = true);
@@ -395,8 +399,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               ? tr('Los cambios se aplican a todos sus lotes')
               : tr('Registra el producto; luego le agregas sus lotes'),
         ),
-        SizedBox(height: 16),
-        _scanButton(),
         SizedBox(height: 20),
         Center(child: _photoPicker()),
         SizedBox(height: 16),
@@ -443,11 +445,20 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           controller: _codigo,
           hint: tr('Escanéalo o escríbelo'),
           prefixIcon: Icons.qr_code_2,
-          suffix: IconButton(
-            tooltip: tr('Escanear código'),
-            onPressed: _scanning ? null : _scan,
-            icon: Icon(Icons.qr_code_scanner, color: AppColors.primary),
-          ),
+          suffix: _scanning
+              ? Padding(
+                  padding: EdgeInsets.all(14),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : IconButton(
+                  tooltip: tr('Escanear código'),
+                  onPressed: _scan,
+                  icon: Icon(Icons.qr_code_scanner, color: AppColors.primary),
+                ),
         ),
         SizedBox(height: 24),
         _FormButtons(
@@ -521,28 +532,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
             ),
         ],
       ],
-    );
-  }
-
-  /// Botón grande para escanear: rellena el producto o, si ya existe, lleva
-  /// directo a crearle un lote.
-  Widget _scanButton() {
-    return OutlinedButton.icon(
-      onPressed: _scanning ? null : _scan,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        side: BorderSide(color: AppColors.primary),
-      ),
-      icon: _scanning
-          ? SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Icon(Icons.qr_code_scanner),
-      label: Text(_scanning
-          ? tr('Buscando producto...')
-          : tr('Escanear código de barras')),
     );
   }
 
