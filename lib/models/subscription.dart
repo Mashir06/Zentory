@@ -19,10 +19,17 @@ enum SubscriptionStatus {
 /// la modifica, desde el panel de administración.
 ///
 /// ```
-/// suscripcion: { pagadoHasta: Timestamp, estado: 'activa' | 'suspendida' }
+/// suscripcion: { pagadoHasta: Timestamp, estado: 'activa' | 'suspendida' | 'exenta' }
 /// ```
+///
+/// `'exenta'` es una tienda con uso sin pago (se da desde el panel): siempre
+/// activa, sin avisos de cobro y nunca se suspende.
 class Subscription {
-  const Subscription({this.paidUntil, this.manuallySuspended = false});
+  const Subscription({
+    this.paidUntil,
+    this.manuallySuspended = false,
+    this.exempt = false,
+  });
 
   /// Días antes del vencimiento en que se muestra el aviso.
   static const warningDays = 5;
@@ -38,6 +45,9 @@ class Subscription {
   final DateTime? paidUntil;
   final bool manuallySuspended;
 
+  /// Uso sin pago dado por NubikSoft.
+  final bool exempt;
+
   factory Subscription.fromStoreData(Map<String, dynamic>? data) {
     final s = data?['suscripcion'];
     if (s is! Map) return const Subscription();
@@ -45,10 +55,12 @@ class Subscription {
     return Subscription(
       paidUntil: until is Timestamp ? until.toDate() : null,
       manuallySuspended: s['estado'] == 'suspendida',
+      exempt: s['estado'] == 'exenta',
     );
   }
 
   SubscriptionStatus statusAt(DateTime now) {
+    if (exempt) return SubscriptionStatus.active;
     if (manuallySuspended) return SubscriptionStatus.suspended;
     final until = paidUntil;
     if (until == null) return SubscriptionStatus.active;

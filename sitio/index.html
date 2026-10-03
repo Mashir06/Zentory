@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NubikSoft</title>
-  <meta name="description" content="NubikSoft crea software práctico para tiendas y minisúpers en Panamá. Nuestro primer producto es Zentory, el control de vencimientos para tu inventario.">
-  <link rel="icon" href="assets/zentory-icon.png">
+  <meta name="description" content="NubikSoft es una empresa de software de Panamá. Creamos aplicaciones para negocios y personas: Zentory, el control de vencimientos para tiendas, y Monchi, tu control de gastos personales.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232F4BFF%27/%3E%3Cpath d=%27M9 24V8h3.2l7.6 10.6V8H23v16h-3.2L12.2 13.4V24z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
@@ -112,7 +112,10 @@
     .btn-ghost:hover { border-color: var(--ink-soft); }
 
     /* ---- Etiqueta de góndola (el elemento distintivo) ---- */
-    .shelf { position: relative; padding-bottom: 26px; }
+    .shelf {
+      position: relative; padding-bottom: 26px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: end;
+    }
     .shelf::after {           /* el riel del estante */
       content: ""; position: absolute; left: -8%; right: -8%; bottom: 0;
       height: 14px; border-radius: 3px;
@@ -123,7 +126,7 @@
       display: block; text-decoration: none; color: #172033;
       background: var(--tag);
       border-radius: 10px 10px 4px 4px;
-      padding: 22px 24px 20px;
+      padding: 20px 20px 18px;
       transform: rotate(-2.2deg);
       transform-origin: 30% 100%;
       box-shadow: 0 1px 0 rgba(23,32,51,.25), 0 18px 34px -18px rgba(23,32,51,.45);
@@ -136,19 +139,28 @@
       background: var(--paper); box-shadow: inset 0 1px 2px rgba(0,0,0,.25);
     }
     .tag:hover { transform: rotate(-0.6deg) translateY(-3px); }
+    .tag.tag-monchi {
+      background: #131B2E; color: #FAFAF7; transform: rotate(1.8deg); transform-origin: 70% 100%;
+      box-shadow: 0 1px 0 rgba(0,0,0,.4), 0 18px 34px -18px rgba(19,27,46,.6);
+    }
+    .tag.tag-monchi:hover { transform: rotate(0.4deg) translateY(-3px); }
+    .tag-monchi .tag-bottom { border-top-color: rgba(250,250,247,.3); }
+    .tag-monchi .tag-price { color: #FFC800; }
+    .hero .tag-monchi .tag-desc { color: #D5D9E3; }
     .tag-top { display: flex; align-items: center; gap: 12px; }
-    .tag-top img { width: 44px; height: 38px; object-fit: contain; }
+    .tag-top { gap: 10px; }
+    .tag-top img { width: 38px; height: 34px; object-fit: contain; }
     .tag-name {
-      font-weight: 800; font-size: 1.7rem; letter-spacing: -0.02em;
+      font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
       font-variation-settings: "opsz" 60, "wdth" 82;
     }
-    .tag-desc { margin: 10px 0 18px; font-size: 1.02rem; max-width: 30ch; }
+    .tag-desc { margin: 10px 0 16px; font-size: .98rem; max-width: 30ch; }
     .tag-bottom {
-      display: flex; justify-content: space-between; align-items: flex-end;
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 8px;
       border-top: 2px dashed rgba(23,32,51,.35); padding-top: 12px;
     }
-    .tag-small { font-size: .9rem; }
-    .tag-barcode { height: 34px; width: 120px; }
+    .tag-small { font-size: .85rem; }
+    .tag-barcode { height: 30px; width: 58px; flex: none; }
     .tag-price { font-weight: 800; font-size: 1.05rem; }
 
     /* ---- Secciones ---- */
@@ -182,8 +194,27 @@
       color: var(--ink-soft); margin-left: 4px;
     }
     .status-dot::before {
-      content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--mint);
+      content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--dot, var(--mint));
     }
+    .status-dot.soon { --dot: #F59E0B; }
+    .project-mark.monchi { background: #131B2E; }
+    .project-mark.monchi img { width: 70%; }
+
+    .contacts {
+      margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .contact-card {
+      display: block; text-decoration: none;
+      background: var(--paper-raised); border: 1px solid var(--line); border-radius: 16px;
+      padding: 20px 22px;
+    }
+    .contact-card:hover { border-color: var(--cobalt); }
+    .contact-card span { display: block; color: var(--ink-soft); font-size: .95rem; }
+    .contact-card b {
+      display: block; margin-top: 4px; font-size: 1.3rem; letter-spacing: -0.01em;
+      font-variation-settings: "opsz" 36, "wdth" 90;
+    }
+    .contact-card small { display: block; margin-top: 6px; color: var(--cobalt); font-size: .92rem; font-weight: 600; }
 
     .ways {
       margin-top: 36px;
@@ -209,18 +240,21 @@
     @media (max-width: 860px) {
       .hero { grid-template-columns: 1fr; gap: 48px; padding-block: 28px 64px; }
       .shelf::after { left: 0; right: 0; }
-      .shelf { max-width: 420px; }
+      .shelf { max-width: 480px; }
       .project { grid-template-columns: 1fr; }
       .project-mark { width: 140px; }
       .ways { grid-template-columns: 1fr; gap: 24px; }
+      .contacts { grid-template-columns: 1fr; }
     }
     @media (max-width: 520px) {
       .top nav a:not(:last-child) { display: none; }
       section { padding-block: 56px; }
+      .shelf { grid-template-columns: 1fr; gap: 26px; max-width: 320px; }
     }
     @media (prefers-reduced-motion: reduce) {
       .tag { transition: none; }
       .tag:hover { transform: rotate(-2.2deg); }
+      .tag.tag-monchi:hover { transform: rotate(1.8deg); }
     }
   </style>
 </head>
@@ -237,10 +271,10 @@
   <main>
     <div class="wrap hero">
       <div>
-        <h1>Software hecho para el mostrador.</h1>
-        <p>En NubikSoft creamos aplicaciones sencillas para tiendas y minisúpers: herramientas que el personal entiende el primer día y que resuelven problemas reales del negocio.</p>
+        <h1>Software que resuelve cosas reales.</h1>
+        <p>En NubikSoft creamos aplicaciones para todo tipo de necesidades: desde el inventario de una tienda hasta las finanzas de cada persona. Herramientas claras, que se entienden desde el primer día.</p>
         <div class="actions">
-          <a class="btn btn-primary" href="zentory/">Conoce Zentory</a>
+          <a class="btn btn-primary" href="#proyectos">Ver proyectos</a>
           <a class="btn btn-ghost" href="#contacto">Hablemos</a>
         </div>
       </div>
@@ -251,24 +285,42 @@
             <img src="assets/zentory-icon.png" alt="">
             <span class="tag-name">Zentory</span>
           </div>
-          <p class="tag-desc">Control de vencimientos para el inventario de tu tienda.</p>
+          <p class="tag-desc">Control de vencimientos para tu inventario.</p>
           <div class="tag-bottom">
             <div>
-              <div class="tag-small">Disponible para Android</div>
-              <div class="tag-price">Primer mes gratis</div>
+              <div class="tag-small">Para tiendas</div>
+              <div class="tag-price">Disponible</div>
             </div>
-            <svg class="tag-barcode" viewBox="0 0 120 34" aria-hidden="true">
-              <g fill="#172033">
+            <svg class="tag-barcode" viewBox="0 0 58 34" aria-hidden="true">
+              <g fill="currentColor">
                 <rect x="0" width="3" height="34"/><rect x="5" width="1" height="34"/><rect x="8" width="2" height="34"/>
                 <rect x="13" width="1" height="34"/><rect x="16" width="3" height="34"/><rect x="21" width="1" height="34"/>
                 <rect x="24" width="2" height="34"/><rect x="29" width="3" height="34"/><rect x="34" width="1" height="34"/>
                 <rect x="37" width="2" height="34"/><rect x="41" width="1" height="34"/><rect x="44" width="3" height="34"/>
-                <rect x="49" width="1" height="34"/><rect x="52" width="2" height="34"/><rect x="57" width="1" height="34"/>
-                <rect x="60" width="3" height="34"/><rect x="65" width="2" height="34"/><rect x="69" width="1" height="34"/>
-                <rect x="72" width="3" height="34"/><rect x="77" width="1" height="34"/><rect x="80" width="2" height="34"/>
-                <rect x="85" width="1" height="34"/><rect x="88" width="3" height="34"/><rect x="93" width="2" height="34"/>
-                <rect x="97" width="1" height="34"/><rect x="100" width="3" height="34"/><rect x="105" width="1" height="34"/>
-                <rect x="108" width="2" height="34"/><rect x="112" width="1" height="34"/><rect x="115" width="3" height="34"/>
+                <rect x="49" width="1" height="34"/><rect x="52" width="2" height="34"/><rect x="56" width="2" height="34"/>
+              </g>
+            </svg>
+          </div>
+        </a>
+
+        <a class="tag tag-monchi" href="monchi/" aria-label="Monchi: control de gastos personales">
+          <div class="tag-top">
+            <img src="assets/monchi-icon.png" alt="">
+            <span class="tag-name">Monchi</span>
+          </div>
+          <p class="tag-desc">Tu dinero, claro y solo tuyo.</p>
+          <div class="tag-bottom">
+            <div>
+              <div class="tag-small">Para personas</div>
+              <div class="tag-price">Muy pronto</div>
+            </div>
+            <svg class="tag-barcode" viewBox="0 0 58 34" aria-hidden="true">
+              <g fill="currentColor">
+                <rect x="0" width="3" height="34"/><rect x="5" width="1" height="34"/><rect x="8" width="2" height="34"/>
+                <rect x="13" width="1" height="34"/><rect x="16" width="3" height="34"/><rect x="21" width="1" height="34"/>
+                <rect x="24" width="2" height="34"/><rect x="29" width="3" height="34"/><rect x="34" width="1" height="34"/>
+                <rect x="37" width="2" height="34"/><rect x="41" width="1" height="34"/><rect x="44" width="3" height="34"/>
+                <rect x="49" width="1" height="34"/><rect x="52" width="2" height="34"/><rect x="56" width="2" height="34"/>
               </g>
             </svg>
           </div>
@@ -279,7 +331,7 @@
     <section id="proyectos">
       <div class="wrap">
         <h2>Proyectos</h2>
-        <p class="lead">Cada producto de NubikSoft nace de una necesidad concreta de los comercios con los que trabajamos.</p>
+        <p class="lead">Cada producto de NubikSoft nace de una necesidad concreta, sea de un negocio o de una persona.</p>
 
         <article class="project">
           <div class="project-mark"><img src="assets/zentory-icon.png" alt="Logo de Zentory"></div>
@@ -287,6 +339,15 @@
             <h3>Zentory <span class="status-dot">Disponible</span></h3>
             <p>Registra cada producto con sus lotes y fechas de vencimiento, escanea su código de barras y recibe una alerta antes de que algo se venza en el estante. Todo el personal de la tienda trabaja sobre el mismo inventario.</p>
             <a class="btn btn-ghost" href="zentory/">Ver Zentory</a>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-mark monchi"><img src="assets/monchi-icon.png" alt="Logo de Monchi"></div>
+          <div>
+            <h3>Monchi <span class="status-dot soon">Próximamente en Google Play</span></h3>
+            <p>Control de gastos personales que funciona sin conexión, sin cuenta y sin anuncios. Registra gastos e ingresos, arma presupuestos, sigue tus suscripciones y metas de ahorro. Tus datos se quedan cifrados en tu teléfono.</p>
+            <a class="btn btn-ghost" href="monchi/">Ver Monchi</a>
           </div>
         </article>
       </div>
@@ -297,30 +358,41 @@
         <h2>Cómo trabajamos</h2>
         <div class="ways">
           <div>
-            <h3>Pensado para quien atiende</h3>
-            <p>Pantallas claras, pocos pasos y en el idioma de tu equipo. Si hace falta un manual para empezar, lo rediseñamos.</p>
+            <h3>Pensado para quien lo usa</h3>
+            <p>Pantallas claras, pocos pasos y en el idioma de cada persona. Si hace falta un manual para empezar, lo rediseñamos.</p>
           </div>
           <div>
-            <h3>Sin pago inicial</h3>
-            <p>El primer mes es gratis. Después pagas una mensualidad al final de cada mes, que cubre el servidor, las actualizaciones y el soporte.</p>
+            <h3>Un modelo para cada proyecto</h3>
+            <p>Las apps para negocios no tienen pago inicial: el primer mes es gratis y luego una mensualidad cubre servidor, actualizaciones y soporte. Las apps personales se descargan gratis, con funciones extra opcionales.</p>
           </div>
           <div>
             <h3>Soporte por WhatsApp</h3>
-            <p>Hablas directo con quien desarrolla la aplicación, por el mismo canal que ya usas con tus proveedores.</p>
+            <p>Hablas directo con quien desarrolla la aplicación, por el mismo canal que ya usas todos los días.</p>
           </div>
         </div>
       </div>
     </section>
 
     <section id="contacto">
-      <div class="wrap contact">
-        <div>
-          <h2>¿Tienes una tienda?</h2>
-          <p class="lead">Escríbenos y te mostramos Zentory funcionando con tus propios productos.</p>
-        </div>
-        <div class="actions">
-          <a class="btn btn-primary" href="https://wa.me/50761857395?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20Zentory." target="_blank" rel="noopener">Escribir por WhatsApp</a>
-          <a class="btn btn-ghost" href="https://wa.me/50767968449?text=Hola%2C%20necesito%20soporte%20t%C3%A9cnico." target="_blank" rel="noopener">Soporte técnico</a>
+      <div class="wrap">
+        <h2>Hablemos</h2>
+        <p class="lead">Escríbenos por WhatsApp para conocer nuestras aplicaciones o contarnos qué necesitas resolver.</p>
+        <div class="contacts">
+          <a class="contact-card" href="https://wa.me/50761857395?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20Zentory." target="_blank" rel="noopener">
+            <span>Zentory y ventas</span>
+            <b>+507 6185-7395</b>
+            <small>Escribir por WhatsApp</small>
+          </a>
+          <a class="contact-card" href="https://wa.me/50767968449?text=Hola%2C%20tengo%20una%20consulta%20sobre%20Monchi." target="_blank" rel="noopener">
+            <span>Consultas sobre Monchi</span>
+            <b>+507 6796-8449</b>
+            <small>Escribir por WhatsApp</small>
+          </a>
+          <a class="contact-card" href="https://wa.me/50767968449?text=Hola%2C%20necesito%20soporte%20t%C3%A9cnico." target="_blank" rel="noopener">
+            <span>Soporte técnico</span>
+            <b>+507 6796-8449</b>
+            <small>Escribir por WhatsApp</small>
+          </a>
         </div>
       </div>
     </section>
@@ -328,7 +400,7 @@
 
   <footer class="wrap">
     <span>© <span id="year">2026</span> NubikSoft, Panamá</span>
-    <a href="zentory/">Zentory</a>
+    <span><a href="zentory/">Zentory</a> · <a href="monchi/">Monchi</a></span>
   </footer>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>

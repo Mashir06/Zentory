@@ -25,6 +25,8 @@
       --red: #C81E1E;
       --red-bg: #FDE8E8;
       --gray-bg: #EEF0F3;
+      --blue: #1E40AF;
+      --blue-bg: #E0E7FF;
       --focus: #2F4BFF;
       color-scheme: light;
     }
@@ -34,6 +36,7 @@
         --muted: #94A3B8; --line: #2A3650; --brand: #020617;
         --green: #34D399; --green-bg: #0B3B2E; --amber: #FBBF24; --amber-bg: #3D2E0A;
         --red: #F87171; --red-bg: #43191B; --gray-bg: #222C40; --focus: #8FA0FF;
+        --blue: #A5B4FC; --blue-bg: #1E2A5A;
         color-scheme: dark;
       }
     }
@@ -42,6 +45,7 @@
       --muted: #94A3B8; --line: #2A3650; --brand: #020617;
       --green: #34D399; --green-bg: #0B3B2E; --amber: #FBBF24; --amber-bg: #3D2E0A;
       --red: #F87171; --red-bg: #43191B; --gray-bg: #222C40; --focus: #8FA0FF;
+      --blue: #A5B4FC; --blue-bg: #1E2A5A;
       color-scheme: dark;
     }
     * { box-sizing: border-box; }
@@ -91,7 +95,7 @@
     .notice code { background: var(--gray-bg); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
 
     /* ---- Resumen ---- */
-    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 18px; }
     .summary button {
       text-align: left; padding: 14px 16px; cursor: pointer;
       background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
@@ -119,6 +123,9 @@
     .s-por-vencer, .s-gracia { background: var(--amber-bg); color: var(--amber); }
     .s-suspendida { background: var(--red-bg); color: var(--red); }
     .s-sin-registro { background: var(--gray-bg); color: var(--ink-soft); }
+    .s-exenta { background: var(--blue-bg); color: var(--blue); }
+    .exempt-box p { margin: 0 0 10px; color: var(--ink-soft); }
+    .btn-blue { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); font-weight: 600; }
     .empty { padding: 36px; text-align: center; color: var(--muted); }
 
     /* ---- Detalle de una tienda ---- */
@@ -228,7 +235,13 @@
     <div class="dlg-body">
       <dl class="facts" id="dlg-facts"></dl>
 
-      <fieldset>
+      <fieldset class="exempt-box">
+        <legend>Uso sin pago</legend>
+        <p id="exempt-text"></p>
+        <button class="btn btn-blue" type="button" id="exempt-btn"></button>
+      </fieldset>
+
+      <fieldset id="pay-box">
         <legend>Registrar pago</legend>
         <div class="row">
           <div>

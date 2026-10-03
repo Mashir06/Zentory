@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zentory/models/subscription.dart';
 
 void main() {
@@ -23,5 +24,22 @@ void main() {
       manuallySuspended: true,
     );
     expect(s.statusAt(now), SubscriptionStatus.suspended);
+  });
+
+  test('uso sin pago: siempre activa, aunque tenga una fecha vencida', () {
+    final s = Subscription.fromStoreData({
+      'suscripcion': {
+        'estado': 'exenta',
+        'pagadoHasta': Timestamp.fromDate(now.subtract(const Duration(days: 90))),
+      },
+    });
+    expect(s.statusAt(now), SubscriptionStatus.active);
+    expect(s.exempt, isTrue);
+    expect(
+      Subscription.fromStoreData({
+        'suscripcion': {'estado': 'exenta'},
+      }).statusAt(now),
+      SubscriptionStatus.active,
+    );
   });
 }

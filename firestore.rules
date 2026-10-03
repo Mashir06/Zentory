@@ -31,7 +31,7 @@ service cloud.firestore {
     function storeCanEdit(storeId) {
       let store = get(/databases/$(database)/documents/tiendas/$(storeId));
       let sub = store.data.get('suscripcion', null);
-      return sub == null || (
+      return sub == null || sub.get('estado', 'activa') == 'exenta' || (
         sub.get('estado', 'activa') != 'suspendida' &&
         (sub.get('pagadoHasta', null) == null ||
           request.time < sub.pagadoHasta + graceDays())
@@ -48,7 +48,7 @@ service cloud.firestore {
     // un mes gratis más el primer mes, que se paga al terminar).
     function validTrial() {
       let sub = request.resource.data.get('suscripcion', null);
-      return sub == null || (
+      return sub == null || sub.get('estado', 'activa') == 'exenta' || (
         sub.get('estado', 'activa') == 'activa' &&
         sub.pagadoHasta is timestamp &&
         sub.pagadoHasta <= request.time + duration.value(61, 'd') &&

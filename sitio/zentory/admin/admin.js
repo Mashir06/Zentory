@@ -8,7 +8,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
   getFirestore, collection, doc, getDoc, getDocs, getCountFromServer, query,
-  orderBy, limit, updateDoc, writeBatch, serverTimestamp, Timestamp,
+  orderBy, limit, updateDoc, writeBatch, serverTimestamp, Timestamp, deleteField,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { firebaseConfig, GRACE_DAYS, WARNING_DAYS } from './firebase-config.js';
 
@@ -25,6 +25,7 @@ const STATUS = {
   'gracia': 'Vencida (gracia)',
   'suspendida': 'Suspendida',
   'sin-registro': 'Sin registro',
+  'exenta': 'Sin pago',
 };
 
 const FILTERS = [
@@ -32,6 +33,7 @@ const FILTERS = [
   { id: 'al-dia', label: 'Al día', match: (s) => s === 'activa' || s === 'sin-registro' },
   { id: 'por-vencer', label: 'Por vencer o vencidas', match: (s) => s === 'por-vencer' || s === 'gracia' },
   { id: 'suspendida', label: 'Suspendidas', match: (s) => s === 'suspendida' },
+  { id: 'exenta', label: 'Uso sin pago', match: (s) => s === 'exenta' },
 ];
 
 let stores = [];
@@ -61,9 +63,14 @@ function addMonths(date, months) {
   return d;
 }
 
-/** Mismo cálculo que la app (lib/models/subscription.dart). */
+/**
+ * Mismo cálculo que la app (lib/models/subscription.dart).
+ * 'exenta' es una tienda a la que NubikSoft le dio uso sin pago: no tiene
+ * fecha de pago, así que la app la ve como activa y no muestra avisos.
+ */
 function statusOf(sub, now = new Date()) {
   if (!sub) return 'sin-registro';
+  if (sub.estado === 'exenta') return 'exenta';
   if (sub.estado === 'suspendida') return 'suspendida';
   const until = sub.pagadoHasta?.toDate?.();
   if (!until) return 'sin-registro';
@@ -218,7 +225,7 @@ function render() {
       <td data-label="Administrador">${esc(s.adminNombre) || '—'}<span class="sub">${esc(s.adminCorreo)}</span></td>
       <td data-label="Personal">${s.personal ?? '—'}</td>
       <td data-label="Lotes">${s.lotes ?? '—'}</td>
-      <td data-label="Próximo pago">${fmtDate(s.sub?.pagadoHasta?.toDate?.())}</td>
+      <td data-label="Próximo pago">${s.status === 'exenta' ? 'Sin cobro' : fmtDate(s.sub?.pagadoHasta?.toDate?.())}</td>
       <td>${pill(s.status)}</td>
     </tr>`).join('');
 
@@ -266,11 +273,19 @@ function renderDetail() {
   $('dlg-facts').innerHTML = `
     <div><dt>Administrador</dt><dd>${esc(s.adminNombre) || '—'}</dd></div>
     <div><dt>Correo</dt><dd>${esc(s.adminCorreo) || '—'}</dd></div>
-    <div><dt>Próximo pago</dt><dd>${fmtDate(s.sub?.pagadoHasta?.toDate?.())}</dd></div>
+    <div><dt>Próximo pago</dt><dd>${s.status === 'exenta' ? 'Sin cobro' : fmtDate(s.sub?.pagadoHasta?.toDate?.())}</dd></div>
     <div><dt>Creada</dt><dd>${fmtDate(s.creada)}</dd></div>
     <div><dt>Personal</dt><dd>${s.personal ?? '—'}</dd></div>
     <div><dt>Lotes registrados</dt><dd>${s.lotes ?? '—'}</dd></div>
     <div><dt>Código de invitación</dt><dd>${esc(s.codigo) || '—'}</dd></div>`;
+
+  const exempt = s.status === 'exenta';
+  $('exempt-text').textContent = exempt
+    ? 'Esta tienda usa Zentory sin pagar: no tiene fecha de pago y la app no le muestra avisos de cobro.'
+    : 'Dale a esta tienda uso de Zentory sin pagar. La app dejará de mostrarle avisos de cobro y nunca quedará suspendida por falta de pago.';
+  $('exempt-btn').textContent = exempt ? 'Quitar uso sin pago' : 'Dar uso sin pago';
+  $('pay-box').hidden = exempt;
+  $('suspend-btn').hidden = exempt;
 
   const suspended = s.sub?.estado === 'suspendida';
   $('suspend-btn').textContent = suspended ? 'Reactivar tienda' : 'Suspender tienda';
@@ -380,6 +395,50 @@ $('pay-btn').addEventListener('click', async () => {
     $('pay-note').value = '';
     await refreshCurrent();
     loadHistory(current.id);
+  } catch (e) {
+    toast(friendlyError(e));
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/** Fecha de pago al quitar el uso sin pago: la que tenía antes si sigue vigente, o un mes desde hoy. */
+function dateAfterExemption(store) {
+  const before = store.sub?.pagadoHastaAnterior?.toDate?.();
+  return before && before > new Date() ? before : addMonths(new Date(), 1);
+}
+
+$('exempt-btn').addEventListener('click', async () => {
+  const exempt = current.status === 'exenta';
+  const btn = $('exempt-btn');
+  try {
+    if (!exempt) {
+      if (!confirm(`¿Dar uso sin pago a ${current.nombre}? Podrá usar Zentory sin pagar hasta que se lo quites.`)) return;
+      btn.disabled = true;
+      const before = current.sub?.pagadoHasta;
+      await updateDoc(doc(db, 'tiendas', current.id), {
+        'suscripcion.estado': 'exenta',
+        'suscripcion.pagadoHasta': deleteField(),
+        'suscripcion.pagadoHastaAnterior': before || deleteField(),
+        'suscripcion.actualizado': serverTimestamp(),
+        'suscripcion.actualizadoPor': auth.currentUser.email,
+      });
+      await refreshCurrent();
+      toast(`${current.nombre} ahora usa Zentory sin pago.`);
+    } else {
+      const until = dateAfterExemption(current);
+      if (!confirm(`¿Quitar el uso sin pago a ${current.nombre}? Su próximo pago quedará para el ${fmtDate(until)}.`)) return;
+      btn.disabled = true;
+      await updateDoc(doc(db, 'tiendas', current.id), {
+        'suscripcion.estado': 'activa',
+        'suscripcion.pagadoHasta': Timestamp.fromDate(until),
+        'suscripcion.pagadoHastaAnterior': deleteField(),
+        'suscripcion.actualizado': serverTimestamp(),
+        'suscripcion.actualizadoPor': auth.currentUser.email,
+      });
+      await refreshCurrent();
+      toast(`${current.nombre} vuelve a pagar. Próximo pago: ${fmtDate(until)}.`);
+    }
   } catch (e) {
     toast(friendlyError(e));
   } finally {
