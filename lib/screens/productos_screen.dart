@@ -7,6 +7,7 @@ import '../services/notification_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
+import '../widgets/subscription_banner.dart';
 import '../widgets/lot_widgets.dart';
 import '../widgets/product_card.dart';
 import '../l10n/strings.dart';
@@ -372,6 +373,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     children: [
                       _titleBlock(),
                       SizedBox(height: 16),
+                      if (_storeId != null)
+                        SubscriptionBanner(storeId: _storeId!),
                       _toolbar(),
                       if (_activeFilterCount > 0) ...[
                         SizedBox(height: 10),

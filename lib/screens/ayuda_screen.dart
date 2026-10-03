@@ -118,7 +118,7 @@ class _AyudaScreenState extends State<AyudaScreen> {
                               iconColor: AppColors.whatsapp,
                               title: tr('Soporte Técnico'),
                               onTap: () => _openWhatsApp(
-                                '67968449',
+                                '50767968449',
                                 tr('Necesito soporte técnico.'),
                               ),
                             ),
@@ -127,7 +127,7 @@ class _AyudaScreenState extends State<AyudaScreen> {
                               iconColor: AppColors.whatsapp,
                               title: tr('Consultas Generales'),
                               onTap: () => _openWhatsApp(
-                                '61857395',
+                                '50761857395',
                                 tr('Tengo una consulta general.'),
                               ),
                             ),

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/product.dart';
+import '../models/subscription.dart';
 import '../utils/date_utils.dart';
 import '../l10n/strings.dart';
 
@@ -290,6 +291,12 @@ class ZentoryRepository {
       'adminNombre': userName,
       'codigoInvitacion': _newInvitationCode(),
       'fechaCreacion': Timestamp.now(),
+      // Período de prueba; después la suscripción la renueva NubikSoft.
+      'suscripcion': {
+        'estado': 'activa',
+        'pagadoHasta': Timestamp.fromDate(DateTime.now()
+            .add(const Duration(days: Subscription.trialDays))),
+      },
     });
 
     await staff(nombreTienda).doc(userName).set({
@@ -496,8 +503,31 @@ class ZentoryRepository {
     return doc.data();
   }
 
-  Future<void> deleteProduct(String storeId, String productId) =>
-      products(storeId).doc(productId).delete();
+  /// Suscripción de la tienda.
+  Future<Subscription> fetchSubscription(String storeId) async {
+    final doc = await stores.doc(storeId).get();
+    return Subscription.fromStoreData(doc.data());
+  }
+
+  /// Impide agregar o editar productos si la suscripción está suspendida.
+  /// (Firestore también lo bloquea con sus reglas de seguridad.)
+  Future<void> _ensureWritable(String storeId) async {
+    Subscription sub;
+    try {
+      sub = await fetchSubscription(storeId);
+    } catch (_) {
+      return; // Sin conexión: decide el servidor al sincronizar.
+    }
+    if (!sub.canEdit) {
+      throw ZentoryException(tr(
+          'La suscripción de esta tienda está vencida. Puedes ver tu inventario, pero no agregar ni editar productos hasta renovarla.'));
+    }
+  }
+
+  Future<void> deleteProduct(String storeId, String productId) async {
+    await _ensureWritable(storeId);
+    await products(storeId).doc(productId).delete();
+  }
 
   Future<List<CatalogItem>> fetchCatalog(String storeId) async {
     final res = await catalog(storeId).get();
@@ -536,6 +566,7 @@ class ZentoryRepository {
     String? imagenBase64,
     String? codigoBarras,
   }) async {
+    await _ensureWritable(storeId);
     final name = nombre.trim();
     _checkName(name);
     final code = codigoBarras?.trim() ?? '';
@@ -618,6 +649,7 @@ class ZentoryRepository {
     String? imagenBase64,
     String? codigoBarras,
   }) async {
+    await _ensureWritable(storeId);
     final name = nombre.trim();
     _checkName(name);
     final code = codigoBarras?.trim() ?? '';
@@ -655,6 +687,7 @@ class ZentoryRepository {
   /// Elimina el producto del catálogo y **todos** sus lotes.
   Future<void> deleteProductAndLots(
       String storeId, String nombre, String? codigoBarras) async {
+    await _ensureWritable(storeId);
     final docs = [
       ...await _catalogDocsFor(storeId, nombre, codigoBarras),
       ...await _lotDocsFor(storeId, nombre, codigoBarras),
@@ -704,6 +737,7 @@ class ZentoryRepository {
     required String cantidad,
     required String fechaVencimiento,
   }) async {
+    await _ensureWritable(storeId);
     final name = nombre.trim();
     final code = codigoBarras?.trim() ?? '';
     await products(storeId).add({
@@ -736,8 +770,9 @@ class ZentoryRepository {
     required String lotId,
     required String cantidad,
     required String fechaVencimiento,
-  }) {
-    return products(storeId).doc(lotId).update({
+  }) async {
+    await _ensureWritable(storeId);
+    await products(storeId).doc(lotId).update({
       'cantidad': cantidad,
       'fechaVencimiento': fechaVencimiento,
     });

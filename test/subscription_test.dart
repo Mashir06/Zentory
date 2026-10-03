@@ -1,0 +1,27 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:zentory/models/subscription.dart';
+
+void main() {
+  final now = DateTime(2026, 10, 15, 12);
+
+  test('sin registro de suscripción: activa', () {
+    expect(const Subscription().statusAt(now), SubscriptionStatus.active);
+  });
+
+  test('estados según la fecha de pago', () {
+    Subscription paid(int days) =>
+        Subscription(paidUntil: now.add(Duration(days: days)));
+    expect(paid(20).statusAt(now), SubscriptionStatus.active);
+    expect(paid(3).statusAt(now), SubscriptionStatus.expiringSoon);
+    expect(paid(-2).statusAt(now), SubscriptionStatus.grace);
+    expect(paid(-6).statusAt(now), SubscriptionStatus.suspended);
+  });
+
+  test('suspendida a mano aunque esté pagada', () {
+    final s = Subscription(
+      paidUntil: now.add(const Duration(days: 20)),
+      manuallySuspended: true,
+    );
+    expect(s.statusAt(now), SubscriptionStatus.suspended);
+  });
+}

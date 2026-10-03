@@ -7,6 +7,7 @@ import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
 import '../widgets/common.dart';
+import '../widgets/subscription_banner.dart';
 import '../widgets/donut_chart.dart';
 import '../l10n/strings.dart';
 
@@ -178,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       else if (_storeId == null)
                         _noStoreCard()
                       else ...[
+                        SubscriptionBanner(storeId: _storeId!),
                         _statsGrid(),
                         if (_stats.tomorrow > 0) ...[
                           SizedBox(height: 16),

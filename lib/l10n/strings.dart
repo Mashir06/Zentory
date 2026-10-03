@@ -707,6 +707,24 @@ const Map<String, String> _en = {
       'Barcode *',
   'Escanéalo o escríbelo':
       'Scan it or type it',
+  'La suscripción de esta tienda está vencida. Puedes ver tu inventario, pero no agregar ni editar productos hasta renovarla.':
+      'This store\'s subscription has expired. You can view your inventory, but you can\'t add or edit products until it\'s renewed.',
+  'Hola, quiero renovar la suscripción de Zentory de la tienda {0}.':
+      'Hi, I\'d like to renew the Zentory subscription for the store {0}.',
+  'Tu suscripción vence pronto':
+      'Your subscription expires soon',
+  'Vence el {0}. Renuévala para seguir agregando y editando productos.':
+      'It expires on {0}. Renew it to keep adding and editing products.',
+  'Tu suscripción venció':
+      'Your subscription has expired',
+  'Venció el {0}. Tienes unos días de gracia antes de que la tienda pase a solo lectura.':
+      'It expired on {0}. You have a few grace days before the store becomes read-only.',
+  'Suscripción suspendida':
+      'Subscription suspended',
+  'Puedes ver tu inventario, pero no agregar ni editar productos. Renueva la suscripción para reactivar la tienda.':
+      'You can view your inventory, but you can\'t add or edit products. Renew the subscription to reactivate the store.',
+  'Renovar por WhatsApp':
+      'Renew via WhatsApp',
 };
 
 const Map<String, String> _zh = {
@@ -1382,4 +1400,22 @@ const Map<String, String> _zh = {
       '条形码 *',
   'Escanéalo o escríbelo':
       '扫描或手动输入',
+  'La suscripción de esta tienda está vencida. Puedes ver tu inventario, pero no agregar ni editar productos hasta renovarla.':
+      '本店铺的订阅已过期。您可以查看库存，但在续订前无法添加或编辑商品。',
+  'Hola, quiero renovar la suscripción de Zentory de la tienda {0}.':
+      '你好，我想为店铺 {0} 续订 Zentory。',
+  'Tu suscripción vence pronto':
+      '您的订阅即将到期',
+  'Vence el {0}. Renuévala para seguir agregando y editando productos.':
+      '将于 {0} 到期。请续订以继续添加和编辑商品。',
+  'Tu suscripción venció':
+      '您的订阅已过期',
+  'Venció el {0}. Tienes unos días de gracia antes de que la tienda pase a solo lectura.':
+      '已于 {0} 到期。店铺变为只读前还有几天宽限期。',
+  'Suscripción suspendida':
+      '订阅已暂停',
+  'Puedes ver tu inventario, pero no agregar ni editar productos. Renueva la suscripción para reactivar la tienda.':
+      '您可以查看库存，但无法添加或编辑商品。续订后即可重新启用店铺。',
+  'Renovar por WhatsApp':
+      '通过 WhatsApp 续订',
 };
