@@ -49,8 +49,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
   String? _storeId;
 
-  /// Productos ya registrados (para no duplicarlos).
-  List<ProductGroup> _existing = [];
 
   bool _loading = true;
   bool _saving = false;
@@ -103,7 +101,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
 
       if (!mounted) return;
       setState(() {
-        _existing = groups;
         _loading = false;
       });
     } catch (e) {
@@ -227,19 +224,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     }
   }
 
-  /// Abre el formulario de lote para un producto ya registrado.
-  void _addLotTo(ProductGroup g) {
-    Navigator.of(context).pushReplacementNamed(
-      Routes.lotForm,
-      arguments: LotFormArgs(
-        nombre: g.nombre,
-        presentacion: g.presentacion,
-        imagenBase64: g.imagenBase64,
-        codigoBarras: g.codigoBarras,
-      ),
-    );
-  }
-
   Future<void> _save() async {
     final nombre = _nombre.text.trim();
     final presentacion = _presentacion.text.trim();
@@ -347,7 +331,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Widget _form() {
-    final others = _isEditing ? <ProductGroup>[] : _existing;
     return ListView(
       padding: EdgeInsets.all(16),
       children: [
@@ -410,60 +393,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               style: TextStyle(color: AppColors.danger),
             ),
           ),
-        ],
-        if (others.isNotEmpty) ...[
-          SizedBox(height: 28),
-          Text(
-            tr('¿Ya está registrado?'),
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            tr('Toca un producto para agregarle un lote nuevo'),
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-          ),
-          SizedBox(height: 12),
-          for (final g in others)
-            ZCard(
-              margin: EdgeInsets.only(bottom: 10),
-              padding: EdgeInsets.all(10),
-              onTap: () => _addLotTo(g),
-              child: Row(
-                children: [
-                  ProductThumbnail(bytes: g.imageBytes, size: 44),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          g.nombre,
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          [
-                            if (g.presentacion.isNotEmpty) g.presentacion,
-                            tr(g.lots.length == 1 ? '{0} lote' : '{0} lotes', [g.lots.length]),
-                          ].join(' · '),
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.add_circle_outline,
-                      color: AppColors.primary, size: 22),
-                ],
-              ),
-            ),
         ],
       ],
     );
