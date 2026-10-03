@@ -35,6 +35,14 @@ String tr(String key, [List<Object?> args = const []]) {
 }
 
 const Map<String, String> _en = {
+  'Espere la confirmación de Zentory':
+      'Wait for Zentory\'s confirmation',
+  'Tu cuenta fue creada. El equipo de Zentory debe aprobarla antes de que puedas usar la app. Esta pantalla se quitará sola en cuanto te den acceso.':
+      'Your account was created. The Zentory team must approve it before you can use the app. This screen will go away on its own as soon as you\'re given access.',
+  'Esperando aprobación':
+      'Waiting for approval',
+  'Contactar a Zentory':
+      'Contact Zentory',
   'Hola, soy {0} de la tienda {1}. {2}':
       'Hi, I\'m {0} from the store {1}. {2}',
   'No se pudo abrir WhatsApp':
@@ -722,6 +730,14 @@ const Map<String, String> _en = {
 };
 
 const Map<String, String> _zh = {
+  'Espere la confirmación de Zentory':
+      '请等待 Zentory 确认',
+  'Tu cuenta fue creada. El equipo de Zentory debe aprobarla antes de que puedas usar la app. Esta pantalla se quitará sola en cuanto te den acceso.':
+      '您的账户已创建。Zentory 团队批准后您才能使用本应用。获得访问权限后，此页面会自动消失。',
+  'Esperando aprobación':
+      '等待批准',
+  'Contactar a Zentory':
+      '联系 Zentory',
   'Hola, soy {0} de la tienda {1}. {2}':
       '你好，我是{1}店的{0}。{2}',
   'No se pudo abrir WhatsApp':

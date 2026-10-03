@@ -8,6 +8,7 @@ class Routes {
   static const login = '/login';
   static const register = '/register';
   static const storeSelection = '/store_selection';
+  static const pendingApproval = '/pending_approval';
   static const onboarding = '/onboarding';
   static const home = '/home';
   static const calendar = '/calendar';

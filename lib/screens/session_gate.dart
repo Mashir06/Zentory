@@ -8,7 +8,8 @@ import '../widgets/common.dart';
 import '../l10n/strings.dart';
 
 /// Decide la pantalla inicial (equivale a "check_session" + "check_store"):
-/// sin sesión → login; con sesión y tienda → inicio; sin tienda → selección.
+/// sin sesión → login; cuenta sin aprobar → espera de confirmación;
+/// con tienda → inicio; sin tienda → selección.
 class SessionGate extends StatefulWidget {
   const SessionGate({super.key});
 
@@ -34,6 +35,24 @@ class _SessionGateState extends State<SessionGate> {
       return;
     }
     if (_error != null) setState(() => _error = null);
+    // Las cuentas nuevas esperan a que NubikSoft las apruebe desde la web.
+    // Si no se puede comprobar (y no es falta de internet), se espera también.
+    bool approved;
+    try {
+      approved = await ZentoryRepository.instance.isCurrentUserApproved();
+    } catch (e) {
+      if (ZentoryRepository.isNetworkError(e)) {
+        if (mounted) setState(() => _error = '$e');
+        return;
+      }
+      debugPrint('No se pudo comprobar la aprobación: $e');
+      approved = false;
+    }
+    if (!mounted) return;
+    if (!approved) {
+      Routes.resetTo(context, Routes.pendingApproval);
+      return;
+    }
     String? storeId;
     try {
       storeId = await ZentoryRepository.instance.resolveActiveStoreId();

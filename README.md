@@ -6,7 +6,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 
 ## Funciones
 
-- **Inicio de sesión** con correo y contraseña, registro y recuperación de contraseña (Firebase Auth).
+- **Inicio de sesión** con correo y contraseña, registro y recuperación de contraseña (Firebase Auth). Las cuentas nuevas ven "Espere la confirmación de Zentory" hasta que NubikSoft las aprueba en el panel web (`usuarios/{uid}.aprobado`); las cuentas antiguas no se ven afectadas.
 - **Tiendas**: crear una tienda, unirse con código de invitación, sucursales, cambiar de tienda activa y administrar al personal. Solo el administrador puede eliminar la tienda o sus sucursales; los trabajadores no.
 - **Inicio**: resumen de lotes en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por estado.
 - **Productos**: cada producto con sus lotes (los lotes se borran solos 3 días después de vencer); búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.

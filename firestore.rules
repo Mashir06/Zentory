@@ -5,6 +5,8 @@ rules_version = '2';
 // - Cualquier usuario con sesión iniciada puede usar la app como hasta ahora.
 // - Solo NubikSoft (cuentas listadas en nubiksoft_admins/{uid}) puede cambiar
 //   la suscripción de una tienda, su contacto y su historial de pagos.
+// - Las cuentas nuevas quedan pendientes (usuarios/{uid}.aprobado = false)
+//   hasta que NubikSoft las aprueba desde el panel web.
 // - Las tiendas con estado 'exenta' (uso sin pago, se da desde el panel)
 //   funcionan siempre, sin fecha de pago.
 // - Si la suscripción de una tienda está suspendida (o venció hace más de 5
@@ -64,8 +66,21 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Campos de la aprobación de cuentas nuevas: solo los cambia NubikSoft.
+    function touchesApproval() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['aprobado', 'aprobadoPor', 'fechaAprobacion']);
+    }
+
+    // Las cuentas nuevas se crean con aprobado: false y esperan a que
+    // NubikSoft las apruebe desde el panel web.
     match /usuarios/{uid} {
-      allow read, write: if signedIn();
+      allow read: if signedIn();
+      allow create: if isNubikAdmin() ||
+        (signedIn() && request.auth.uid == uid &&
+          request.resource.data.get('aprobado', null) == false);
+      allow update: if isNubikAdmin() || (signedIn() && !touchesApproval());
+      allow delete: if isNubikAdmin() || (signedIn() && request.auth.uid == uid);
     }
 
     match /tiendas/{storeId} {

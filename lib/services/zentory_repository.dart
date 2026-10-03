@@ -82,7 +82,8 @@ class ZentoryException implements Exception {
 /// Acceso a Firestore con la misma estructura de datos que la app Kotlin:
 ///
 /// ```
-/// usuarios/{uid}                      nombre, correo, uid, tiendaId, tiendasIds
+/// usuarios/{uid}                      nombre, correo, uid, tiendaId, tiendasIds,
+///                                     aprobado (false hasta que NubikSoft lo aprueba)
 /// tiendas/{nombreTienda}              nombre, ubicacion, adminUid, adminNombre, codigoInvitacion
 ///   personal/{nombreUsuario}          uid, nombre, correo, rol, fechaUnion
 ///   productos/{autoId}                lote: nombre, presentacion, imagen, cantidad,
@@ -131,6 +132,8 @@ class ZentoryRepository {
         'nombre': user.displayName ?? 'Usuario',
         'correo': user.email ?? fallbackEmail ?? '',
         'uid': user.uid,
+        'fechaRegistro': Timestamp.now(),
+        approvalField: false,
       });
     }
   }
@@ -141,7 +144,43 @@ class ZentoryRepository {
       'correo': correo,
       'uid': user.uid,
       'fechaRegistro': Timestamp.now(),
+      approvalField: false,
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Aprobación de cuentas nuevas
+  // ---------------------------------------------------------------------------
+
+  /// Campo de `usuarios/{uid}` que NubikSoft pone en `true` desde el panel web
+  /// para dejar entrar a una cuenta nueva.
+  static const approvalField = 'aprobado';
+
+  /// Las cuentas nuevas se crean con `aprobado: false`. Las cuentas antiguas
+  /// no tienen el campo y siguen entrando como siempre.
+  static bool isApprovedData(Map<String, dynamic>? data) =>
+      data?[approvalField] != false;
+
+  /// `true` si el usuario actual ya puede usar la app. Si su documento no
+  /// existe, se crea pendiente para que aparezca en el panel.
+  Future<bool> isCurrentUserApproved() async {
+    final user = currentUser;
+    if (user == null) return false;
+    final doc = await userRef(user.uid).get();
+    if (!doc.exists) {
+      await ensureUserDoc(user);
+      return false;
+    }
+    return isApprovedData(doc.data());
+  }
+
+  /// Avisa en vivo cuando NubikSoft aprueba la cuenta del usuario actual.
+  Stream<bool> watchCurrentUserApproval() {
+    final user = currentUser;
+    if (user == null) return Stream.value(false);
+    return userRef(user.uid)
+        .snapshots()
+        .map((doc) => doc.exists && isApprovedData(doc.data()));
   }
 
   /// Nombre visible del usuario actual.

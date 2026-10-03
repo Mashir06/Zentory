@@ -8,6 +8,7 @@ import 'screens/calendario_screen.dart';
 import 'screens/faq_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/pending_approval_screen.dart';
 import 'screens/privacy_settings_screen.dart';
 import 'screens/productos_screen.dart';
 import 'screens/profile_screen.dart';
@@ -34,6 +35,8 @@ class ZentoryApp extends StatefulWidget {
         return LoginScreen();
       case Routes.register:
         return RegistroScreen();
+      case Routes.pendingApproval:
+        return PendingApprovalScreen();
       case Routes.storeSelection:
         return StoreSelectionScreen();
       case Routes.onboarding:
