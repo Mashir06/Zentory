@@ -44,13 +44,14 @@ service cloud.firestore {
         .hasAny(['suscripcion', 'contacto']);
     }
 
-    // Al crear una tienda, la app solo puede darle el período de prueba.
+    // Al crear una tienda, la app solo puede darle el período inicial (60 días:
+    // un mes gratis más el primer mes, que se paga al terminar).
     function validTrial() {
       let sub = request.resource.data.get('suscripcion', null);
       return sub == null || (
         sub.get('estado', 'activa') == 'activa' &&
         sub.pagadoHasta is timestamp &&
-        sub.pagadoHasta <= request.time + duration.value(31, 'd') &&
+        sub.pagadoHasta <= request.time + duration.value(61, 'd') &&
         !('contacto' in request.resource.data)
       );
     }

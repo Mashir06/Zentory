@@ -31,8 +31,9 @@ class Subscription {
   /// Debe coincidir con `firestore.rules` y con el panel web.
   static const graceDays = 5;
 
-  /// Días de prueba de una tienda nueva.
-  static const trialDays = 30;
+  /// Días hasta el primer cobro de una tienda nueva: un mes gratis y el
+  /// primer mes, que se paga al terminar.
+  static const trialDays = 60;
 
   final DateTime? paidUntil;
   final bool manuallySuspended;
