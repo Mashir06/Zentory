@@ -5,6 +5,8 @@ rules_version = '2';
 // - Cualquier usuario con sesión iniciada puede usar la app como hasta ahora.
 // - Solo NubikSoft (cuentas listadas en nubiksoft_admins/{uid}) puede cambiar
 //   la suscripción de una tienda, su contacto y su historial de pagos.
+// - Las tiendas con estado 'exenta' (uso sin pago, se da desde el panel)
+//   funcionan siempre, sin fecha de pago.
 // - Si la suscripción de una tienda está suspendida (o venció hace más de 5
 //   días), Firebase rechaza agregar, editar o borrar sus productos y lotes.
 //   Los datos se pueden seguir leyendo y nunca se borran.
@@ -48,7 +50,7 @@ service cloud.firestore {
     // un mes gratis más el primer mes, que se paga al terminar).
     function validTrial() {
       let sub = request.resource.data.get('suscripcion', null);
-      return sub == null || sub.get('estado', 'activa') == 'exenta' || (
+      return sub == null || (
         sub.get('estado', 'activa') == 'activa' &&
         sub.pagadoHasta is timestamp &&
         sub.pagadoHasta <= request.time + duration.value(61, 'd') &&
