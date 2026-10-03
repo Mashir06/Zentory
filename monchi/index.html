@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monchi</title>
+  <meta name="description" content="Monchi es una app de control de gastos personales que funciona sin conexión, sin cuenta y sin anuncios. Tus datos se quedan cifrados en tu teléfono. Próximamente en Google Play.">
+  <link rel="icon" href="../assets/monchi-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* Colores de la marca Monchi. */
+    :root {
+      --cream: #FAFAF7;
+      --raised: #FFFFFF;
+      --ink: #131B2E;
+      --ink-soft: #4B5368;
+      --line: #E6E4DC;
+      --yellow: #FFC800;
+      --yellow-deep: #E6B400;
+      --mint: #14B8A6;
+      --mint-ink: #0F766E;
+      --coral: #FD7958;
+      --green: #22C55E;
+      --red: #EF4444;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --cream: #0E1424;
+        --raised: #18213A;
+        --ink: #F4F3EE;
+        --ink-soft: #AEB4C4;
+        --line: #283250;
+        --mint-ink: #5EEAD4;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --cream: #0E1424;
+      --raised: #18213A;
+      --ink: #F4F3EE;
+      --ink-soft: #AEB4C4;
+      --line: #283250;
+      --mint-ink: #5EEAD4;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; overflow-x: clip;
+      background: var(--cream); color: var(--ink);
+      font-family: "Nunito", system-ui, sans-serif;
+      font-size: 1.0625rem; line-height: 1.6;
+    }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; border-radius: 6px; }
+    .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+    .top { display: flex; align-items: center; justify-content: space-between; padding-block: 18px; }
+    .top a.home { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 900; font-size: 1.35rem; }
+    .top a.home img { width: 36px; height: 36px; object-fit: contain; }
+    .top nav { display: flex; gap: 22px; font-size: .98rem; font-weight: 600; }
+    .top nav a { text-decoration: none; color: var(--ink-soft); }
+    .top nav a:hover { color: var(--ink); }
+
+    /* ---- Portada ---- */
+    .hero {
+      display: grid; grid-template-columns: 1.1fr .9fr; gap: 56px; align-items: center;
+      padding-block: 48px 84px;
+    }
+    .hero h1 {
+      margin: 0; font-weight: 900; letter-spacing: -0.03em;
+      font-size: clamp(2.6rem, 6.2vw, 4.9rem); line-height: 1.02; max-width: 12ch;
+    }
+    .hero h1 em { font-style: normal; box-shadow: inset 0 -0.32em 0 var(--yellow); color: inherit; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .hero h1 em { box-shadow: none; color: var(--yellow); }
+    }
+    :root[data-theme="dark"] .hero h1 em { box-shadow: none; color: var(--yellow); }
+    .hero > div > p { margin: 22px 0 0; max-width: 46ch; color: var(--ink-soft); font-size: 1.2rem; }
+    .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; padding: 0; list-style: none; }
+    .pills li {
+      font-weight: 700; font-size: .92rem; padding: 6px 12px; border-radius: 999px;
+      background: var(--raised); border: 1px solid var(--line);
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px;
+      border-radius: 14px; font: inherit; font-weight: 800; text-decoration: none;
+      border: 2px solid transparent;
+    }
+    .btn-yellow { background: var(--yellow); color: #131B2E; }
+    .btn-yellow:hover { background: var(--yellow-deep); }
+    .btn-soon { border-color: var(--line); color: var(--ink-soft); cursor: default; }
+
+    /* ---- Teléfono de ejemplo ---- */
+    .phone {
+      justify-self: center; width: min(320px, 100%);
+      background: var(--raised); border: 1px solid var(--line); border-radius: 36px;
+      padding: 18px 16px 20px;
+      box-shadow: 0 30px 60px -30px rgba(19,27,46,.35);
+      font-size: .95rem;
+    }
+    .phone-hi { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 12px; font-weight: 800; }
+    .phone-hi span { color: var(--ink-soft); font-weight: 600; font-size: .85rem; }
+    .balance {
+      background: #131B2E; color: #FAFAF7; border-radius: 22px; padding: 18px 18px 16px;
+    }
+    .balance small { color: #AEB4C4; font-weight: 600; }
+    .balance strong { display: block; font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; margin-top: 2px; }
+    .balance .row { display: flex; gap: 14px; margin-top: 10px; font-size: .85rem; font-weight: 700; }
+    .balance .in { color: #4ADE80; }
+    .balance .out { color: #FDA58F; }
+    .friend {
+      margin: 12px 0 0; padding: 12px 14px; border-radius: 16px;
+      background: color-mix(in srgb, var(--mint) 14%, transparent); color: var(--mint-ink);
+      font-weight: 700;
+    }
+    .budget { margin-top: 14px; padding: 0 4px; }
+    .budget-row { display: flex; justify-content: space-between; font-weight: 700; font-size: .88rem; }
+    .budget-row span:last-child { color: var(--ink-soft); font-weight: 600; }
+    .bar { height: 10px; border-radius: 99px; background: var(--line); margin: 6px 0 12px; overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 99px; background: var(--mint); }
+    .bar i.warn { background: var(--coral); }
+    .tabbar {
+      display: flex; justify-content: space-around; align-items: center;
+      margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line);
+      color: var(--ink-soft); font-size: .75rem; font-weight: 700;
+    }
+    .tabbar .plus {
+      width: 44px; height: 44px; border-radius: 14px; background: var(--yellow); color: #131B2E;
+      display: grid; place-items: center; font-size: 1.6rem; font-weight: 900; line-height: 1;
+    }
+
+    section { padding-block: 76px; border-top: 1px solid var(--line); }
+    h2 { margin: 0 0 12px; font-weight: 900; letter-spacing: -0.02em; font-size: clamp(1.9rem, 3.8vw, 2.7rem); line-height: 1.08; }
+    .lead { margin: 0; max-width: 60ch; color: var(--ink-soft); font-size: 1.12rem; }
+
+    /* ---- Privacidad ---- */
+    .privacy { background: #131B2E; color: #FAFAF7; border-top: 0; }
+    .privacy .lead { color: #C9CEDA; }
+    .privacy h2 span { color: var(--yellow); }
+    .locks { margin: 40px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 36px; }
+    .locks b { display: block; font-size: 1.1rem; margin-bottom: 4px; }
+    .locks span { color: #AEB4C4; }
+    .locks svg { width: 26px; height: 26px; color: var(--yellow); margin-bottom: 8px; }
+
+    /* ---- Funciones ---- */
+    .features { margin-top: 38px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { background: var(--raised); border: 1px solid var(--line); border-radius: 20px; padding: 22px; }
+    .feature h3 { margin: 0 0 6px; font-size: 1.12rem; font-weight: 800; }
+    .feature p { margin: 0; color: var(--ink-soft); }
+    .feature .dot { width: 12px; height: 12px; border-radius: 4px; background: var(--c, var(--mint)); margin-bottom: 12px; }
+
+    /* ---- Planes ---- */
+    .plans { margin-top: 38px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; }
+    .plan { background: var(--raised); border: 1px solid var(--line); border-radius: 22px; padding: 26px; }
+    .plan.premium { border: 2px solid var(--yellow); }
+    .plan h3 { margin: 0; font-size: 1.4rem; font-weight: 900; }
+    .plan .sub { margin: 4px 0 0; color: var(--ink-soft); }
+    .plan ul { margin: 16px 0 0; padding-left: 20px; }
+    .plan li + li { margin-top: 6px; }
+    .badge { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 99px; background: var(--yellow); color: #131B2E; font-size: .8rem; font-weight: 800; vertical-align: middle; }
+    .note { margin-top: 18px; color: var(--ink-soft); font-size: .95rem; }
+
+    /* ---- Contacto ---- */
+    .cta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 24px; }
+    .cta .number { display: block; font-size: 1.8rem; font-weight: 900; letter-spacing: -0.01em; margin-top: 6px; }
+
+    footer {
+      border-top: 1px solid var(--line); padding-block: 28px 40px; color: var(--ink-soft);
+      font-size: .95rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; gap: 48px; padding-block: 24px 64px; }
+      .features { grid-template-columns: 1fr 1fr; }
+      .locks { grid-template-columns: 1fr 1fr; }
+      .plans { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .features, .locks { grid-template-columns: 1fr; }
+      .top nav a:not(:last-child) { display: none; }
+      section { padding-block: 56px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap top">
+    <a class="home" href="./"><img src="../assets/monchi-icon.png" alt="">Monchi</a>
+    <nav aria-label="Principal">
+      <a href="#privacidad">Privacidad</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#planes">Planes</a>
+      <a href="../">NubikSoft</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <h1>Tu dinero, claro y <em>solo tuyo.</em></h1>
+        <p>Monchi te ayuda a llevar tus gastos, tus presupuestos y tus metas de ahorro sin complicarte. Como ese amigo ordenado que nunca te juzga.</p>
+        <ul class="pills">
+          <li>Sin conexión</li>
+          <li>Sin cuenta</li>
+          <li>Sin anuncios</li>
+        </ul>
+        <div class="actions">
+          <span class="btn btn-soon" aria-disabled="true">Próximamente en Google Play</span>
+          <a class="btn btn-yellow" href="https://wa.me/50767968449?text=Hola%2C%20tengo%20una%20consulta%20sobre%20Monchi." target="_blank" rel="noopener">Consultas por WhatsApp</a>
+        </div>
+      </div>
+
+      <div class="phone" role="img" aria-label="Ejemplo de la pantalla de inicio de Monchi">
+        <div class="phone-hi">Inicio <span>Octubre</span></div>
+        <div class="balance">
+          <small>Disponible este mes</small>
+          <strong>$412.50</strong>
+          <div class="row"><span class="in">+ $1,200.00</span><span class="out">− $787.50</span></div>
+        </div>
+        <p class="friend">Este mes vas mejor que el pasado.</p>
+        <div class="budget">
+          <div class="budget-row"><span>Comida</span><span>62%</span></div>
+          <div class="bar"><i style="width:62%"></i></div>
+          <div class="budget-row"><span>Transporte</span><span>84%</span></div>
+          <div class="bar"><i class="warn" style="width:84%"></i></div>
+          <div class="budget-row"><span>Suscripciones</span><span>40%</span></div>
+          <div class="bar"><i style="width:40%"></i></div>
+        </div>
+        <div class="tabbar" aria-hidden="true">
+          <span>Inicio</span><span>Movimientos</span><span class="plus">+</span><span>Presupuestos</span><span>Más</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="privacy" id="privacidad">
+      <div class="wrap">
+        <h2>Tus datos <span>no salen de tu teléfono.</span></h2>
+        <p class="lead">Monchi no tiene servidores que guarden tu información, ni analíticas, ni anuncios. Todo lo que registras queda cifrado en tu teléfono.</p>
+        <ul class="locks">
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <b>PIN y huella</b>
+            <span>Bloquea la app con PIN, huella o Face ID. Se vuelve a bloquear sola a los 30 segundos.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><path d="M4 4l16 16"/></svg>
+            <b>Pantalla protegida</b>
+            <span>Tus saldos no se ven cuando cambias de app.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <b>Avisos discretos</b>
+            <span>Las notificaciones nunca muestran montos.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+            <b>Respaldos cifrados</b>
+            <span>Exporta tus datos protegidos con contraseña y cifrado AES-256.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+            <b>Restauración segura</b>
+            <span>Antes de restaurar, Monchi revisa el archivo y guarda una copia de lo que tienes.</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2-3-2s-3 .8-3 2 1.3 1.8 3 2.1 3 .9 3 2.2-1.3 2.2-3 2.2-3-.7-3-2"/></svg>
+            <b>Cuentas exactas</b>
+            <span>Cada monto se guarda al centavo, sin redondeos.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="funciones">
+      <div class="wrap">
+        <h2>Todo lo que necesitas para ordenar tu dinero</h2>
+        <p class="lead">Registra un gasto en segundos con el botón amarillo y deja que Monchi haga las cuentas.</p>
+        <div class="features">
+          <div class="feature"><div class="dot" style="--c:#FFC800"></div><h3>Movimientos</h3><p>Gastos e ingresos con búsqueda, filtros y la opción de deshacer.</p></div>
+          <div class="feature"><div class="dot"></div><h3>Presupuestos</h3><p>Un presupuesto mensual general y otro por categoría, con su historial.</p></div>
+          <div class="feature"><div class="dot" style="--c:#FD7958"></div><h3>Suscripciones</h3><p>Pagos recurrentes con su costo mensual y anual, que se registran solos.</p></div>
+          <div class="feature"><div class="dot" style="--c:#22C55E"></div><h3>Metas de ahorro</h3><p>Depósitos y retiros, con una sugerencia de cuánto ahorrar cada mes.</p></div>
+          <div class="feature"><div class="dot" style="--c:var(--ink)"></div><h3>Estadísticas</h3><p>Compara con el mes anterior, mira en qué categoría gastas más y revisa tu año.</p></div>
+          <div class="feature"><div class="dot" style="--c:#FFC800"></div><h3>Recordatorios</h3><p>Avisos de pago y alertas cuando llegas al 80% de un presupuesto.</p></div>
+          <div class="feature"><div class="dot" style="--c:#FD7958"></div><h3>Escanea recibos</h3><p>Lee tus recibos con la cámara, directamente en el teléfono.</p></div>
+          <div class="feature"><div class="dot"></div><h3>Importa tu banco</h3><p>Trae tus movimientos desde el estado de cuenta en CSV.</p></div>
+          <div class="feature"><div class="dot" style="--c:#22C55E"></div><h3>Asistente</h3><p>Un asistente financiero que te orienta, en español e inglés.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="planes">
+      <div class="wrap">
+        <h2>Gratis, y Premium si quieres más</h2>
+        <p class="lead">Monchi no tiene anuncios en ningún plan.</p>
+        <div class="plans">
+          <div class="plan">
+            <h3>Gratis</h3>
+            <p class="sub">Lo esencial para llevar tus cuentas.</p>
+            <ul>
+              <li>Movimientos ilimitados</li>
+              <li>Presupuesto mensual y 2 por categoría</li>
+              <li>1 meta de ahorro y 3 suscripciones</li>
+              <li>5 categorías propias</li>
+              <li>Estadísticas del año actual</li>
+              <li>Recordatorios, PIN y respaldo manual</li>
+            </ul>
+          </div>
+          <div class="plan premium">
+            <h3>Premium <span class="badge">Todo ilimitado</span></h3>
+            <p class="sub">Todo lo del plan gratis, y además:</p>
+            <ul>
+              <li>Presupuestos, metas y suscripciones sin límite</li>
+              <li>Estadísticas por categoría e historial anual</li>
+              <li>Escaneo de recibos e importación del banco</li>
+              <li>Asistente financiero</li>
+              <li>Respaldos automáticos y exportación cifrada o CSV</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">Los precios de Premium estarán en Google Play cuando Monchi esté disponible.</p>
+      </div>
+    </section>
+
+    <section id="contacto">
+      <div class="wrap cta">
+        <div>
+          <h2>¿Tienes alguna pregunta?</h2>
+          <p class="lead">Escríbenos por WhatsApp y te respondemos.</p>
+          <span class="number">+507 6796-8449</span>
+        </div>
+        <div class="actions">
+          <a class="btn btn-yellow" href="https://wa.me/50767968449?text=Hola%2C%20tengo%20una%20consulta%20sobre%20Monchi." target="_blank" rel="noopener">Escribir por WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <span>Monchi es un producto de <a href="../">NubikSoft</a></span>
+    <span>Panamá</span>
+  </footer>
+</body>
+</html>
