@@ -218,7 +218,7 @@ function render() {
       <td data-label="Administrador">${esc(s.adminNombre) || '—'}<span class="sub">${esc(s.adminCorreo)}</span></td>
       <td data-label="Personal">${s.personal ?? '—'}</td>
       <td data-label="Lotes">${s.lotes ?? '—'}</td>
-      <td data-label="Pagado hasta">${fmtDate(s.sub?.pagadoHasta?.toDate?.())}</td>
+      <td data-label="Próximo pago">${fmtDate(s.sub?.pagadoHasta?.toDate?.())}</td>
       <td>${pill(s.status)}</td>
     </tr>`).join('');
 
@@ -266,7 +266,7 @@ function renderDetail() {
   $('dlg-facts').innerHTML = `
     <div><dt>Administrador</dt><dd>${esc(s.adminNombre) || '—'}</dd></div>
     <div><dt>Correo</dt><dd>${esc(s.adminCorreo) || '—'}</dd></div>
-    <div><dt>Pagado hasta</dt><dd>${fmtDate(s.sub?.pagadoHasta?.toDate?.())}</dd></div>
+    <div><dt>Próximo pago</dt><dd>${fmtDate(s.sub?.pagadoHasta?.toDate?.())}</dd></div>
     <div><dt>Creada</dt><dd>${fmtDate(s.creada)}</dd></div>
     <div><dt>Personal</dt><dd>${s.personal ?? '—'}</dd></div>
     <div><dt>Lotes registrados</dt><dd>${s.lotes ?? '—'}</dd></div>
@@ -284,7 +284,7 @@ function updatePreview() {
   if (!current) return;
   const months = Number($('pay-months').value);
   $('pay-preview').textContent =
-    `Quedará pagada hasta el ${fmtDate(nextPaidUntil(current, months))}.`;
+    `El próximo pago quedará para el ${fmtDate(nextPaidUntil(current, months))}.`;
 }
 $('pay-months').addEventListener('change', updatePreview);
 
@@ -298,7 +298,7 @@ function updateWaLink() {
   }
   const until = current?.sub?.pagadoHasta?.toDate?.();
   const text = `Hola, te escribimos de NubikSoft. La suscripción de Zentory de la tienda ${current.nombre}` +
-    (until ? ` está pagada hasta el ${fmtDate(until)}.` : '.');
+    (until ? ` tiene su próximo pago el ${fmtDate(until)}.` : '.');
   link.href = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
   link.removeAttribute('aria-disabled');
 }
@@ -319,7 +319,7 @@ async function loadHistory(storeId) {
       const meses = p.meses === 1 ? '1 mes' : `${p.meses} meses`;
       const monto = typeof p.monto === 'number' ? ` · ${p.monto.toFixed(2)} USD` : '';
       return `<li><div>${meses}${monto}<div class="sub">${esc(p.nota || '')}</div></div>
-        <div class="sub">${fmtDate(p.fecha?.toDate?.())}<br>hasta ${fmtDate(p.hasta?.toDate?.())}</div></li>`;
+        <div class="sub">${fmtDate(p.fecha?.toDate?.())}<br>próximo: ${fmtDate(p.hasta?.toDate?.())}</div></li>`;
     }).join('');
   } catch (e) {
     list.innerHTML = `<li class="sub">${esc(friendlyError(e))}</li>`;
@@ -375,7 +375,7 @@ $('pay-btn').addEventListener('click', async () => {
       registradoPor: auth.currentUser.email,
     });
     await batch.commit();
-    toast(`Pago registrado. ${current.nombre} está activa hasta el ${fmtDate(until)}.`);
+    toast(`Pago registrado. Próximo pago de ${current.nombre}: ${fmtDate(until)}.`);
     $('pay-amount').value = '';
     $('pay-note').value = '';
     await refreshCurrent();
