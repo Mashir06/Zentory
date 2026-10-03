@@ -49,6 +49,11 @@ android {
                 storeFile = file(keystoreProperties.getProperty("storeFile"))
                 storePassword = keystoreProperties.getProperty("storePassword")
             }
+            // Firma clásica (v1) además de la moderna (v2): algunos
+            // instaladores de teléfonos rechazan el APK si falta la v1
+            // ("APK contains no signature files").
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
