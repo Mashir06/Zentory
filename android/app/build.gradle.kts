@@ -41,6 +41,14 @@ android {
         versionName = flutter.versionName
     }
 
+    // Librerías nativas comprimidas dentro del APK: el archivo pesa ~10 MB
+    // menos y es más fácil de descargar y compartir.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     signingConfigs {
         create("release") {
             if (keystorePropertiesFile.exists()) {
