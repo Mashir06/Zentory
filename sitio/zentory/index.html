@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zentory</title>
+  <meta name="description" content="Zentory controla los vencimientos de tu tienda: lotes, alertas antes de que un producto venza, escáner de códigos de barras y todo tu personal en el mismo inventario.">
+  <link rel="icon" href="../assets/zentory-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+  <style>
+    /* Colores de la app Zentory (modo oscuro predeterminado). */
+    :root {
+      --bg: #0F172A;
+      --bg-deep: #020617;
+      --surface: #1E293B;
+      --line: #334155;
+      --text: #FFFFFF;
+      --text-soft: #CBD5E1;
+      --text-muted: #94A3B8;
+      --green: #10B981;
+      --green-deep: #065F46;
+      --amber: #F59E0B;
+      --red: #EF4444;
+      --violet: #7C5CFF;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-variation-settings: "opsz" 14;
+      font-size: 1.0625rem; line-height: 1.55;
+    }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; border-radius: 4px; }
+    .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+    .top { display: flex; align-items: center; justify-content: space-between; padding-block: 18px; }
+    .top a.home { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 750; font-size: 1.2rem; }
+    .top a.home img { width: 36px; height: 30px; object-fit: contain; }
+    .top nav { display: flex; gap: 20px; font-size: .97rem; }
+    .top nav a { text-decoration: none; color: var(--text-muted); }
+    .top nav a:hover { color: var(--text); }
+
+    /* ---- Portada: la línea de tiempo de un lote ---- */
+    .hero { padding-block: 56px 80px; }
+    .hero h1 {
+      margin: 0; max-width: 15ch;
+      font-size: clamp(2.5rem, 6vw, 4.8rem); line-height: 1; letter-spacing: -0.035em;
+      font-weight: 750; font-variation-settings: "opsz" 96, "wdth" 80;
+    }
+    .hero > p { margin: 22px 0 0; max-width: 52ch; color: var(--text-soft); font-size: 1.18rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px;
+      border-radius: 12px; font: inherit; font-weight: 650; text-decoration: none;
+      border: 1.5px solid transparent;
+    }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: #0EA371; }
+    .btn-ghost { border-color: var(--line); }
+    .btn-ghost:hover { border-color: var(--text-muted); }
+    .hint { margin-top: 12px; color: var(--text-muted); font-size: .92rem; }
+
+    .timeline {
+      margin-top: 64px; position: relative;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+    }
+    .timeline::before {
+      content: ""; position: absolute; left: 6px; right: 6px; top: 7px; height: 3px;
+      background: linear-gradient(90deg, var(--green) 0 50%, var(--amber) 50% 75%, var(--red) 75%);
+      border-radius: 3px;
+    }
+    .step { position: relative; padding-top: 30px; padding-right: 18px; }
+    .step::before {
+      content: ""; position: absolute; top: 0; left: 0; width: 17px; height: 17px;
+      border-radius: 50%; background: var(--bg); border: 3px solid var(--dot, var(--green));
+    }
+    .step b { display: block; font-size: 1.05rem; }
+    .step span { color: var(--text-muted); font-size: .95rem; }
+    .step.warn { --dot: var(--amber); }
+    .step.bad { --dot: var(--red); }
+
+    section { padding-block: 72px; border-top: 1px solid var(--line); }
+    h2 {
+      margin: 0 0 12px; font-size: clamp(1.8rem, 3.6vw, 2.5rem); line-height: 1.05;
+      letter-spacing: -0.025em; font-weight: 720; font-variation-settings: "opsz" 72, "wdth" 85;
+    }
+    .lead { margin: 0; max-width: 58ch; color: var(--text-soft); font-size: 1.1rem; }
+
+    .features {
+      margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 34px 40px;
+    }
+    .features h3 { margin: 0 0 6px; font-size: 1.15rem; font-variation-settings: "opsz" 36, "wdth" 90; }
+    .features p { margin: 0; color: var(--text-muted); }
+    .features svg { width: 26px; height: 26px; color: var(--green); margin-bottom: 10px; }
+
+    ol.start { margin: 36px 0 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 18px; max-width: 720px; }
+    ol.start li {
+      counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 16px; align-items: start;
+    }
+    ol.start li::before {
+      content: counter(s); width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center; font-weight: 750; font-size: 1.15rem;
+      background: var(--green-deep); color: #D1FAE5;
+    }
+    ol.start b { display: block; }
+    ol.start span { color: var(--text-muted); }
+
+    .plan {
+      margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 860px;
+    }
+    .plan > div { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+    .plan h3 { margin: 0 0 6px; font-size: 1.2rem; }
+    .plan p { margin: 0; color: var(--text-muted); }
+    .plan ul { margin: 12px 0 0; padding-left: 20px; color: var(--text-soft); }
+
+    footer {
+      border-top: 1px solid var(--line); padding-block: 28px 40px; color: var(--text-muted);
+      font-size: .95rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+    }
+    footer a { color: var(--text-muted); }
+
+    @media (max-width: 860px) {
+      .features { grid-template-columns: 1fr 1fr; }
+      .plan { grid-template-columns: 1fr; }
+      .timeline { grid-template-columns: 1fr 1fr; row-gap: 28px; }
+      .timeline::before { display: none; }
+    }
+    @media (max-width: 560px) {
+      .features { grid-template-columns: 1fr; }
+      .top nav a:not(:last-child) { display: none; }
+      section { padding-block: 56px; }
+      .hero { padding-block: 28px 56px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap top">
+    <a class="home" href="./"><img src="../assets/zentory-icon.png" alt="">Zentory</a>
+    <nav aria-label="Principal">
+      <a href="#funciones">Funciones</a>
+      <a href="#planes">Planes</a>
+      <a href="../">NubikSoft</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <h1>Que ningún producto se te venza en el estante.</h1>
+      <p>Zentory registra los lotes de cada producto con su fecha de vencimiento y te avisa con tiempo, para que lo vendas, lo pongas en oferta o lo retires antes de perderlo.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://github.com/Mashir06/Zentory/releases/latest/download/zentory.apk">Descargar para Android</a>
+        <a class="btn btn-ghost" href="https://wa.me/50761857395?text=Hola%2C%20quiero%20una%20demostraci%C3%B3n%20de%20Zentory." target="_blank" rel="noopener">Pedir una demostración</a>
+      </div>
+      <p class="hint">Las tiendas nuevas tienen 30 días de prueba.</p>
+
+      <div class="timeline" aria-label="Avisos de un lote antes de vencer">
+        <div class="step"><b>Registras el lote</b><span>Escaneas el código, pones la fecha y la cantidad.</span></div>
+        <div class="step warn"><b>3 días antes</b><span>Primera alerta en el teléfono de todo el personal.</span></div>
+        <div class="step warn"><b>1 día antes</b><span>Segundo aviso para actuar a tiempo.</span></div>
+        <div class="step bad"><b>El día que vence</b><span>Último aviso; a los 3 días el lote se borra solo.</span></div>
+      </div>
+    </div>
+
+    <section id="funciones">
+      <div class="wrap">
+        <h2>Lo que hace Zentory</h2>
+        <p class="lead">Pensada para el ritmo de un minisúper: registrar un lote toma segundos.</p>
+        <div class="features">
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M8 8v8M12 8v8M16 8v8"/></svg>
+            <h3>Escáner de códigos</h3>
+            <p>Cada producto se identifica por su código de barras. Escanéalo otra vez y vas directo a registrar un lote nuevo.</p>
+          </div>
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6c0 6-3 7-3 7h18s-3-1-3-7a6 6 0 0 0-6-6M10 20a2 2 0 0 0 4 0"/></svg>
+            <h3>Alertas de vencimiento</h3>
+            <p>Avisos a las 7:00 a. m. tres días antes, un día antes y el mismo día, aunque la app esté cerrada.</p>
+          </div>
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+            <h3>Lotes por producto</h3>
+            <p>Un mismo producto puede tener varios lotes con fechas y cantidades distintas. Coca-Cola de 600 ml y de 2 L son productos separados.</p>
+          </div>
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+            <h3>Todo tu personal</h3>
+            <p>Comparte el código de invitación de la tienda y cada trabajador entra con su propia cuenta al mismo inventario.</p>
+          </div>
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <h3>Calendario</h3>
+            <p>Mira qué lotes vencen cada día del mes y planifica ofertas con anticipación.</p>
+          </div>
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+            <h3>Español, inglés y chino</h3>
+            <p>Cada persona elige su idioma y el modo claro u oscuro desde Ajustes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="empezar">
+      <div class="wrap">
+        <h2>Empezar toma unos minutos</h2>
+        <ol class="start">
+          <li><div><b>Descarga la app</b><span>Instala Zentory en el teléfono Android de la tienda y crea tu cuenta.</span></div></li>
+          <li><div><b>Crea tu tienda</b><span>Pon el nombre y la ubicación. Comparte el código de invitación con tu personal.</span></div></li>
+          <li><div><b>Registra tus productos</b><span>Escanea cada código de barras y agrega sus lotes con fecha y cantidad.</span></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="planes">
+      <div class="wrap">
+        <h2>Planes</h2>
+        <p class="lead">Un pago inicial por la aplicación y una mensualidad por tienda que cubre el servidor, las actualizaciones y el soporte.</p>
+        <div class="plan">
+          <div>
+            <h3>Pago inicial</h3>
+            <p>Instalación y configuración de tu tienda, con una capacitación para tu personal.</p>
+          </div>
+          <div>
+            <h3>Mensualidad</h3>
+            <p>Mientras esté al día, tu tienda funciona sin límites.</p>
+            <ul>
+              <li>Recordatorio por WhatsApp antes de cada vencimiento.</li>
+              <li>Si se atrasa, tu inventario se conserva y puedes seguir consultándolo.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://wa.me/50761857395?text=Hola%2C%20quiero%20conocer%20los%20precios%20de%20Zentory." target="_blank" rel="noopener">Consultar precios por WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <span>Zentory es un producto de <a href="../">NubikSoft</a></span>
+    <a href="admin/">Acceso de administración</a>
+  </footer>
+</body>
+</html>

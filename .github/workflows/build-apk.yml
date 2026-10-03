@@ -6,6 +6,11 @@ name: Compilar APK
 on:
   push:
     branches: [main]
+    # La página web y las reglas no cambian el APK.
+    paths-ignore:
+      - 'sitio/**'
+      - 'firestore.rules'
+      - '.github/workflows/sitio.yml'
   workflow_dispatch:
 
 permissions:

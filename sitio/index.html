@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NubikSoft</title>
+  <meta name="description" content="NubikSoft crea software práctico para tiendas y minisúpers en Panamá. Nuestro primer producto es Zentory, el control de vencimientos para tu inventario.">
+  <link rel="icon" href="assets/zentory-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F2F4F7;
+      --paper-raised: #FFFFFF;
+      --ink: #172033;
+      --ink-soft: #4A5468;
+      --line: #D5DAE3;
+      --cobalt: #2F4BFF;
+      --cobalt-deep: #1E33C9;
+      --mint: #10B981;
+      --tag: #FFE45C;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --paper: #121826;
+        --paper-raised: #1A2233;
+        --ink: #EEF1F6;
+        --ink-soft: #A7B0C2;
+        --line: #2B3548;
+        --cobalt: #7D90FF;
+        --cobalt-deep: #A3B1FF;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --paper: #121826;
+      --paper-raised: #1A2233;
+      --ink: #EEF1F6;
+      --ink-soft: #A7B0C2;
+      --line: #2B3548;
+      --cobalt: #7D90FF;
+      --cobalt-deep: #A3B1FF;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      overflow-x: clip;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-variation-settings: "opsz" 14;
+      font-size: 1.0625rem;
+      line-height: 1.55;
+    }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; border-radius: 4px; }
+
+    .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+    /* ---- Barra superior ---- */
+    .top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-block: 22px;
+    }
+    .brand {
+      font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+      text-decoration: none; font-variation-settings: "opsz" 48, "wdth" 85;
+    }
+    .brand b { color: var(--cobalt); font-weight: 800; }
+    .top nav { display: flex; gap: 22px; font-size: 0.98rem; }
+    .top nav a { text-decoration: none; color: var(--ink-soft); }
+    .top nav a:hover { color: var(--ink); }
+
+    /* ---- Portada ---- */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 56px;
+      align-items: center;
+      padding-block: 56px 88px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.6rem, 6.4vw, 5.2rem);
+      line-height: 0.98;
+      letter-spacing: -0.035em;
+      font-weight: 750;
+      font-variation-settings: "opsz" 96, "wdth" 78;
+      max-width: 11ch;
+    }
+    .hero p {
+      margin: 26px 0 0;
+      max-width: 46ch;
+      color: var(--ink-soft);
+      font-size: 1.18rem;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 22px; border-radius: 999px;
+      font: inherit; font-weight: 650; text-decoration: none;
+      border: 1.5px solid transparent;
+    }
+    .btn-primary { background: var(--cobalt); color: #fff; }
+    .btn-primary:hover { background: var(--cobalt-deep); }
+    .btn-ghost { border-color: var(--line); color: var(--ink); }
+    .btn-ghost:hover { border-color: var(--ink-soft); }
+
+    /* ---- Etiqueta de góndola (el elemento distintivo) ---- */
+    .shelf { position: relative; padding-bottom: 26px; }
+    .shelf::after {           /* el riel del estante */
+      content: ""; position: absolute; left: -8%; right: -8%; bottom: 0;
+      height: 14px; border-radius: 3px;
+      background: linear-gradient(var(--line), var(--line)) top/100% 3px no-repeat,
+                  color-mix(in srgb, var(--line) 55%, transparent);
+    }
+    .tag {
+      display: block; text-decoration: none; color: #172033;
+      background: var(--tag);
+      border-radius: 10px 10px 4px 4px;
+      padding: 22px 24px 20px;
+      transform: rotate(-2.2deg);
+      transform-origin: 30% 100%;
+      box-shadow: 0 1px 0 rgba(23,32,51,.25), 0 18px 34px -18px rgba(23,32,51,.45);
+      position: relative;
+      transition: transform .25s ease;
+    }
+    .tag::before {            /* orificio de la etiqueta */
+      content: ""; position: absolute; top: 14px; right: 18px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--paper); box-shadow: inset 0 1px 2px rgba(0,0,0,.25);
+    }
+    .tag:hover { transform: rotate(-0.6deg) translateY(-3px); }
+    .tag-top { display: flex; align-items: center; gap: 12px; }
+    .tag-top img { width: 44px; height: 38px; object-fit: contain; }
+    .tag-name {
+      font-weight: 800; font-size: 1.7rem; letter-spacing: -0.02em;
+      font-variation-settings: "opsz" 60, "wdth" 82;
+    }
+    .tag-desc { margin: 10px 0 18px; font-size: 1.02rem; max-width: 30ch; }
+    .tag-bottom {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 2px dashed rgba(23,32,51,.35); padding-top: 12px;
+    }
+    .tag-small { font-size: .9rem; }
+    .tag-barcode { height: 34px; width: 120px; }
+    .tag-price { font-weight: 800; font-size: 1.05rem; }
+
+    /* ---- Secciones ---- */
+    section { padding-block: 72px; border-top: 1px solid var(--line); }
+    h2 {
+      margin: 0 0 14px;
+      font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+      line-height: 1.05; letter-spacing: -0.025em; font-weight: 720;
+      font-variation-settings: "opsz" 72, "wdth" 85;
+    }
+    .lead { margin: 0; max-width: 58ch; color: var(--ink-soft); font-size: 1.1rem; }
+
+    .project {
+      margin-top: 36px;
+      display: grid; grid-template-columns: 220px 1fr; gap: 32px; align-items: center;
+      background: var(--paper-raised); border: 1px solid var(--line);
+      border-radius: 20px; padding: 28px;
+    }
+    .project-mark {
+      aspect-ratio: 1; border-radius: 16px; display: grid; place-items: center;
+      background: #0F172A;
+    }
+    .project-mark img { width: 78%; }
+    .project h3 {
+      margin: 0; font-size: 1.6rem; letter-spacing: -0.02em;
+      font-variation-settings: "opsz" 48, "wdth" 85;
+    }
+    .project p { margin: 8px 0 18px; color: var(--ink-soft); max-width: 60ch; }
+    .status-dot {
+      display: inline-flex; align-items: center; gap: 8px; font-size: .95rem;
+      color: var(--ink-soft); margin-left: 4px;
+    }
+    .status-dot::before {
+      content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--mint);
+    }
+
+    .ways {
+      margin-top: 36px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px;
+    }
+    .ways h3 {
+      margin: 0 0 6px; font-size: 1.2rem;
+      font-variation-settings: "opsz" 36, "wdth" 90;
+    }
+    .ways p { margin: 0; color: var(--ink-soft); }
+
+    .contact {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end;
+      gap: 24px;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding-block: 28px 40px; color: var(--ink-soft); font-size: .95rem;
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; gap: 48px; padding-block: 28px 64px; }
+      .shelf::after { left: 0; right: 0; }
+      .shelf { max-width: 420px; }
+      .project { grid-template-columns: 1fr; }
+      .project-mark { width: 140px; }
+      .ways { grid-template-columns: 1fr; gap: 24px; }
+    }
+    @media (max-width: 520px) {
+      .top nav a:not(:last-child) { display: none; }
+      section { padding-block: 56px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tag { transition: none; }
+      .tag:hover { transform: rotate(-2.2deg); }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap top">
+    <a class="brand" href="./">Nubik<b>Soft</b></a>
+    <nav aria-label="Principal">
+      <a href="#proyectos">Proyectos</a>
+      <a href="#como-trabajamos">Cómo trabajamos</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <h1>Software hecho para el mostrador.</h1>
+        <p>En NubikSoft creamos aplicaciones sencillas para tiendas y minisúpers: herramientas que el personal entiende el primer día y que resuelven problemas reales del negocio.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="zentory/">Conoce Zentory</a>
+          <a class="btn btn-ghost" href="#contacto">Hablemos</a>
+        </div>
+      </div>
+
+      <div class="shelf">
+        <a class="tag" href="zentory/" aria-label="Zentory: control de vencimientos para tu inventario">
+          <div class="tag-top">
+            <img src="assets/zentory-icon.png" alt="">
+            <span class="tag-name">Zentory</span>
+          </div>
+          <p class="tag-desc">Control de vencimientos para el inventario de tu tienda.</p>
+          <div class="tag-bottom">
+            <div>
+              <div class="tag-small">Disponible para Android</div>
+              <div class="tag-price">Prueba 30 días</div>
+            </div>
+            <svg class="tag-barcode" viewBox="0 0 120 34" aria-hidden="true">
+              <g fill="#172033">
+                <rect x="0" width="3" height="34"/><rect x="5" width="1" height="34"/><rect x="8" width="2" height="34"/>
+                <rect x="13" width="1" height="34"/><rect x="16" width="3" height="34"/><rect x="21" width="1" height="34"/>
+                <rect x="24" width="2" height="34"/><rect x="29" width="3" height="34"/><rect x="34" width="1" height="34"/>
+                <rect x="37" width="2" height="34"/><rect x="41" width="1" height="34"/><rect x="44" width="3" height="34"/>
+                <rect x="49" width="1" height="34"/><rect x="52" width="2" height="34"/><rect x="57" width="1" height="34"/>
+                <rect x="60" width="3" height="34"/><rect x="65" width="2" height="34"/><rect x="69" width="1" height="34"/>
+                <rect x="72" width="3" height="34"/><rect x="77" width="1" height="34"/><rect x="80" width="2" height="34"/>
+                <rect x="85" width="1" height="34"/><rect x="88" width="3" height="34"/><rect x="93" width="2" height="34"/>
+                <rect x="97" width="1" height="34"/><rect x="100" width="3" height="34"/><rect x="105" width="1" height="34"/>
+                <rect x="108" width="2" height="34"/><rect x="112" width="1" height="34"/><rect x="115" width="3" height="34"/>
+              </g>
+            </svg>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <section id="proyectos">
+      <div class="wrap">
+        <h2>Proyectos</h2>
+        <p class="lead">Cada producto de NubikSoft nace de una necesidad concreta de los comercios con los que trabajamos.</p>
+
+        <article class="project">
+          <div class="project-mark"><img src="assets/zentory-icon.png" alt="Logo de Zentory"></div>
+          <div>
+            <h3>Zentory <span class="status-dot">Disponible</span></h3>
+            <p>Registra cada producto con sus lotes y fechas de vencimiento, escanea su código de barras y recibe una alerta antes de que algo se venza en el estante. Todo el personal de la tienda trabaja sobre el mismo inventario.</p>
+            <a class="btn btn-ghost" href="zentory/">Ver Zentory</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="como-trabajamos">
+      <div class="wrap">
+        <h2>Cómo trabajamos</h2>
+        <div class="ways">
+          <div>
+            <h3>Pensado para quien atiende</h3>
+            <p>Pantallas claras, pocos pasos y en el idioma de tu equipo. Si hace falta un manual para empezar, lo rediseñamos.</p>
+          </div>
+          <div>
+            <h3>Pago inicial y mensualidad</h3>
+            <p>Compras la aplicación una vez y una mensualidad cubre el servidor, las actualizaciones y el soporte.</p>
+          </div>
+          <div>
+            <h3>Soporte por WhatsApp</h3>
+            <p>Hablas directo con quien desarrolla la aplicación, por el mismo canal que ya usas con tus proveedores.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto">
+      <div class="wrap contact">
+        <div>
+          <h2>¿Tienes una tienda?</h2>
+          <p class="lead">Escríbenos y te mostramos Zentory funcionando con tus propios productos.</p>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://wa.me/50761857395?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20Zentory." target="_blank" rel="noopener">Escribir por WhatsApp</a>
+          <a class="btn btn-ghost" href="https://wa.me/50767968449?text=Hola%2C%20necesito%20soporte%20t%C3%A9cnico." target="_blank" rel="noopener">Soporte técnico</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <span>© <span id="year">2026</span> NubikSoft, Panamá</span>
+    <a href="zentory/">Zentory</a>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

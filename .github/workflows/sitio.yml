@@ -1,0 +1,32 @@
+# Publica la página web (carpeta sitio/) en la rama gh-pages, que GitHub Pages
+# sirve en https://mashir06.github.io/Zentory/ (o en el dominio propio).
+name: Publicar sitio web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sitio/**'
+      - '.github/workflows/sitio.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sitio
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Publicar en gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./sitio
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: Publicar sitio

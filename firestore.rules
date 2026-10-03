@@ -1,0 +1,104 @@
+rules_version = '2';
+
+// Reglas de seguridad de Zentory (proyecto zentory-base).
+//
+// - Cualquier usuario con sesión iniciada puede usar la app como hasta ahora.
+// - Solo NubikSoft (cuentas listadas en nubiksoft_admins/{uid}) puede cambiar
+//   la suscripción de una tienda, su contacto y su historial de pagos.
+// - Si la suscripción de una tienda está suspendida (o venció hace más de 5
+//   días), Firebase rechaza agregar, editar o borrar sus productos y lotes.
+//   Los datos se pueden seguir leyendo y nunca se borran.
+//
+// Para aplicarlas: consola de Firebase > Firestore Database > Reglas >
+// pegar este archivo > Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isNubikAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/nubiksoft_admins/$(request.auth.uid));
+    }
+
+    // Días de gracia después de pagadoHasta (igual que en la app y el panel).
+    function graceDays() {
+      return duration.value(5, 'd');
+    }
+
+    function storeCanEdit(storeId) {
+      let store = get(/databases/$(database)/documents/tiendas/$(storeId));
+      let sub = store.data.get('suscripcion', null);
+      return sub == null || (
+        sub.get('estado', 'activa') != 'suspendida' &&
+        (sub.get('pagadoHasta', null) == null ||
+          request.time < sub.pagadoHasta + graceDays())
+      );
+    }
+
+    // Campos de la tienda que solo cambia NubikSoft.
+    function touchesBilling() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasAny(['suscripcion', 'contacto']);
+    }
+
+    // Al crear una tienda, la app solo puede darle el período de prueba.
+    function validTrial() {
+      let sub = request.resource.data.get('suscripcion', null);
+      return sub == null || (
+        sub.get('estado', 'activa') == 'activa' &&
+        sub.pagadoHasta is timestamp &&
+        sub.pagadoHasta <= request.time + duration.value(31, 'd') &&
+        !('contacto' in request.resource.data)
+      );
+    }
+
+    // Lista de administradores de NubikSoft: se crean a mano en la consola.
+    match /nubiksoft_admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /usuarios/{uid} {
+      allow read, write: if signedIn();
+    }
+
+    match /tiendas/{storeId} {
+      allow read: if signedIn();
+      allow create: if isNubikAdmin() || (signedIn() && validTrial());
+      allow update: if isNubikAdmin() || (signedIn() && !touchesBilling());
+      allow delete: if signedIn();
+
+      match /productos/{lotId} {
+        allow read: if signedIn();
+        allow write: if isNubikAdmin() || (signedIn() && storeCanEdit(storeId));
+      }
+
+      match /catalogo/{productId} {
+        allow read: if signedIn();
+        allow write: if isNubikAdmin() || (signedIn() && storeCanEdit(storeId));
+      }
+
+      match /personal/{memberId} {
+        allow read, write: if signedIn();
+      }
+
+      match /minisupers/{branchId} {
+        allow read, write: if signedIn();
+      }
+
+      // Historial de pagos: lo registra NubikSoft desde el panel.
+      match /pagos/{paymentId} {
+        allow read: if signedIn();
+        allow write: if isNubikAdmin();
+      }
+    }
+
+    // Búsqueda de las tiendas de un trabajador (collectionGroup 'personal').
+    match /{path=**}/personal/{memberId} {
+      allow read: if signedIn();
+    }
+  }
+}
