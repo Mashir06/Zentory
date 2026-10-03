@@ -242,6 +242,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () => Navigator.of(context)
                           .pushNamed(Routes.privacySettings),
                     ),
+                    settingsSectionTitle(tr('Suscripción')),
+                    SettingsOption(
+                      icon: Icons.payments_outlined,
+                      title: tr('Estado del pago'),
+                      subtitle: tr('Próximo pago, días de gracia e historial'),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed(Routes.subscription),
+                    ),
                     settingsSectionTitle(tr('Apariencia')),
                     SettingsOption(
                       icon: AppColors.isDark

@@ -18,7 +18,9 @@ import 'screens/registro_screen.dart';
 import 'screens/session_gate.dart';
 import 'screens/settings_screen.dart';
 import 'screens/store_selection_screen.dart';
+import 'screens/subscription_screen.dart';
 import 'l10n/strings.dart';
+import 'services/access_guard.dart';
 import 'services/app_settings.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
@@ -53,6 +55,8 @@ class ZentoryApp extends StatefulWidget {
         return ProfileScreen();
       case Routes.settings:
         return SettingsScreen();
+      case Routes.subscription:
+        return SubscriptionScreen();
       case Routes.help:
         return AyudaScreen();
       case Routes.faq:
@@ -94,6 +98,7 @@ class _ZentoryAppState extends State<ZentoryApp> {
   void initState() {
     super.initState();
     AppSettings.instance.revision.addListener(_onSettingsChanged);
+    AccessGuard.instance.start();
   }
 
   @override
@@ -131,7 +136,8 @@ class _ZentoryAppState extends State<ZentoryApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      navigatorObservers: [routeObserver],
+      navigatorKey: AccessGuard.instance.navigatorKey,
+      navigatorObservers: [routeObserver, AccessGuard.instance],
       initialRoute: Routes.session,
       onGenerateRoute: ZentoryApp.onGenerateRoute,
       // Íconos de la barra de estado claros u oscuros según el modo.

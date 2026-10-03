@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/product.dart';
 import '../models/subscription.dart';
+import '../models/user_access.dart';
 import '../utils/date_utils.dart';
 import '../l10n/strings.dart';
 
@@ -133,7 +134,7 @@ class ZentoryRepository {
         'correo': user.email ?? fallbackEmail ?? '',
         'uid': user.uid,
         'fechaRegistro': Timestamp.now(),
-        approvalField: false,
+        ..._newAccount,
       });
     }
   }
@@ -144,43 +145,67 @@ class ZentoryRepository {
       'correo': correo,
       'uid': user.uid,
       'fechaRegistro': Timestamp.now(),
-      approvalField: false,
+      ..._newAccount,
     });
   }
 
   // ---------------------------------------------------------------------------
-  // Aprobación de cuentas nuevas
+  // Acceso de la cuenta (lo decide NubikSoft desde el panel web)
   // ---------------------------------------------------------------------------
 
   /// Campo de `usuarios/{uid}` que NubikSoft pone en `true` desde el panel web
   /// para dejar entrar a una cuenta nueva.
-  static const approvalField = 'aprobado';
+  static const approvalField = AccessState.approvedField;
+
+  /// Valores iniciales de una cuenta recién registrada.
+  static const _newAccount = {
+    AccessState.approvedField: false,
+    AccessState.stateField: 'pendiente',
+  };
 
   /// Las cuentas nuevas se crean con `aprobado: false`. Las cuentas antiguas
   /// no tienen el campo y siguen entrando como siempre.
   static bool isApprovedData(Map<String, dynamic>? data) =>
-      data?[approvalField] != false;
+      AccessState.fromData(data) == AccessState.approved;
 
-  /// `true` si el usuario actual ya puede usar la app. Si su documento no
-  /// existe, se crea pendiente para que aparezca en el panel.
-  Future<bool> isCurrentUserApproved() async {
+  /// Estado de acceso del usuario actual. Si su documento no existe, se crea
+  /// pendiente para que aparezca en el panel.
+  Future<AccessState> currentUserAccess() async {
     final user = currentUser;
-    if (user == null) return false;
+    if (user == null) return AccessState.pending;
     final doc = await userRef(user.uid).get();
     if (!doc.exists) {
       await ensureUserDoc(user);
-      return false;
+      return AccessState.pending;
     }
-    return isApprovedData(doc.data());
+    return AccessState.fromData(doc.data());
   }
 
-  /// Avisa en vivo cuando NubikSoft aprueba la cuenta del usuario actual.
-  Stream<bool> watchCurrentUserApproval() {
+  /// `true` si el usuario actual ya puede usar la app.
+  Future<bool> isCurrentUserApproved() async =>
+      await currentUserAccess() == AccessState.approved;
+
+  /// Estado de acceso del usuario actual, en vivo (`null` si su documento no
+  /// existe).
+  Stream<AccessState?> watchCurrentUserAccess() {
     final user = currentUser;
-    if (user == null) return Stream.value(false);
-    return userRef(user.uid)
-        .snapshots()
-        .map((doc) => doc.exists && isApprovedData(doc.data()));
+    if (user == null) return Stream.value(null);
+    return watchUserAccess(user.uid);
+  }
+
+  Stream<AccessState?> watchUserAccess(String uid) => userRef(uid)
+      .snapshots()
+      .map((doc) => doc.exists ? AccessState.fromData(doc.data()) : null);
+
+  /// Una cuenta rechazada vuelve a quedar en espera de la confirmación.
+  /// (Las bloqueadas no pueden: las reglas de Firestore lo impiden.)
+  Future<void> requestAccessAgain() async {
+    final user = currentUser;
+    if (user == null) return;
+    await userRef(user.uid).update({
+      AccessState.stateField: 'pendiente',
+      'accesoActualizado': FieldValue.serverTimestamp(),
+    });
   }
 
   /// Nombre visible del usuario actual.
@@ -546,6 +571,18 @@ class ZentoryRepository {
   Future<Subscription> fetchSubscription(String storeId) async {
     final doc = await stores.doc(storeId).get();
     return Subscription.fromStoreData(doc.data());
+  }
+
+  /// Pagos registrados por NubikSoft, del más reciente al más antiguo.
+  Future<List<PaymentRecord>> fetchPayments(String storeId,
+      {int max = 24}) async {
+    final res = await stores
+        .doc(storeId)
+        .collection('pagos')
+        .orderBy('fecha', descending: true)
+        .limit(max)
+        .get();
+    return [for (final d in res.docs) PaymentRecord.fromData(d.data())];
   }
 
   /// Impide agregar o editar productos si la suscripción está suspendida.

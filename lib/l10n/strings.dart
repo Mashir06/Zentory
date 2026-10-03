@@ -35,6 +35,118 @@ String tr(String key, [List<Object?> args = const []]) {
 }
 
 const Map<String, String> _en = {
+  'Hola, quiero consultar o pagar la suscripción de Zentory de la tienda {0}.':
+      'Hi, I\'d like to check or pay the Zentory subscription for the store {0}.',
+  'Suscripción y pagos':
+      'Subscription and payments',
+  'No se pudo cargar la suscripción. Revisa tu conexión a internet.':
+      'Couldn\'t load the subscription. Check your internet connection.',
+  'No perteneces a ninguna tienda.':
+      'You don\'t belong to any store.',
+  'Plan mensual de Zentory':
+      'Zentory monthly plan',
+  'Próximo pago':
+      'Next payment',
+  'Aviso de pago desde':
+      'Payment reminder from',
+  'Último día de gracia':
+      'Last grace day',
+  'Después, la tienda queda en solo lectura':
+      'After that, the store becomes read-only',
+  'Agregar y editar productos':
+      'Add and edit products',
+  'Permitido':
+      'Allowed',
+  'Bloqueado':
+      'Blocked',
+  'Último pago':
+      'Last payment',
+  'Registrado el {0}':
+      'Recorded on {0}',
+  'Contactar a Zentory por WhatsApp':
+      'Contact Zentory on WhatsApp',
+  'Pagar o consultar por WhatsApp':
+      'Pay or ask on WhatsApp',
+  'Cómo funciona el pago':
+      'How payment works',
+  'Se paga una mensualidad por tienda, al final de cada mes de uso. No hay pago inicial.':
+      'Each store pays a monthly fee at the end of each month of use. There\'s no upfront payment.',
+  'La app te avisa {0} días antes de la fecha de pago.':
+      'The app reminds you {0} days before the payment date.',
+  'Si la fecha pasa, tienes {0} días de gracia para pagar sin perder nada.':
+      'If the date passes, you have {0} grace days to pay without losing anything.',
+  'Después, la tienda queda en solo lectura: puedes ver tu inventario, pero no agregar ni editar productos.':
+      'After that, the store becomes read-only: you can see your inventory, but not add or edit products.',
+  'Tus datos nunca se borran. Al registrar el pago, la tienda se reactiva al instante.':
+      'Your data is never deleted. Once the payment is recorded, the store is reactivated right away.',
+  'Historial de pagos':
+      'Payment history',
+  'No se pudo cargar el historial.':
+      'Couldn\'t load the history.',
+  'Todavía no hay pagos registrados.':
+      'No payments recorded yet.',
+  'El historial de pagos solo lo ve el administrador de la tienda.':
+      'Only the store administrator can see the payment history.',
+  'Sin pago':
+      'No charge',
+  'Zentory le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.':
+      'Zentory gave this store free use. It has no charges or due dates.',
+  'Activa':
+      'Active',
+  'Tu tienda todavía no tiene fechas de pago registradas.':
+      'Your store doesn\'t have any payment dates recorded yet.',
+  'Al día':
+      'Up to date',
+  'Todo en orden. Faltan {0} días para el próximo pago.':
+      'All good. {0} days until the next payment.',
+  'El pago vence hoy.':
+      'Payment is due today.',
+  'El pago vence en {0} días.':
+      'Payment is due in {0} days.',
+  'Vencida (en gracia)':
+      'Overdue (grace period)',
+  'El pago venció. La tienda sigue funcionando hasta el {0}.':
+      'The payment is overdue. The store keeps working until {0}.',
+  'Suspendida':
+      'Suspended',
+  'Puedes ver tu inventario, pero no agregar ni editar productos hasta pagar.':
+      'You can see your inventory, but you can\'t add or edit products until you pay.',
+  'Hoy':
+      'Today',
+  'Mañana':
+      'Tomorrow',
+  'En {0} días':
+      'In {0} days',
+  '1 mes':
+      '1 month',
+  '{0} meses':
+      '{0} months',
+  'cubre hasta el {0}':
+      'covers until {0}',
+  'Solicitud enviada':
+      'Request sent',
+  'No se pudo enviar la solicitud. Revisa tu conexión.':
+      'Couldn\'t send the request. Check your connection.',
+  'Tu solicitud fue rechazada':
+      'Your request was rejected',
+  'El equipo de Zentory no aprobó tu cuenta. Si crees que es un error, contáctanos o vuelve a enviar la solicitud.':
+      'The Zentory team didn\'t approve your account. If you think this is a mistake, contact us or send the request again.',
+  'Solicitud rechazada':
+      'Request rejected',
+  'Tu cuenta está bloqueada':
+      'Your account is blocked',
+  'No puedes usar Zentory con esta cuenta. Contacta a Zentory para más información.':
+      'You can\'t use Zentory with this account. Contact Zentory for more information.',
+  'Cuenta bloqueada':
+      'Account blocked',
+  'Volver a solicitar acceso':
+      'Request access again',
+  'Suscripción':
+      'Subscription',
+  'Estado del pago':
+      'Payment status',
+  'Próximo pago, días de gracia e historial':
+      'Next payment, grace days and history',
   'Espere la confirmación de Zentory':
       'Wait for Zentory\'s confirmation',
   'Tu cuenta fue creada. El equipo de Zentory debe aprobarla antes de que puedas usar la app. Esta pantalla se quitará sola en cuanto te den acceso.':
@@ -730,6 +842,118 @@ const Map<String, String> _en = {
 };
 
 const Map<String, String> _zh = {
+  'Hola, quiero consultar o pagar la suscripción de Zentory de la tienda {0}.':
+      '你好，我想查询或支付 {0} 店铺的 Zentory 订阅费用。',
+  'Suscripción y pagos':
+      '订阅与付款',
+  'No se pudo cargar la suscripción. Revisa tu conexión a internet.':
+      '无法加载订阅信息。请检查网络连接。',
+  'No perteneces a ninguna tienda.':
+      '您不属于任何店铺。',
+  'Plan mensual de Zentory':
+      'Zentory 月度套餐',
+  'Próximo pago':
+      '下次付款',
+  'Aviso de pago desde':
+      '付款提醒开始于',
+  'Último día de gracia':
+      '宽限期最后一天',
+  'Después, la tienda queda en solo lectura':
+      '之后，店铺将变为只读',
+  'Agregar y editar productos':
+      '添加和编辑商品',
+  'Permitido':
+      '允许',
+  'Bloqueado':
+      '已锁定',
+  'Último pago':
+      '最近一次付款',
+  'Registrado el {0}':
+      '记录于 {0}',
+  'Contactar a Zentory por WhatsApp':
+      '通过 WhatsApp 联系 Zentory',
+  'Pagar o consultar por WhatsApp':
+      '通过 WhatsApp 付款或咨询',
+  'Cómo funciona el pago':
+      '付款方式说明',
+  'Se paga una mensualidad por tienda, al final de cada mes de uso. No hay pago inicial.':
+      '每个店铺按月付费，在每个使用月结束时支付。无需预付。',
+  'La app te avisa {0} días antes de la fecha de pago.':
+      '应用会在付款日前 {0} 天提醒您。',
+  'Si la fecha pasa, tienes {0} días de gracia para pagar sin perder nada.':
+      '如果过了付款日，您有 {0} 天宽限期付款，不会有任何损失。',
+  'Después, la tienda queda en solo lectura: puedes ver tu inventario, pero no agregar ni editar productos.':
+      '之后店铺将变为只读：您可以查看库存，但不能添加或编辑商品。',
+  'Tus datos nunca se borran. Al registrar el pago, la tienda se reactiva al instante.':
+      '您的数据永远不会被删除。付款记录后，店铺会立即恢复。',
+  'Historial de pagos':
+      '付款记录',
+  'No se pudo cargar el historial.':
+      '无法加载记录。',
+  'Todavía no hay pagos registrados.':
+      '暂无付款记录。',
+  'El historial de pagos solo lo ve el administrador de la tienda.':
+      '只有店铺管理员可以查看付款记录。',
+  'Sin pago':
+      '免费使用',
+  'Zentory le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.':
+      'Zentory 已授予此店铺免费使用，没有任何费用或到期日。',
+  'Activa':
+      '有效',
+  'Tu tienda todavía no tiene fechas de pago registradas.':
+      '您的店铺尚未记录付款日期。',
+  'Al día':
+      '已付清',
+  'Todo en orden. Faltan {0} días para el próximo pago.':
+      '一切正常。距离下次付款还有 {0} 天。',
+  'El pago vence hoy.':
+      '今天是付款截止日。',
+  'El pago vence en {0} días.':
+      '{0} 天后付款到期。',
+  'Vencida (en gracia)':
+      '已逾期（宽限期内）',
+  'El pago venció. La tienda sigue funcionando hasta el {0}.':
+      '付款已逾期。店铺可继续使用至 {0}。',
+  'Suspendida':
+      '已暂停',
+  'Puedes ver tu inventario, pero no agregar ni editar productos hasta pagar.':
+      '您可以查看库存，但在付款前不能添加或编辑商品。',
+  'Hoy':
+      '今天',
+  'Mañana':
+      '明天',
+  'En {0} días':
+      '{0} 天后',
+  '1 mes':
+      '1 个月',
+  '{0} meses':
+      '{0} 个月',
+  'cubre hasta el {0}':
+      '有效期至 {0}',
+  'Solicitud enviada':
+      '申请已发送',
+  'No se pudo enviar la solicitud. Revisa tu conexión.':
+      '无法发送申请。请检查网络连接。',
+  'Tu solicitud fue rechazada':
+      '您的申请被拒绝',
+  'El equipo de Zentory no aprobó tu cuenta. Si crees que es un error, contáctanos o vuelve a enviar la solicitud.':
+      'Zentory 团队未批准您的账户。如果您认为有误，请联系我们或重新提交申请。',
+  'Solicitud rechazada':
+      '申请已拒绝',
+  'Tu cuenta está bloqueada':
+      '您的账户已被封锁',
+  'No puedes usar Zentory con esta cuenta. Contacta a Zentory para más información.':
+      '您无法使用此账户登录 Zentory。如需了解详情，请联系 Zentory。',
+  'Cuenta bloqueada':
+      '账户已封锁',
+  'Volver a solicitar acceso':
+      '重新申请访问',
+  'Suscripción':
+      '订阅',
+  'Estado del pago':
+      '付款状态',
+  'Próximo pago, días de gracia e historial':
+      '下次付款、宽限期和记录',
   'Espere la confirmación de Zentory':
       '请等待 Zentory 确认',
   'Tu cuenta fue creada. El equipo de Zentory debe aprobarla antes de que puedas usar la app. Esta pantalla se quitará sola en cuanto te den acceso.':

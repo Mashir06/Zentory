@@ -42,4 +42,28 @@ void main() {
       SubscriptionStatus.active,
     );
   });
+
+  test('fechas de aviso y de gracia', () {
+    final until = DateTime(2026, 11, 1);
+    final s = Subscription.fromStoreData({
+      'suscripcion': {'pagadoHasta': Timestamp.fromDate(until)},
+    });
+    expect(s.hasRecord, isTrue);
+    expect(s.warningStarts, DateTime(2026, 10, 27));
+    expect(s.graceEnds, DateTime(2026, 11, 6));
+    expect(Subscription.fromStoreData({}).hasRecord, isFalse);
+  });
+
+  test('pago registrado por el panel', () {
+    final p = PaymentRecord.fromData({
+      'meses': 2,
+      'monto': 30,
+      'nota': ' Yappy ',
+      'fecha': Timestamp.fromDate(DateTime(2026, 10, 3)),
+    });
+    expect(p.months, 2);
+    expect(p.amount, 30.0);
+    expect(p.note, 'Yappy');
+    expect(p.paidUntil, isNull);
+  });
 }

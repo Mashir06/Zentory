@@ -6,7 +6,8 @@ rules_version = '2';
 // - Solo NubikSoft (cuentas listadas en nubiksoft_admins/{uid}) puede cambiar
 //   la suscripción de una tienda, su contacto y su historial de pagos.
 // - Las cuentas nuevas quedan pendientes (usuarios/{uid}.aprobado = false)
-//   hasta que NubikSoft las aprueba desde el panel web.
+//   hasta que NubikSoft las aprueba desde el panel web. NubikSoft también
+//   puede rechazarlas, bloquearlas y desbloquearlas.
 // - Las tiendas con estado 'exenta' (uso sin pago, se da desde el panel)
 //   funcionan siempre, sin fecha de pago.
 // - Si la suscripción de una tienda está suspendida (o venció hace más de 5
@@ -66,21 +67,36 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Campos de la aprobación de cuentas nuevas: solo los cambia NubikSoft.
-    function touchesApproval() {
+    // Acceso de las cuentas: solo NubikSoft lo cambia desde el panel web.
+    function touchesAccess() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasAny(['aprobado', 'aprobadoPor', 'fechaAprobacion']);
+        .hasAny(['aprobado', 'estadoAcceso', 'aprobadoPor', 'fechaAprobacion',
+                 'accesoActualizado', 'accesoActualizadoPor']);
     }
 
-    // Las cuentas nuevas se crean con aprobado: false y esperan a que
-    // NubikSoft las apruebe desde el panel web.
+    // Una cuenta rechazada puede volver a pedir acceso (queda en espera).
+    // Una bloqueada no.
+    function requestsAccessAgain(uid) {
+      return request.auth.uid == uid &&
+        resource.data.get('estadoAcceso', '') == 'rechazado' &&
+        request.resource.data.get('estadoAcceso', '') == 'pendiente' &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['estadoAcceso', 'accesoActualizado']);
+    }
+
+    // Las cuentas nuevas se crean con aprobado: false y estadoAcceso
+    // 'pendiente', y esperan a que NubikSoft las apruebe desde el panel web.
     match /usuarios/{uid} {
       allow read: if signedIn();
       allow create: if isNubikAdmin() ||
         (signedIn() && request.auth.uid == uid &&
-          request.resource.data.get('aprobado', null) == false);
-      allow update: if isNubikAdmin() || (signedIn() && !touchesApproval());
-      allow delete: if isNubikAdmin() || (signedIn() && request.auth.uid == uid);
+          request.resource.data.get('aprobado', null) == false &&
+          request.resource.data.get('estadoAcceso', 'pendiente') == 'pendiente');
+      allow update: if isNubikAdmin() ||
+        (signedIn() && (!touchesAccess() || requestsAccessAgain(uid)));
+      // Nadie borra su propia cuenta: así un bloqueo no se puede saltar
+      // volviendo a crearla.
+      allow delete: if isNubikAdmin();
     }
 
     match /tiendas/{storeId} {

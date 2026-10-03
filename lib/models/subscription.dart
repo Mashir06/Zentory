@@ -29,6 +29,7 @@ class Subscription {
     this.paidUntil,
     this.manuallySuspended = false,
     this.exempt = false,
+    this.hasRecord = false,
   });
 
   /// Días antes del vencimiento en que se muestra el aviso.
@@ -48,6 +49,9 @@ class Subscription {
   /// Uso sin pago dado por NubikSoft.
   final bool exempt;
 
+  /// `false` en tiendas antiguas sin datos de suscripción.
+  final bool hasRecord;
+
   factory Subscription.fromStoreData(Map<String, dynamic>? data) {
     final s = data?['suscripcion'];
     if (s is! Map) return const Subscription();
@@ -56,6 +60,7 @@ class Subscription {
       paidUntil: until is Timestamp ? until.toDate() : null,
       manuallySuspended: s['estado'] == 'suspendida',
       exempt: s['estado'] == 'exenta',
+      hasRecord: true,
     );
   }
 
@@ -76,6 +81,44 @@ class Subscription {
 
   SubscriptionStatus get status => statusAt(DateTime.now());
 
+  /// Último día en que la tienda sigue funcionando si no paga.
+  DateTime? get graceEnds =>
+      paidUntil?.add(const Duration(days: graceDays));
+
+  /// Fecha desde la que se muestra el aviso de pago.
+  DateTime? get warningStarts =>
+      paidUntil?.subtract(const Duration(days: warningDays));
+
   /// `false` cuando la tienda no puede agregar ni editar productos.
   bool get canEdit => status != SubscriptionStatus.suspended;
+}
+
+/// Un pago registrado por NubikSoft (`tiendas/{id}/pagos/{id}`).
+class PaymentRecord {
+  const PaymentRecord({
+    required this.date,
+    required this.months,
+    this.amount,
+    this.paidUntil,
+    this.note = '',
+  });
+
+  final DateTime? date;
+  final int months;
+  final double? amount;
+  final DateTime? paidUntil;
+  final String note;
+
+  factory PaymentRecord.fromData(Map<String, dynamic> data) {
+    DateTime? time(Object? v) => v is Timestamp ? v.toDate() : null;
+    final amount = data['monto'];
+    final months = data['meses'];
+    return PaymentRecord(
+      date: time(data['fecha']),
+      months: months is num ? months.toInt() : 1,
+      amount: amount is num ? amount.toDouble() : null,
+      paidUntil: time(data['hasta']),
+      note: (data['nota'] as String?)?.trim() ?? '',
+    );
+  }
 }

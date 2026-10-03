@@ -60,4 +60,8 @@ class DateUtilsZ {
       currentLanguage == AppLanguage.es
           ? DateFormat("d 'de' MMMM", 'es').format(date)
           : DateFormat.MMMMd(currentLanguage.code).format(date);
+
+  /// "3 de octubre de 2026" (o "October 3, 2026", "2026年10月3日").
+  static String longDate(DateTime date) =>
+      DateFormat.yMMMMd(currentLanguage.code).format(date);
 }

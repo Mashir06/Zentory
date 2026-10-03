@@ -16,6 +16,7 @@ class Routes {
   static const productos = '/productos';
   static const profile = '/profile';
   static const settings = '/settings';
+  static const subscription = '/subscription';
   static const help = '/help';
   static const faq = '/faq';
   static const privacySettings = '/privacy_settings';

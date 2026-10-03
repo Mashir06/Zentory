@@ -6,7 +6,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 
 ## Funciones
 
-- **Inicio de sesión** con correo y contraseña, registro y recuperación de contraseña (Firebase Auth). Las cuentas nuevas ven "Espere la confirmación de Zentory" hasta que NubikSoft las aprueba en el panel web (`usuarios/{uid}.aprobado`); las cuentas antiguas no se ven afectadas.
+- **Inicio de sesión** con correo y contraseña, registro y recuperación de contraseña (Firebase Auth). Las cuentas nuevas ven "Espere la confirmación de Zentory" hasta que NubikSoft las aprueba en el panel web (`usuarios/{uid}.aprobado` y `estadoAcceso`: pendiente, aprobado, rechazado o bloqueado). Una cuenta rechazada puede volver a pedir acceso; una bloqueada no. Si se bloquea a alguien mientras usa la app, la app se cierra al instante. Las cuentas antiguas no se ven afectadas.
 - **Tiendas**: crear una tienda, unirse con código de invitación, sucursales, cambiar de tienda activa y administrar al personal. Solo el administrador puede eliminar la tienda o sus sucursales; los trabajadores no.
 - **Inicio**: resumen de lotes en buen estado, por vencer (7 días) y vencidos, alerta de los que vencen mañana y gráfica por estado.
 - **Productos**: cada producto con sus lotes (los lotes se borran solos 3 días después de vencer); búsqueda, filtro por estado, ordenamiento, agregar/editar/eliminar lotes y editar/eliminar productos.
@@ -14,6 +14,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Escáner** de códigos de barras dentro de "Agregar producto" (el código es obligatorio). El código identifica a cada producto, así que puede haber varios con el mismo nombre (p. ej. Coca-Cola de 600 ml y de 2 L). Al escanear un código que ya está registrado, la app abre directo el formulario de un nuevo lote de ese producto.
 - **Calendario** mensual con indicadores de vencimiento por día.
 - **Notificaciones** locales 3 días y 1 día antes del vencimiento (7:00 a. m.), con sonido propio.
+- **Suscripción y pagos** (Ajustes > Estado del pago): estado de la mensualidad, próxima fecha de pago, aviso y días de gracia, si se pueden editar productos, último pago, historial (solo el administrador de la tienda) y contacto por WhatsApp.
 - Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, preguntas frecuentes y contacto de soporte (abre la página de Zentory, nubiksoft.com/zentory).
 
 ## Requisitos
