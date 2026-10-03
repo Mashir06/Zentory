@@ -39,6 +39,8 @@ const Map<String, String> _en = {
       'Hi, I\'m {0} from the store {1}. {2}',
   'No se pudo abrir WhatsApp':
       'Couldn\'t open WhatsApp',
+  'No se pudo abrir la página de Zentory':
+      'Couldn\'t open the Zentory page',
   'Ayuda y Soporte':
       'Help & Support',
   '¿En qué podemos ayudarte?':
@@ -55,8 +57,6 @@ const Map<String, String> _en = {
       'General Inquiries',
   'Tengo una consulta general.':
       'I have a general question.',
-  'Ver Manual de Usuario':
-      'View User Manual',
   'No se pudieron cargar los productos: {0}':
       'Couldn\'t load the products: {0}',
   'Todos los lotes':
@@ -619,12 +619,6 @@ const Map<String, String> _en = {
       'Settings > Battery > App launch > Zentory: turn off "Manage automatically" and turn on all three options.',
   'En los ajustes de la app, permite el inicio automático y la actividad en segundo plano, y quita cualquier restricción de batería.':
       'In the app\'s settings, allow auto-start and background activity, and remove any battery restriction.',
-  'No tienes una app para abrir documentos de Word.':
-      'You don\'t have an app to open Word documents.',
-  'No se pudo abrir el manual: {0}':
-      'Couldn\'t open the manual: {0}',
-  'No se pudo encontrar el archivo del manual en los recursos de la app.':
-      'Couldn\'t find the manual file in the app\'s resources.',
   'Producto Desconocido':
       'Unknown product',
   'Buen estado':
@@ -732,6 +726,8 @@ const Map<String, String> _zh = {
       '你好，我是{1}店的{0}。{2}',
   'No se pudo abrir WhatsApp':
       '无法打开 WhatsApp',
+  'No se pudo abrir la página de Zentory':
+      '无法打开 Zentory 页面',
   'Ayuda y Soporte':
       '帮助与支持',
   '¿En qué podemos ayudarte?':
@@ -748,8 +744,6 @@ const Map<String, String> _zh = {
       '一般咨询',
   'Tengo una consulta general.':
       '我有一个一般性问题。',
-  'Ver Manual de Usuario':
-      '查看用户手册',
   'No se pudieron cargar los productos: {0}':
       '无法加载商品：{0}',
   'Todos los lotes':
@@ -1312,12 +1306,6 @@ const Map<String, String> _zh = {
       '设置 > 电池 > 应用启动管理 > Zentory：关闭“自动管理”，并开启全部三个选项。',
   'En los ajustes de la app, permite el inicio automático y la actividad en segundo plano, y quita cualquier restricción de batería.':
       '在应用设置中，允许自启动和后台活动，并取消所有电池限制。',
-  'No tienes una app para abrir documentos de Word.':
-      '您没有可打开 Word 文档的应用。',
-  'No se pudo abrir el manual: {0}':
-      '无法打开手册：{0}',
-  'No se pudo encontrar el archivo del manual en los recursos de la app.':
-      '在应用资源中找不到手册文件。',
   'Producto Desconocido':
       '未知商品',
   'Buen estado':

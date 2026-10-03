@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../routes.dart';
-import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
-import '../utils/manual.dart';
 import '../widgets/common.dart';
 import 'settings_screen.dart';
 import '../l10n/strings.dart';
@@ -17,54 +15,16 @@ class AyudaScreen extends StatefulWidget {
 }
 
 class _AyudaScreenState extends State<AyudaScreen> {
-  final _repo = ZentoryRepository.instance;
-  String _userName = '';
-  String _storeName = '';
-  bool _showContacts = false;
+  static final _zentoryPage = Uri.parse('https://www.nubiksoft.com/zentory/');
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final user = _repo.currentUser;
-    if (user == null) return;
+  Future<void> _openZentoryPage() async {
+    var ok = false;
     try {
-      final userDoc = await _repo.userRef(user.uid).get();
-      final name = (userDoc.data()?['nombre'] as String?) ??
-          user.displayName ??
-          'Usuario';
-      final tiendaId = userDoc.data()?['tiendaId'] as String?;
-      var storeName = '';
-      if (tiendaId != null) {
-        final tienda = await _repo.stores.doc(tiendaId).get();
-        storeName = (tienda.data()?['nombre'] as String?) ?? 'Sin tienda';
-      }
-      if (!mounted) return;
-      setState(() {
-        _userName = name;
-        _storeName = storeName;
-      });
-    } catch (_) {
-      // Los datos solo se usan para personalizar el mensaje de WhatsApp.
+      ok = await launchUrl(_zentoryPage, mode: LaunchMode.externalApplication);
+    } catch (_) {}
+    if (!ok && mounted) {
+      showMessage(context, tr('No se pudo abrir la página de Zentory'));
     }
-  }
-
-  Future<void> _openWhatsApp(String phone, String reason) async {
-    final message =
-        tr('Hola, soy {0} de la tienda {1}. {2}', [_userName, _storeName, reason]);
-    final uri = Uri.parse(
-      'https://wa.me/$phone?text=${Uri.encodeComponent(message)}',
-    );
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && mounted) showMessage(context, tr('No se pudo abrir WhatsApp'));
-  }
-
-  Future<void> _openManual() async {
-    final error = await openWordManual();
-    if (error != null && mounted) showMessage(context, error, long: true);
   }
 
   @override
@@ -99,45 +59,9 @@ class _AyudaScreenState extends State<AyudaScreen> {
                     SettingsOption(
                       icon: Icons.support_agent,
                       title: tr('Contactar Soporte'),
-                      onTap: () =>
-                          setState(() => _showContacts = !_showContacts),
-                      trailing: AnimatedRotation(
-                        turns: _showContacts ? 0.25 : 0,
-                        duration: Duration(milliseconds: 200),
-                        child: Icon(Icons.chevron_right,
-                            color: AppColors.textSecondary),
-                      ),
-                    ),
-                    if (_showContacts)
-                      Padding(
-                        padding: EdgeInsets.only(left: 16),
-                        child: Column(
-                          children: [
-                            SettingsOption(
-                              icon: Icons.chat_outlined,
-                              iconColor: AppColors.whatsapp,
-                              title: tr('Soporte Técnico'),
-                              onTap: () => _openWhatsApp(
-                                '50767968449',
-                                tr('Necesito soporte técnico.'),
-                              ),
-                            ),
-                            SettingsOption(
-                              icon: Icons.chat_outlined,
-                              iconColor: AppColors.whatsapp,
-                              title: tr('Consultas Generales'),
-                              onTap: () => _openWhatsApp(
-                                '50761857395',
-                                tr('Tengo una consulta general.'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    SettingsOption(
-                      icon: Icons.menu_book_outlined,
-                      title: tr('Ver Manual de Usuario'),
-                      onTap: _openManual,
+                      onTap: _openZentoryPage,
+                      trailing: Icon(Icons.open_in_new,
+                          color: AppColors.textSecondary, size: 20),
                     ),
                   ],
                 ),

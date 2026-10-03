@@ -14,7 +14,7 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Escáner** de códigos de barras dentro de "Agregar producto" (el código es obligatorio). El código identifica a cada producto, así que puede haber varios con el mismo nombre (p. ej. Coca-Cola de 600 ml y de 2 L). Al escanear un código que ya está registrado, la app abre directo el formulario de un nuevo lote de ese producto.
 - **Calendario** mensual con indicadores de vencimiento por día.
 - **Notificaciones** locales 3 días y 1 día antes del vencimiento (7:00 a. m.), con sonido propio.
-- Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, ayuda por WhatsApp, manual de usuario y preguntas frecuentes.
+- Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, preguntas frecuentes y contacto de soporte (abre la página de Zentory, nubiksoft.com/zentory).
 
 ## Requisitos
 
@@ -71,8 +71,8 @@ lib/
   screens/                   Una pantalla por archivo
   widgets/                   Componentes reutilizables (tarjetas, diálogos, gráfica…)
   theme/                     Colores y tema oscuro
-  utils/                     Fechas, imágenes y manual de usuario
-assets/                      Logo, fuente Inter y manual.docx
+  utils/                     Fechas e imágenes
+assets/                      Logo y fuente Inter
 android/                     Proyecto Android del runner de Flutter
 test/                        Pruebas unitarias
 ```
