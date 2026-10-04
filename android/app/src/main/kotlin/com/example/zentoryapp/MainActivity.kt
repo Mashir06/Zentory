@@ -1,6 +1,5 @@
 package com.example.zentoryapp
 
-import android.Manifest
 import android.app.ActivityManager
 import android.app.AlarmManager
 import android.app.ApplicationExitInfo
@@ -11,14 +10,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import java.util.concurrent.Executors
 
 /**
  * Además de la actividad de Flutter, expone el canal "zentory/device" para que
@@ -28,9 +24,6 @@ import java.util.concurrent.Executors
  * actividad en segundo plano y a veces las propias notificaciones.
  */
 class MainActivity : FlutterActivity() {
-
-    private val io = Executors.newSingleThreadExecutor()
-    private val main = Handler(Looper.getMainLooper())
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -46,8 +39,6 @@ class MainActivity : FlutterActivity() {
                         "openAppDetails" -> result.success(openAppDetails())
                         "hasGooglePlayServices" -> result.success(hasGooglePlayServices())
                         "getSigningSha1" -> result.success(signingSha1())
-                        "hasCalendarPermission" -> result.success(hasCalendarPermission())
-                        "removeCalendar" -> runInBackground(result) { CalendarBackup.remove(this) }
                         else -> result.notImplemented()
                     }
                 } catch (e: Exception) {
@@ -91,28 +82,6 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    // --- Calendario: solo limpieza del antiguo respaldo ---------------------
-
-    private fun hasCalendarPermission(): Boolean =
-        checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
-            checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
-
-    /** Ejecuta trabajo de calendario fuera del hilo principal. */
-    private fun runInBackground(result: MethodChannel.Result, work: () -> Any?) {
-        if (!hasCalendarPermission()) {
-            result.error("no_permission", "Sin permiso de calendario", null)
-            return
-        }
-        io.execute {
-            try {
-                val value = work()
-                main.post { result.success(value) }
-            } catch (e: Exception) {
-                main.post { result.error("calendar_error", e.message, null) }
-            }
-        }
-    }
-
     private fun tryStart(intent: Intent): Boolean {
         return try {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -137,14 +106,14 @@ class MainActivity : FlutterActivity() {
         return tryStart(intent) || openAppDetails()
     }
 
+    /**
+     * Abre la ficha de Zentory en los ajustes del sistema, donde está la
+     * opción "Batería" > "Sin restricciones". (Google Play no permite pedirlo
+     * directamente con REQUEST_IGNORE_BATTERY_OPTIMIZATIONS.)
+     */
     private fun requestIgnoreBatteryOptimizations(): Boolean {
-        val request = Intent(
-            Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-            Uri.parse("package:$packageName"),
-        )
-        return tryStart(request) ||
-            tryStart(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) ||
-            openAppDetails()
+        return openAppDetails() ||
+            tryStart(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
     }
 
     /**

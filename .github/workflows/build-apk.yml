@@ -77,6 +77,12 @@ jobs:
           set -o pipefail
           flutter build apk --release --split-per-abi --build-number=${{ github.run_number }} 2>&1 | tee compilacion.txt
 
+      # Paquete para subir a Google Play (Play Console > Versiones).
+      - name: Compilar AAB para Google Play
+        run: |
+          set -o pipefail
+          flutter build appbundle --release --build-number=${{ github.run_number }} 2>&1 | tee -a compilacion.txt
+
       # Si algo falla, los errores se muestran como avisos del workflow (se ven
       # sin iniciar sesión en GitHub).
       - name: Mostrar errores
@@ -90,7 +96,8 @@ jobs:
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk zentory.apk
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk zentory-armeabi-v7a.apk
           cp build/app/outputs/flutter-apk/app-x86_64-release.apk zentory-x86_64.apk
-          ls -la zentory*.apk
+          cp build/app/outputs/bundle/release/app-release.aab zentory.aab
+          ls -la zentory*.apk zentory.aab
 
       - name: Guardar APK como artefacto
         uses: actions/upload-artifact@v5
@@ -98,6 +105,7 @@ jobs:
           name: zentory-apk
           path: |
             zentory*.apk
+            zentory.aab
             analisis.txt
             pruebas.txt
 
@@ -114,11 +122,13 @@ jobs:
 
             - `zentory-armeabi-v7a.apk`: solo para teléfonos antiguos de 32 bits.
             - `zentory-x86_64.apk`: para emuladores.
+            - `zentory.aab`: para subir a Google Play (no se instala en el teléfono).
             - `analisis.txt` y `pruebas.txt`: resultados de `flutter analyze` y `flutter test`.
           files: |
             zentory.apk
             zentory-armeabi-v7a.apk
             zentory-x86_64.apk
+            zentory.aab
             analisis.txt
             pruebas.txt
           make_latest: true

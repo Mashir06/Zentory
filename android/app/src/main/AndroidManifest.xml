@@ -1,22 +1,23 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permisos heredados de la app Kotlin original -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Alarmas exactas: el usuario las permite en "Alarmas y recordatorios"
+         (la guía de notificaciones lo pide). USE_EXACT_ALARM no se usa porque
+         Google Play solo lo acepta en apps de despertador o calendario. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
     <!-- Para reprogramar las alertas de vencimiento tras reiniciar el teléfono -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- Permite pedir que el sistema no restrinja la batería de Zentory
-         (imprescindible en ROMs chinas para que lleguen las alertas) -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <!-- Temporal: solo para borrar el calendario que creaban versiones
-         anteriores ("respaldo en calendario", ya retirado) -->
-    <uses-permission android:name="android.permission.READ_CALENDAR" />
-    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <!-- Sin REQUEST_IGNORE_BATTERY_OPTIMIZATIONS ni permisos de calendario
+         (requisitos de Google Play): la batería se ajusta desde la ficha de
+         la app en los ajustes del sistema. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" tools:node="remove" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application

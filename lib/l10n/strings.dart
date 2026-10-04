@@ -651,8 +651,8 @@ const Map<String, String> _en = {
       'Lets alerts arrive at the exact time.',
   'Sin restricciones de batería':
       'No battery restrictions',
-  'Evita que el sistema detenga Zentory para ahorrar batería. Elige "Permitir" o "Sin restricciones".':
-      'Prevents the system from stopping Zentory to save battery. Choose "Allow" or "Unrestricted".',
+  'Evita que el sistema detenga Zentory para ahorrar batería. Se abrirá la información de la app: entra en "Batería" y elige "Sin restricciones".':
+      'Prevents the system from stopping Zentory to save battery. The app info screen will open: go to "Battery" and choose "Unrestricted".',
   'Inicio automático y segundo plano':
       'Auto-start and background',
   'Revisado':
@@ -1458,8 +1458,8 @@ const Map<String, String> _zh = {
       '让提醒准时送达。',
   'Sin restricciones de batería':
       '无电池限制',
-  'Evita que el sistema detenga Zentory para ahorrar batería. Elige "Permitir" o "Sin restricciones".':
-      '防止系统为省电而停止 Zentory。请选择“允许”或“无限制”。',
+  'Evita que el sistema detenga Zentory para ahorrar batería. Se abrirá la información de la app: entra en "Batería" y elige "Sin restricciones".':
+      '防止系统为省电而停止 Zentory。将打开应用信息页面：进入“电池”，选择“无限制”。',
   'Inicio automático y segundo plano':
       '自启动和后台运行',
   'Revisado':

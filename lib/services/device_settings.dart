@@ -144,20 +144,6 @@ class DeviceSettings {
 
   static Future<bool> openAppDetails() => _call('openAppDetails');
 
-  // --- Limpieza del antiguo respaldo en calendario ------------------------
-
-  static Future<bool> hasCalendarPermission() => _call('hasCalendarPermission');
-
-  /// Borra el calendario "Zentory - Vencimientos" que creaban las versiones
-  /// anteriores de la app.
-  static Future<void> removeCalendar() async {
-    try {
-      await _channel.invokeMethod<bool>('removeCalendar');
-    } catch (e) {
-      debugPrint('No se pudo borrar el calendario: $e');
-    }
-  }
-
   /// Huella SHA-1 con la que está firmada la app (para registrarla en
   /// Firebase y habilitar el inicio de sesión con Google).
   static Future<String?> signingSha1() async {

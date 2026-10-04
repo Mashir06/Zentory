@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,7 +14,5 @@ Future<void> main() async {
   await initializeDateFormatting();
   await AppSettings.instance.load();
   await NotificationService.instance.init();
-  // Borra el calendario del antiguo "respaldo en calendario", si existía.
-  unawaited(NotificationService.instance.cleanupLegacyCalendar());
   runApp(const ZentoryApp());
 }

@@ -192,9 +192,9 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
             _StepTile(
               icon: Icons.battery_charging_full_outlined,
               title: tr('Sin restricciones de batería'),
-              description: tr('Evita que el sistema detenga Zentory para ahorrar batería. Elige "Permitir" o "Sin restricciones".'),
+              description: tr('Evita que el sistema detenga Zentory para ahorrar batería. Se abrirá la información de la app: entra en "Batería" y elige "Sin restricciones".'),
               done: s.ignoringBatteryOptimizations,
-              actionLabel: tr('Permitir'),
+              actionLabel: tr('Abrir ajustes'),
               onAction: s.ignoringBatteryOptimizations ? null : _fixBattery,
             ),
             _StepTile(

@@ -44,9 +44,6 @@ class NotificationService {
   /// Si el usuario no lo eligió, se activa sola en esos fabricantes.
   static const String prefAlarmClockMode = 'alarm_clock_mode';
 
-  /// Preferencia del antiguo respaldo en calendario (solo para limpiarlo).
-  static const String _prefLegacyCalendar = 'calendar_backup';
-
   static const _channelId = 'expiration_notifications_custom_sound';
   static const _channelName = 'Vencimientos de Productos';
   static const _channelDescription =
@@ -288,21 +285,6 @@ class NotificationService {
     return alerts.length > _maxScheduled
         ? alerts.sublist(0, _maxScheduled)
         : alerts;
-  }
-
-  /// Borra, una sola vez, el calendario que creaba el antiguo "respaldo en
-  /// calendario" (función retirada).
-  Future<void> cleanupLegacyCalendar() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      if (!(prefs.getBool(_prefLegacyCalendar) ?? false)) return;
-      if (await DeviceSettings.hasCalendarPermission()) {
-        await DeviceSettings.removeCalendar();
-      }
-      await prefs.remove(_prefLegacyCalendar);
-    } catch (e) {
-      debugPrint('No se pudo limpiar el calendario anterior: $e');
-    }
   }
 
   /// Borra todas las alertas locales (p. ej. al cerrar sesión).
