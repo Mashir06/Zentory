@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/strings.dart';
 import '../models/subscription.dart';
@@ -8,10 +7,10 @@ import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
 import 'common.dart';
 
-/// WhatsApp de NubikSoft para pagos y renovaciones (código de país de Panamá).
-const nubikSoftWhatsApp = '50761857395';
-
 /// Aviso de la suscripción de la tienda: no muestra nada si está al día.
+///
+/// Solo informa. Por la política de pagos de Google Play no tiene botón ni
+/// enlace para pagar: el enlace de pago lo envía NubikSoft por WhatsApp.
 class SubscriptionBanner extends StatefulWidget {
   const SubscriptionBanner({super.key, required this.storeId});
 
@@ -46,15 +45,6 @@ class _SubscriptionBannerState extends State<SubscriptionBanner> {
     }
   }
 
-  Future<void> _contact() async {
-    final message = tr('Hola, quiero renovar la suscripción de Zentory de la tienda {0}.', [widget.storeId]);
-    final uri = Uri.parse(
-      'https://wa.me/$nubikSoftWhatsApp?text=${Uri.encodeComponent(message)}',
-    );
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && mounted) showMessage(context, tr('No se pudo abrir WhatsApp'));
-  }
-
   @override
   Widget build(BuildContext context) {
     final sub = _sub;
@@ -81,14 +71,14 @@ class _SubscriptionBannerState extends State<SubscriptionBanner> {
           AppColors.danger,
           Icons.lock_outline,
           tr('Suscripción suspendida'),
-          tr('Puedes ver tu inventario, pero no agregar ni editar productos. Renueva la suscripción para reactivar la tienda.'),
+          tr('Puedes ver tu inventario, pero no agregar ni editar productos. La tienda se reactiva en cuanto se registre el pago.'),
         ),
     };
 
     return ZCard(
       color: color,
       margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.fromLTRB(14, 12, 8, 6),
+      padding: EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -118,13 +108,13 @@ class _SubscriptionBannerState extends State<SubscriptionBanner> {
               ),
             ],
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: _contact,
-              style: TextButton.styleFrom(foregroundColor: AppColors.onColor),
-              icon: Icon(Icons.chat_outlined, size: 18),
-              label: Text(tr('Renovar por WhatsApp')),
+          SizedBox(height: 8),
+          Text(
+            tr('NubikSoft te enviará el enlace de pago por WhatsApp.'),
+            style: TextStyle(
+              color: AppColors.onColor,
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
             ),
           ),
         ],

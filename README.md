@@ -14,8 +14,8 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Escáner** de códigos de barras dentro de "Agregar producto" (el código es obligatorio). El código identifica a cada producto, así que puede haber varios con el mismo nombre (p. ej. Coca-Cola de 600 ml y de 2 L). Al escanear un código que ya está registrado, la app abre directo el formulario de un nuevo lote de ese producto.
 - **Calendario** mensual con indicadores de vencimiento por día.
 - **Notificaciones** locales 3 días y 1 día antes del vencimiento (7:00 a. m.), con sonido propio.
-- **Suscripción y pagos** (Ajustes > Estado del pago): estado de la mensualidad, próxima fecha de pago, aviso y días de gracia, si se pueden editar productos, último pago, historial (solo el administrador de la tienda) y contacto por WhatsApp.
-- Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, preguntas frecuentes y contacto de soporte (abre la página de Zentory, nubiksoft.com/zentory).
+- **Suscripción y pagos** (Ajustes > Estado del pago): solo información (estado, mensualidad de $25 o `suscripcion.monto`, próxima fecha de pago, aviso y días de gracia, si se pueden editar productos, último pago e historial para el administrador de la tienda). Por la política de pagos de Google Play, la app no tiene ningún botón, enlace ni texto para pagar fuera de Google Play: NubikSoft envía el enlace de pago por WhatsApp desde el panel. El único contacto es el WhatsApp de soporte (+507 6796-8449).
+- Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, preguntas frecuentes y contacto de soporte (WhatsApp de soporte técnico).
 
 ## Requisitos
 

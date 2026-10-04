@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../routes.dart';
 import '../theme/app_colors.dart';
+import '../utils/support.dart';
 import '../widgets/common.dart';
 import 'settings_screen.dart';
 import '../l10n/strings.dart';
@@ -15,16 +15,10 @@ class AyudaScreen extends StatefulWidget {
 }
 
 class _AyudaScreenState extends State<AyudaScreen> {
-  static final _zentoryPage = Uri.parse('https://www.nubiksoft.com/zentory/');
-
-  Future<void> _openZentoryPage() async {
-    var ok = false;
-    try {
-      ok = await launchUrl(_zentoryPage, mode: LaunchMode.externalApplication);
-    } catch (_) {}
-    if (!ok && mounted) {
-      showMessage(context, tr('No se pudo abrir la página de Zentory'));
-    }
+  /// Soporte por WhatsApp (sin pasar por la web, que muestra precios).
+  Future<void> _contactSupport() async {
+    final ok = await openSupportWhatsApp(tr('Hola, necesito soporte técnico con Zentory.'));
+    if (!ok && mounted) showMessage(context, tr('No se pudo abrir WhatsApp'));
   }
 
   @override
@@ -59,9 +53,9 @@ class _AyudaScreenState extends State<AyudaScreen> {
                     SettingsOption(
                       icon: Icons.support_agent,
                       title: tr('Contactar Soporte'),
-                      onTap: _openZentoryPage,
-                      trailing: Icon(Icons.open_in_new,
-                          color: AppColors.textSecondary, size: 20),
+                      onTap: _contactSupport,
+                      trailing: Icon(Icons.chat_outlined,
+                          color: AppColors.whatsapp, size: 20),
                     ),
                   ],
                 ),

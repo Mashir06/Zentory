@@ -30,7 +30,11 @@ class Subscription {
     this.manuallySuspended = false,
     this.exempt = false,
     this.hasRecord = false,
+    this.monthlyFee = defaultMonthlyFee,
   });
+
+  /// Mensualidad por tienda (USD) cuando `suscripcion.monto` no está puesto.
+  static const defaultMonthlyFee = 25.0;
 
   /// Días antes del vencimiento en que se muestra el aviso.
   static const warningDays = 5;
@@ -52,6 +56,9 @@ class Subscription {
   /// `false` en tiendas antiguas sin datos de suscripción.
   final bool hasRecord;
 
+  /// Mensualidad de la tienda en USD (`suscripcion.monto`, o 25).
+  final double monthlyFee;
+
   factory Subscription.fromStoreData(Map<String, dynamic>? data) {
     final s = data?['suscripcion'];
     if (s is! Map) return const Subscription();
@@ -61,6 +68,9 @@ class Subscription {
       manuallySuspended: s['estado'] == 'suspendida',
       exempt: s['estado'] == 'exenta',
       hasRecord: true,
+      monthlyFee: s['monto'] is num && (s['monto'] as num) > 0
+          ? (s['monto'] as num).toDouble()
+          : defaultMonthlyFee,
     );
   }
 

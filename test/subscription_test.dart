@@ -66,4 +66,20 @@ void main() {
     expect(p.note, 'Yappy');
     expect(p.paidUntil, isNull);
   });
+
+  test('mensualidad: \$25 si no hay monto en Firebase', () {
+    expect(Subscription.fromStoreData({}).monthlyFee, 25);
+    expect(
+      Subscription.fromStoreData({
+        'suscripcion': {'estado': 'activa'},
+      }).monthlyFee,
+      25,
+    );
+    expect(
+      Subscription.fromStoreData({
+        'suscripcion': {'monto': 30},
+      }).monthlyFee,
+      30,
+    );
+  });
 }

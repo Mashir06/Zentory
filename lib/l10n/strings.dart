@@ -35,8 +35,32 @@ String tr(String key, [List<Object?> args = const []]) {
 }
 
 const Map<String, String> _en = {
-  'Hola, quiero consultar o pagar la suscripción de Zentory de la tienda {0}.':
-      'Hi, I\'d like to check or pay the Zentory subscription for the store {0}.',
+  'Contactar soporte':
+      'Contact support',
+  'Hola, me registré en Zentory con el correo {0} y necesito ayuda con mi cuenta.':
+      'Hi, I signed up for Zentory with the email {0} and need help with my account.',
+  'Hola, necesito soporte con Zentory en la tienda {0}.':
+      'Hi, I need support with Zentory at the store {0}.',
+  'Hola, necesito soporte técnico con Zentory.':
+      'Hi, I need technical support with Zentory.',
+  'Mensualidad':
+      'Monthly fee',
+  'NubikSoft le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.':
+      'NubikSoft gave this store free use. It has no charges or due dates.',
+  'NubikSoft te enviará el enlace de pago por WhatsApp antes de cada vencimiento.':
+      'NubikSoft will send you the payment link on WhatsApp before each due date.',
+  'NubikSoft te enviará el enlace de pago por WhatsApp.':
+      'NubikSoft will send you the payment link on WhatsApp.',
+  'Puedes ver tu inventario, pero no agregar ni editar productos. La tienda se reactiva en cuanto se registre el pago.':
+      'You can see your inventory, but not add or edit products. The store is reactivated as soon as the payment is recorded.',
+  'Sin registro':
+      'No record',
+  'Tu tienda todavía no tiene fechas de pago registradas. Puedes seguir usando Zentory con normalidad.':
+      'Your store doesn\'t have any payment dates recorded yet. You can keep using Zentory as usual.',
+  'Uso sin pago':
+      'Free use',
+  '\${0} por mes':
+      '\${0} per month',
   'Suscripción y pagos':
       'Subscription and payments',
   'No se pudo cargar la suscripción. Revisa tu conexión a internet.':
@@ -63,10 +87,6 @@ const Map<String, String> _en = {
       'Last payment',
   'Registrado el {0}':
       'Recorded on {0}',
-  'Contactar a Zentory por WhatsApp':
-      'Contact Zentory on WhatsApp',
-  'Pagar o consultar por WhatsApp':
-      'Pay or ask on WhatsApp',
   'Cómo funciona el pago':
       'How payment works',
   'Se paga una mensualidad por tienda, al final de cada mes de uso. No hay pago inicial.':
@@ -87,14 +107,8 @@ const Map<String, String> _en = {
       'No payments recorded yet.',
   'El historial de pagos solo lo ve el administrador de la tienda.':
       'Only the store administrator can see the payment history.',
-  'Sin pago':
-      'No charge',
-  'Zentory le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.':
-      'Zentory gave this store free use. It has no charges or due dates.',
   'Activa':
       'Active',
-  'Tu tienda todavía no tiene fechas de pago registradas.':
-      'Your store doesn\'t have any payment dates recorded yet.',
   'Al día':
       'Up to date',
   'Todo en orden. Faltan {0} días para el próximo pago.':
@@ -159,8 +173,6 @@ const Map<String, String> _en = {
       'Hi, I\'m {0} from the store {1}. {2}',
   'No se pudo abrir WhatsApp':
       'Couldn\'t open WhatsApp',
-  'No se pudo abrir la página de Zentory':
-      'Couldn\'t open the Zentory page',
   'Ayuda y Soporte':
       'Help & Support',
   '¿En qué podemos ayudarte?':
@@ -823,8 +835,6 @@ const Map<String, String> _en = {
       'Scan it or type it',
   'La suscripción de esta tienda está vencida. Puedes ver tu inventario, pero no agregar ni editar productos hasta renovarla.':
       'This store\'s subscription has expired. You can view your inventory, but you can\'t add or edit products until it\'s renewed.',
-  'Hola, quiero renovar la suscripción de Zentory de la tienda {0}.':
-      'Hi, I\'d like to renew the Zentory subscription for the store {0}.',
   'Tu suscripción vence pronto':
       'Your subscription expires soon',
   'Vence el {0}. Renuévala para seguir agregando y editando productos.':
@@ -835,15 +845,35 @@ const Map<String, String> _en = {
       'It expired on {0}. You have a few grace days before the store becomes read-only.',
   'Suscripción suspendida':
       'Subscription suspended',
-  'Puedes ver tu inventario, pero no agregar ni editar productos. Renueva la suscripción para reactivar la tienda.':
-      'You can view your inventory, but you can\'t add or edit products. Renew the subscription to reactivate the store.',
-  'Renovar por WhatsApp':
-      'Renew via WhatsApp',
 };
 
 const Map<String, String> _zh = {
-  'Hola, quiero consultar o pagar la suscripción de Zentory de la tienda {0}.':
-      '你好，我想查询或支付 {0} 店铺的 Zentory 订阅费用。',
+  'Contactar soporte':
+      '联系客服',
+  'Hola, me registré en Zentory con el correo {0} y necesito ayuda con mi cuenta.':
+      '你好，我用邮箱 {0} 注册了 Zentory，需要账户方面的帮助。',
+  'Hola, necesito soporte con Zentory en la tienda {0}.':
+      '你好，我在 {0} 店铺使用 Zentory 时需要技术支持。',
+  'Hola, necesito soporte técnico con Zentory.':
+      '你好，我需要 Zentory 的技术支持。',
+  'Mensualidad':
+      '月费',
+  'NubikSoft le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.':
+      'NubikSoft 已授予此店铺免费使用，没有任何费用或到期日。',
+  'NubikSoft te enviará el enlace de pago por WhatsApp antes de cada vencimiento.':
+      'NubikSoft 会在每次到期前通过 WhatsApp 向您发送付款链接。',
+  'NubikSoft te enviará el enlace de pago por WhatsApp.':
+      'NubikSoft 会通过 WhatsApp 向您发送付款链接。',
+  'Puedes ver tu inventario, pero no agregar ni editar productos. La tienda se reactiva en cuanto se registre el pago.':
+      '您可以查看库存，但不能添加或编辑商品。付款记录后店铺会立即恢复。',
+  'Sin registro':
+      '无记录',
+  'Tu tienda todavía no tiene fechas de pago registradas. Puedes seguir usando Zentory con normalidad.':
+      '您的店铺尚未记录付款日期。您可以照常使用 Zentory。',
+  'Uso sin pago':
+      '免费使用',
+  '\${0} por mes':
+      '每月 \${0}',
   'Suscripción y pagos':
       '订阅与付款',
   'No se pudo cargar la suscripción. Revisa tu conexión a internet.':
@@ -870,10 +900,6 @@ const Map<String, String> _zh = {
       '最近一次付款',
   'Registrado el {0}':
       '记录于 {0}',
-  'Contactar a Zentory por WhatsApp':
-      '通过 WhatsApp 联系 Zentory',
-  'Pagar o consultar por WhatsApp':
-      '通过 WhatsApp 付款或咨询',
   'Cómo funciona el pago':
       '付款方式说明',
   'Se paga una mensualidad por tienda, al final de cada mes de uso. No hay pago inicial.':
@@ -894,14 +920,8 @@ const Map<String, String> _zh = {
       '暂无付款记录。',
   'El historial de pagos solo lo ve el administrador de la tienda.':
       '只有店铺管理员可以查看付款记录。',
-  'Sin pago':
-      '免费使用',
-  'Zentory le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.':
-      'Zentory 已授予此店铺免费使用，没有任何费用或到期日。',
   'Activa':
       '有效',
-  'Tu tienda todavía no tiene fechas de pago registradas.':
-      '您的店铺尚未记录付款日期。',
   'Al día':
       '已付清',
   'Todo en orden. Faltan {0} días para el próximo pago.':
@@ -966,8 +986,6 @@ const Map<String, String> _zh = {
       '你好，我是{1}店的{0}。{2}',
   'No se pudo abrir WhatsApp':
       '无法打开 WhatsApp',
-  'No se pudo abrir la página de Zentory':
-      '无法打开 Zentory 页面',
   'Ayuda y Soporte':
       '帮助与支持',
   '¿En qué podemos ayudarte?':
@@ -1630,8 +1648,6 @@ const Map<String, String> _zh = {
       '扫描或手动输入',
   'La suscripción de esta tienda está vencida. Puedes ver tu inventario, pero no agregar ni editar productos hasta renovarla.':
       '本店铺的订阅已过期。您可以查看库存，但在续订前无法添加或编辑商品。',
-  'Hola, quiero renovar la suscripción de Zentory de la tienda {0}.':
-      '你好，我想为店铺 {0} 续订 Zentory。',
   'Tu suscripción vence pronto':
       '您的订阅即将到期',
   'Vence el {0}. Renuévala para seguir agregando y editando productos.':
@@ -1642,8 +1658,4 @@ const Map<String, String> _zh = {
       '已于 {0} 到期。店铺变为只读前还有几天宽限期。',
   'Suscripción suspendida':
       '订阅已暂停',
-  'Puedes ver tu inventario, pero no agregar ni editar productos. Renueva la suscripción para reactivar la tienda.':
-      '您可以查看库存，但无法添加或编辑商品。续订后即可重新启用店铺。',
-  'Renovar por WhatsApp':
-      '通过 WhatsApp 续订',
 };

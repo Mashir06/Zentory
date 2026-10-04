@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/strings.dart';
 import '../models/user_access.dart';
@@ -9,6 +8,7 @@ import '../routes.dart';
 import '../services/auth_service.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
+import '../utils/support.dart';
 import '../widgets/common.dart';
 
 /// Pantalla de una cuenta sin acceso: recién registrada (espera a que
@@ -22,8 +22,6 @@ class PendingApprovalScreen extends StatefulWidget {
 }
 
 class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
-  static final _zentoryPage = Uri.parse('https://www.nubiksoft.com/zentory/');
-
   StreamSubscription<AccessState?>? _sub;
   AccessState _state = AccessState.pending;
   bool _leaving = false;
@@ -58,14 +56,13 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
     Routes.resetTo(context, Routes.session);
   }
 
+  /// Soporte por WhatsApp (sin pasar por la web, que muestra precios).
   Future<void> _contact() async {
-    var ok = false;
-    try {
-      ok = await launchUrl(_zentoryPage, mode: LaunchMode.externalApplication);
-    } catch (_) {}
-    if (!ok && mounted) {
-      showMessage(context, tr('No se pudo abrir la página de Zentory'));
-    }
+    final email = AuthService.instance.currentUser?.email ?? '';
+    final ok = await openSupportWhatsApp(tr(
+        'Hola, me registré en Zentory con el correo {0} y necesito ayuda con mi cuenta.',
+        [email]));
+    if (!ok && mounted) showMessage(context, tr('No se pudo abrir WhatsApp'));
   }
 
   Future<void> _requestAgain() async {
@@ -217,7 +214,7 @@ class _PendingApprovalScreenState extends State<PendingApprovalScreen> {
                   ],
                   OutlinedButton.icon(
                     onPressed: _contact,
-                    icon: Icon(Icons.open_in_new, size: 18),
+                    icon: Icon(Icons.chat_outlined, size: 18),
                     label: Text(tr('Contactar a Zentory')),
                   ),
                   SizedBox(height: 8),

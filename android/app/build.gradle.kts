@@ -50,6 +50,11 @@ android {
     }
 
     signingConfigs {
+        // Firma clásica (v1) además de la moderna (v2) también en debug.
+        getByName("debug") {
+            enableV1Signing = true
+            enableV2Signing = true
+        }
         create("release") {
             if (keystorePropertiesFile.exists()) {
                 keyAlias = keystoreProperties.getProperty("keyAlias")

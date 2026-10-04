@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/strings.dart';
 import '../models/subscription.dart';
 import '../services/zentory_repository.dart';
 import '../theme/app_colors.dart';
 import '../utils/date_utils.dart';
+import '../utils/support.dart';
 import '../widgets/common.dart';
-import '../widgets/subscription_banner.dart' show nubikSoftWhatsApp;
 
 /// Ajustes > Suscripción y pagos: estado de la mensualidad de la tienda
 /// activa, próxima fecha de pago, días de gracia e historial de pagos.
+///
+/// Solo muestra información. Por la política de pagos de Google Play no hay
+/// ningún botón, enlace ni texto que lleve a pagar fuera de Google Play: el
+/// enlace de pago lo envía NubikSoft por WhatsApp desde el panel web.
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
 
@@ -80,17 +83,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
   }
 
-  Future<void> _contact(String storeName) async {
-    final message = tr(
-        'Hola, quiero consultar o pagar la suscripción de Zentory de la tienda {0}.',
-        [storeName]);
-    final uri = Uri.parse(
-      'https://wa.me/$nubikSoftWhatsApp?text=${Uri.encodeComponent(message)}',
-    );
-    var ok = false;
-    try {
-      ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {}
+  Future<void> _contactSupport(String storeName) async {
+    final ok = await openSupportWhatsApp(
+        tr('Hola, necesito soporte con Zentory en la tienda {0}.', [storeName]));
     if (!ok && mounted) showMessage(context, tr('No se pudo abrir WhatsApp'));
   }
 
@@ -217,43 +212,80 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ),
         SizedBox(height: 12),
 
-        // Fechas
-        if (!sub.exempt && until != null)
+        // Mensualidad y fechas (no aplica a tiendas con uso sin pago)
+        if (!sub.exempt)
           ZCard(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Column(
               children: [
                 _InfoRow(
-                  icon: Icons.event,
-                  label: tr('Próximo pago'),
-                  value: DateUtilsZ.longDate(until),
-                  hint: _daysText(days!),
+                  icon: Icons.payments_outlined,
+                  label: tr('Mensualidad'),
+                  value: tr('\${0} por mes', [_money(sub.monthlyFee)]),
+                  last: until == null,
                 ),
-                _InfoRow(
-                  icon: Icons.notifications_active_outlined,
-                  label: tr('Aviso de pago desde'),
-                  value: DateUtilsZ.longDate(sub.warningStarts!),
-                ),
-                _InfoRow(
-                  icon: Icons.hourglass_bottom,
-                  label: tr('Último día de gracia'),
-                  value: DateUtilsZ.longDate(sub.graceEnds!),
-                  hint: tr('Después, la tienda queda en solo lectura'),
-                ),
-                _InfoRow(
-                  icon: sub.canEdit ? Icons.edit_outlined : Icons.lock_outline,
-                  label: tr('Agregar y editar productos'),
-                  value: sub.canEdit ? tr('Permitido') : tr('Bloqueado'),
-                  valueColor:
-                      sub.canEdit ? AppColors.primary : AppColors.danger,
-                  last: true,
-                ),
+                if (until != null) ...[
+                  _InfoRow(
+                    icon: Icons.event,
+                    label: tr('Próximo pago'),
+                    value: DateUtilsZ.longDate(until),
+                    hint: _daysText(days!),
+                  ),
+                  _InfoRow(
+                    icon: Icons.notifications_active_outlined,
+                    label: tr('Aviso de pago desde'),
+                    value: DateUtilsZ.longDate(sub.warningStarts!),
+                  ),
+                  _InfoRow(
+                    icon: Icons.hourglass_bottom,
+                    label: tr('Último día de gracia'),
+                    value: DateUtilsZ.longDate(sub.graceEnds!),
+                    hint: tr('Después, la tienda queda en solo lectura'),
+                  ),
+                  _InfoRow(
+                    icon: sub.canEdit
+                        ? Icons.edit_outlined
+                        : Icons.lock_outline,
+                    label: tr('Agregar y editar productos'),
+                    value: sub.canEdit ? tr('Permitido') : tr('Bloqueado'),
+                    valueColor:
+                        sub.canEdit ? AppColors.primary : AppColors.danger,
+                    last: true,
+                  ),
+                ],
               ],
             ),
           ),
 
+        // Cómo se cobra: solo informativo, sin enlace ni botón.
+        if (!sub.exempt) ...[
+          SizedBox(height: 12),
+          ZCard(
+            padding: EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, color: AppColors.info, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    tr('NubikSoft te enviará el enlace de pago por WhatsApp antes de cada vencimiento.'),
+                    style: TextStyle(
+                      color: AppColors.textSoft,
+                      fontSize: 14,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+
         // Último pago
-        if (data.payments != null && data.payments!.isNotEmpty) ...[
+        if (!sub.exempt &&
+            data.payments != null &&
+            data.payments!.isNotEmpty) ...[
           SizedBox(height: 12),
           ZCard(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -270,18 +302,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           ),
         ],
 
-        SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: () => _contact(data.storeName),
-          icon: Icon(Icons.chat_outlined, size: 18),
-          label: Text(sub.exempt
-              ? tr('Contactar a Zentory por WhatsApp')
-              : tr('Pagar o consultar por WhatsApp')),
-        ),
-
-        // Cómo funciona
-        _sectionTitle(tr('Cómo funciona el pago')),
-        ZCard(
+        // Cómo funciona (solo informativo)
+        if (!sub.exempt) ...[
+          _sectionTitle(tr('Cómo funciona el pago')),
+          ZCard(
           padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,9 +321,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ],
           ),
         ),
+        ],
 
         // Historial (solo administrador)
-        if (data.isAdmin) ...[
+        if (!sub.exempt && data.isAdmin) ...[
           _sectionTitle(tr('Historial de pagos')),
           ZCard(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -327,7 +352,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         ],
                       ),
           ),
-        ] else ...[
+        ] else if (!sub.exempt) ...[
           SizedBox(height: 12),
           Text(
             tr('El historial de pagos solo lo ve el administrador de la tienda.'),
@@ -335,6 +360,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             style: TextStyle(color: AppColors.textMuted, fontSize: 12),
           ),
         ],
+
+        // Soporte (no menciona pagos ni precios)
+        SizedBox(height: 20),
+        OutlinedButton.icon(
+          onPressed: () => _contactSupport(data.storeName),
+          icon: Icon(Icons.support_agent, size: 18),
+          label: Text(tr('Contactar soporte')),
+        ),
         SizedBox(height: 24),
       ],
     );
@@ -346,16 +379,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       return (
         AppColors.info,
         Icons.workspace_premium_outlined,
-        tr('Sin pago'),
-        tr('Zentory le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.'),
+        tr('Uso sin pago'),
+        tr('NubikSoft le dio a esta tienda uso sin pago. No tiene cobros ni vencimientos.'),
       );
     }
     if (!sub.hasRecord || sub.paidUntil == null) {
       return (
-        AppColors.primary,
-        Icons.check_circle_outline,
-        tr('Activa'),
-        tr('Tu tienda todavía no tiene fechas de pago registradas.'),
+        AppColors.textSecondary,
+        Icons.help_outline,
+        tr('Sin registro'),
+        tr('Tu tienda todavía no tiene fechas de pago registradas. Puedes seguir usando Zentory con normalidad.'),
       );
     }
     return switch (status) {
@@ -396,6 +429,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     if (days == -1) return tr('Venció ayer');
     return tr('Venció hace {0} días', [-days]);
   }
+
+  /// "25" o "25.50".
+  String _money(double v) =>
+      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
 
   String _paymentTitle(PaymentRecord p) {
     final months = p.months == 1 ? tr('1 mes') : tr('{0} meses', [p.months]);
