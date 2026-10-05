@@ -21,24 +21,14 @@ Future<void> showNotificationSetupSheet(BuildContext context) {
 }
 
 const _prefPrompted = 'notification_setup_prompted_v1';
-const _prefForceStopPrompted = 'force_stop_setup_prompted_v1';
 
 /// Abre la guía automáticamente una sola vez si el teléfono tiene algo que
 /// impide las alertas (permisos, batería...) o es de un fabricante conocido
-/// por bloquear el segundo plano.
+/// por bloquear el segundo plano. No se vuelve a abrir sola al cerrar la app
+/// (por ejemplo, desde Recientes).
 Future<void> maybePromptNotificationSetup(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
-  if (prefs.getBool(_prefPrompted) ?? false) {
-    // Ya se mostró la guía. Se vuelve a ofrecer (una vez) si detectamos que
-    // la app fue cerrada a la fuerza.
-    if (prefs.getBool(_prefForceStopPrompted) ?? false) return;
-    final status = await DeviceSettings.status();
-    if (!status.lastExitForceStopped) return;
-    await prefs.setBool(_prefForceStopPrompted, true);
-    if (!context.mounted) return;
-    await showNotificationSetupSheet(context);
-    return;
-  }
+  if (prefs.getBool(_prefPrompted) ?? false) return;
   if (!(prefs.getBool(NotificationService.prefNotificationsEnabled) ?? true)) {
     return;
   }
