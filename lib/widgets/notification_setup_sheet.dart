@@ -139,13 +139,6 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 6),
-          Text(
-            s != null && s.hasAggressiveBatteryManager
-                ? tr('Tu {0} puede cerrar Zentory en segundo plano y bloquear las alertas de vencimiento.', [s.brand.isEmpty ? tr('teléfono') : s.brand])
-                : tr('Revisa estos ajustes para recibir las alertas de vencimiento aunque la app esté cerrada.'),
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
           SizedBox(height: 16),
           if (s == null)
             Padding(
@@ -153,24 +146,6 @@ class _NotificationSetupSheetState extends State<_NotificationSetupSheet>
               child: Center(child: CircularProgressIndicator()),
             )
           else ...[
-            if (s.lastExitForceStopped)
-              ZCard(
-                color: AppColors.alertBrown,
-                margin: EdgeInsets.only(bottom: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: AppColors.onColor),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        tr('La última vez Zentory se cerró desde Recientes y el sistema la detuvo: mientras está así no recibe alertas. Fíjala con el candado en Recientes para que no vuelva a pasar.'),
-                        style: TextStyle(color: AppColors.onColor, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             _StepTile(
               icon: Icons.notifications_active_outlined,
               title: tr('Permitir notificaciones'),
