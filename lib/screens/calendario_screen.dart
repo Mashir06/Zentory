@@ -27,6 +27,7 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
   DateTime _selected = DateUtilsZ.today();
   _ListMode _mode = _ListMode.month;
   List<Product> _products = [];
+  List<CatalogItem> _catalog = [];
 
   /// Número de lote (L001...) de cada registro, igual que en Productos.
   Map<String, String> _labels = {};
@@ -43,11 +44,17 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
   Future<void> _load() async {
     try {
       final storeId = await _repo.resolveActiveStoreId();
-      final products =
-          storeId == null ? <Product>[] : await _repo.fetchProducts(storeId);
+      final results = storeId == null
+          ? [<Product>[], <CatalogItem>[]]
+          : await Future.wait<List<Object>>([
+              _repo.fetchProducts(storeId),
+              _repo.fetchCatalog(storeId),
+            ]);
+      final products = results[0].cast<Product>();
       if (!mounted) return;
       setState(() {
         _products = products;
+        _catalog = results[1].cast<CatalogItem>();
         _labels = lotLabels(products);
         _loading = false;
       });
@@ -110,7 +117,10 @@ class _CalendarioScreenState extends State<CalendarioScreen> {
 
   /// Lotes agrupados por producto, empezando por el que vence antes.
   List<ProductGroup> _groupsOf(List<Product> lots) {
-    final groups = groupProducts(lots);
+    // El catálogo aporta las fotos; solo se muestran productos con lotes.
+    final groups = groupProducts(lots, catalog: _catalog)
+        .where((g) => g.lots.isNotEmpty)
+        .toList();
     groups.sort((a, b) {
       final ea = a.nextExpiry;
       final eb = b.nextExpiry;

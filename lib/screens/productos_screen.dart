@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/product.dart';
@@ -80,11 +82,21 @@ class _ProductosScreenState extends State<ProductosScreen> {
   Future<void> _load() async {
     try {
       final storeId = _storeId ?? await _repo.resolveActiveStoreId();
-      final products =
-          storeId == null ? <Product>[] : await _repo.fetchProducts(storeId);
-      final catalog = storeId == null
-          ? <CatalogItem>[]
-          : await _repo.fetchCatalog(storeId);
+      // Lotes y catálogo se piden a la vez.
+      final results = storeId == null
+          ? [<Product>[], <CatalogItem>[]]
+          : await Future.wait<List<Object>>([
+              _repo.fetchProducts(storeId),
+              _repo.fetchCatalog(storeId),
+            ]);
+      final products = results[0].cast<Product>();
+      final catalog = results[1].cast<CatalogItem>();
+      // Aligera los lotes antiguos que guardaban una copia de la foto.
+      if (storeId != null) {
+        unawaited(_repo
+            .stripLotImages(storeId, products, catalog)
+            .catchError((Object _) {}));
+      }
       if (!mounted) return;
       setState(() {
         _storeId = storeId;
@@ -152,6 +164,19 @@ class _ProductosScreenState extends State<ProductosScreen> {
   // Acciones (mismo funcionamiento que antes)
   // ---------------------------------------------------------------------------
 
+  /// Foto del producto del lote: la del catálogo (los lotes nuevos no
+  /// guardan copia) o, en datos antiguos, la del propio lote.
+  String? _photoOf(Product p) {
+    final key = productKey(p.nombre, p.codigoBarras);
+    for (final c in _catalog) {
+      if (productKey(c.nombre, c.codigoBarras) == key &&
+          (c.imagenBase64 ?? '').isNotEmpty) {
+        return c.imagenBase64;
+      }
+    }
+    return p.imagenBase64;
+  }
+
   /// Editar un lote: solo fecha de vencimiento y cantidad.
   Future<void> _edit(Product p) async {
     await Navigator.of(context).pushNamed(
@@ -159,7 +184,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       arguments: LotFormArgs(
         nombre: p.nombre,
         presentacion: p.presentacion,
-        imagenBase64: p.imagenBase64,
+        imagenBase64: _photoOf(p),
         codigoBarras: p.codigoBarras,
         lotId: p.id,
         lotLabel: _labels[p.id],
@@ -183,7 +208,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       await _repo.deleteProduct(storeId, p.id);
       // Reprograma las alertas: se quitan las de este lote y se
       // conservan las de los demás lotes del mismo producto.
-      await NotificationService.instance.syncStore(storeId);
+      unawaited(NotificationService.instance.syncStore(storeId));
       if (mounted) showMessage(context, tr('Eliminado'));
       _load();
     } catch (e) {

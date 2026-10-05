@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -587,13 +588,27 @@ class ZentoryRepository {
 
   /// Impide agregar o editar productos si la suscripción está suspendida.
   /// (Firestore también lo bloquea con sus reglas de seguridad.)
-  Future<void> _ensureWritable(String storeId) async {
-    Subscription sub;
-    try {
-      sub = await fetchSubscription(storeId);
-    } catch (_) {
-      return; // Sin conexión: decide el servidor al sincronizar.
+  /// Suscripción recién consultada, para no preguntarla en cada guardado.
+  final Map<String, (Subscription, DateTime)> _subCache = {};
+  static const _subCacheTime = Duration(minutes: 5);
+
+  Future<Subscription?> _cachedSubscription(String storeId) async {
+    final hit = _subCache[storeId];
+    if (hit != null && DateTime.now().difference(hit.$2) < _subCacheTime) {
+      return hit.$1;
     }
+    try {
+      final sub = await fetchSubscription(storeId);
+      _subCache[storeId] = (sub, DateTime.now());
+      return sub;
+    } catch (_) {
+      return null; // Sin conexión: decide el servidor al sincronizar.
+    }
+  }
+
+  Future<void> _ensureWritable(String storeId) async {
+    final sub = await _cachedSubscription(storeId);
+    if (sub == null) return;
     if (!sub.canEdit) {
       throw ZentoryException(tr(
           'La suscripción de esta tienda está vencida. Puedes ver tu inventario, pero no agregar ni editar productos hasta renovarla.'));
@@ -752,7 +767,8 @@ class ZentoryRepository {
         batch.update(d.reference, {
           'nombre': name,
           'presentacion': presentacion.trim(),
-          'imagen': imagenBase64,
+          // La foto vive solo en el catálogo.
+          'imagen': FieldValue.delete(),
           'codigoBarras': code.isEmpty ? FieldValue.delete() : code,
         });
       }
@@ -816,27 +832,77 @@ class ZentoryRepository {
     await _ensureWritable(storeId);
     final name = nombre.trim();
     final code = codigoBarras?.trim() ?? '';
+    // La foto se guarda solo en la ficha del catálogo, no en cada lote: así
+    // los lotes pesan poco y la app carga mucho más rápido.
     await products(storeId).add({
       'nombre': name,
       'presentacion': presentacion.trim(),
-      'imagen': imagenBase64,
       if (code.isNotEmpty) 'codigoBarras': code,
       'cantidad': cantidad,
       'fechaVencimiento': fechaVencimiento,
       'fechaRegistro': Timestamp.now(),
       'usuarioId': currentUser?.uid,
     });
-    // Asegura que el producto exista en el catálogo (datos antiguos).
+    // Asegura (en segundo plano) que el producto exista en el catálogo, con
+    // su foto. Solo hace falta en datos antiguos.
+    unawaited(_ensureCatalogEntry(
+      storeId,
+      name: name,
+      code: code,
+      presentacion: presentacion,
+      imagenBase64: imagenBase64,
+    ).catchError((Object _) {}));
+  }
+
+  Future<void> _ensureCatalogEntry(
+    String storeId, {
+    required String name,
+    required String code,
+    required String presentacion,
+    String? imagenBase64,
+  }) async {
+    if (name.isEmpty) return;
     final exists = code.isNotEmpty
         ? await findProductByBarcode(storeId, code) != null
         : await findProduct(storeId, name) != null;
-    if (!exists && name.isNotEmpty) {
-      await catalog(storeId).doc(_catalogId(name, code)).set({
-        'nombre': name,
-        'presentacion': presentacion.trim(),
-        'imagen': imagenBase64,
-        if (code.isNotEmpty) 'codigoBarras': code,
-      });
+    if (exists) return;
+    await catalog(storeId).doc(_catalogId(name, code)).set({
+      'nombre': name,
+      'presentacion': presentacion.trim(),
+      'imagen': imagenBase64,
+      if (code.isNotEmpty) 'codigoBarras': code,
+    });
+  }
+
+  /// Quita la copia de la foto de los lotes antiguos cuyo producto ya tiene
+  /// foto en el catálogo (la app la toma de ahí). Se hace en segundo plano,
+  /// una vez, y deja los lotes mucho más livianos.
+  Future<void> stripLotImages(
+      String storeId, List<Product> lots, List<CatalogItem> items) async {
+    final withPhoto = <String>{
+      for (final c in items)
+        if ((c.imagenBase64 ?? '').isNotEmpty)
+          ((c.codigoBarras ?? '').trim().isNotEmpty
+              ? 'c:${c.codigoBarras!.trim()}'
+              : c.nombre.trim().toLowerCase()),
+    };
+    final ids = [
+      for (final l in lots)
+        if ((l.imagenBase64 ?? '').isNotEmpty &&
+            withPhoto.contains((l.codigoBarras ?? '').isNotEmpty
+                ? 'c:${l.codigoBarras}'
+                : l.nombre.trim().toLowerCase()))
+          l.id,
+    ];
+    if (ids.isEmpty) return;
+    final sub = await _cachedSubscription(storeId);
+    if (sub == null || !sub.canEdit) return;
+    for (var i = 0; i < ids.length; i += 450) {
+      final batch = _db.batch();
+      for (final id in ids.skip(i).take(450)) {
+        batch.update(products(storeId).doc(id), {'imagen': FieldValue.delete()});
+      }
+      await batch.commit();
     }
   }
 

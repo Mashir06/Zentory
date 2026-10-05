@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -250,8 +251,8 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           imagenBase64: _imagenBase64,
           codigoBarras: _codigo.text.trim(),
         );
-        // El nombre aparece en las alertas: se reprograman.
-        await NotificationService.instance.syncStore(storeId);
+        // El nombre aparece en las alertas: se reprograman (en segundo plano).
+        unawaited(NotificationService.instance.syncStore(storeId));
         if (!mounted) return;
         showMessage(context, tr('Producto actualizado'));
         Navigator.of(context).pop(true);
@@ -299,7 +300,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
     setState(() => _saving = true);
     try {
       await _repo.deleteProductAndLots(storeId, name, widget.args.editCode);
-      await NotificationService.instance.syncStore(storeId);
+      unawaited(NotificationService.instance.syncStore(storeId));
       if (!mounted) return;
       showMessage(context, tr('Producto eliminado'));
       Navigator.of(context).pop(true);
@@ -551,8 +552,8 @@ class _LotFormScreenState extends State<LotFormScreen> {
           fechaVencimiento: fechaStr,
         );
       }
-      // Reprograma las alertas de todos los lotes de la tienda
-      await NotificationService.instance.syncStore(storeId);
+      // Reprograma las alertas en segundo plano: no hace esperar al usuario.
+      unawaited(NotificationService.instance.syncStore(storeId));
       if (!mounted) return;
       if (_isEditing) {
         showMessage(context, tr('Lote actualizado'));
