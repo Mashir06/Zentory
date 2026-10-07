@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -145,7 +146,49 @@ class _ZentoryAppState extends State<ZentoryApp> {
         value: AppColors.isDark
             ? SystemUiOverlayStyle.light
             : SystemUiOverlayStyle.dark,
-        child: child ?? SizedBox.shrink(),
+        child: kIsWeb
+            ? _WideScreenFrame(child: child ?? SizedBox.shrink())
+            : child ?? SizedBox.shrink(),
+      ),
+    );
+  }
+}
+
+/// En la web, en pantallas anchas (computadora, tablet horizontal) la app se
+/// muestra centrada con ancho de teléfono, en vez de estirarse a todo lo
+/// ancho. En el celular no cambia nada.
+class _WideScreenFrame extends StatelessWidget {
+  const _WideScreenFrame({required this.child});
+
+  final Widget child;
+
+  static const _maxWidth = 480.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    if (mq.size.width <= _maxWidth + 120) return child;
+    return ColoredBox(
+      color: AppColors.backgroundBottom,
+      child: Center(
+        child: Container(
+          width: _maxWidth,
+          decoration: BoxDecoration(
+            border: Border.symmetric(
+              vertical: BorderSide(color: AppColors.border, width: 1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.35),
+                blurRadius: 40,
+              ),
+            ],
+          ),
+          child: MediaQuery(
+            data: mq.copyWith(size: Size(_maxWidth, mq.size.height)),
+            child: child,
+          ),
+        ),
       ),
     );
   }
