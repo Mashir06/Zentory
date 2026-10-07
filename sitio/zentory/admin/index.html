@@ -65,6 +65,10 @@
     header.bar .id { display: flex; align-items: center; gap: 10px; font-weight: 600; }
     header.bar img { width: 30px; height: 26px; object-fit: contain; }
     header.bar .who { font-size: 13px; color: #CBD5E1; display: flex; gap: 12px; align-items: center; }
+    nav.tabs { display: flex; gap: 4px; margin-left: 18px; }
+    nav.tabs a { color: #CBD5E1; text-decoration: none; padding: 5px 12px; border-radius: 8px; font-weight: 500; font-size: 14px; }
+    nav.tabs a:hover { color: #fff; background: rgba(255,255,255,.08); }
+    nav.tabs a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.14); }
     header.bar button { background: transparent; border: 1px solid #475569; color: #fff; border-radius: 8px; padding: 5px 12px; cursor: pointer; }
 
     main { width: min(1180px, 100% - 32px); margin: 24px auto 64px; }
@@ -159,7 +163,8 @@
     }
 
     @media (max-width: 760px) {
-      header.bar { padding: 10px 16px; }
+      header.bar { padding: 10px 16px; flex-wrap: wrap; }
+      nav.tabs { margin-left: 0; }
       #who-email { display: none; }
       header.bar button { white-space: nowrap; }
       .summary { grid-template-columns: 1fr 1fr; }
@@ -176,7 +181,12 @@
 </head>
 <body>
   <header class="bar">
-    <div class="id"><img src="../../assets/zentory-icon.png" alt="">Administración de Zentory</div>
+    <div class="id"><img src="../../assets/zentory-icon.png" alt="">Administración de Zentory
+      <nav class="tabs" id="tabs" aria-label="Secciones" hidden>
+        <a href="./" aria-current="page">Tiendas</a>
+        <a href="metricas.html">Métricas</a>
+      </nav>
+    </div>
     <div class="who" id="who" hidden>
       <span id="who-email"></span>
       <button id="logout" type="button">Cerrar sesión</button>

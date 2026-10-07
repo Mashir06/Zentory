@@ -110,6 +110,7 @@ function friendlyError(e) {
 
 function show(section) {
   for (const id of ['login', 'not-admin', 'panel']) $(id).hidden = id !== section;
+  if ($('tabs')) $('tabs').hidden = section !== 'panel';
 }
 
 // ---------------------------------------------------------------------------
