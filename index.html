@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NubikSoft</title>
+  <meta name="description" content="NubikSoft es una empresa de software de Panamá. Creamos aplicaciones para negocios y personas: Zentory, el control de vencimientos para tiendas, y Monchi, tu control de gastos personales.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232F4BFF%27/%3E%3Cpath d=%27M9 24V8h3.2l7.6 10.6V8H23v16h-3.2L12.2 13.4V24z%27 fill=%27%23fff%27/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F2F4F7;
+      --paper-raised: #FFFFFF;
+      --ink: #172033;
+      --ink-soft: #4A5468;
+      --line: #D5DAE3;
+      --cobalt: #2F4BFF;
+      --cobalt-deep: #1E33C9;
+      --mint: #10B981;
+      --tag: #FFE45C;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --paper: #121826;
+        --paper-raised: #1A2233;
+        --ink: #EEF1F6;
+        --ink-soft: #A7B0C2;
+        --line: #2B3548;
+        --cobalt: #7D90FF;
+        --cobalt-deep: #A3B1FF;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --paper: #121826;
+      --paper-raised: #1A2233;
+      --ink: #EEF1F6;
+      --ink-soft: #A7B0C2;
+      --line: #2B3548;
+      --cobalt: #7D90FF;
+      --cobalt-deep: #A3B1FF;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      overflow-x: clip;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-variation-settings: "opsz" 14;
+      font-size: 1.0625rem;
+      line-height: 1.55;
+    }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--cobalt); outline-offset: 3px; border-radius: 4px; }
+
+    .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+    /* ---- Barra superior ---- */
+    .top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-block: 22px;
+    }
+    .brand {
+      font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+      text-decoration: none; font-variation-settings: "opsz" 48, "wdth" 85;
+    }
+    .brand b { color: var(--cobalt); font-weight: 800; }
+    .top nav { display: flex; gap: 22px; font-size: 0.98rem; }
+    .top nav a { text-decoration: none; color: var(--ink-soft); }
+    .top nav a:hover { color: var(--ink); }
+
+    /* ---- Portada ---- */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 56px;
+      align-items: center;
+      padding-block: 56px 88px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.6rem, 6.4vw, 5.2rem);
+      line-height: 0.98;
+      letter-spacing: -0.035em;
+      font-weight: 750;
+      font-variation-settings: "opsz" 96, "wdth" 78;
+      max-width: 11ch;
+    }
+    .hero p {
+      margin: 26px 0 0;
+      max-width: 46ch;
+      color: var(--ink-soft);
+      font-size: 1.18rem;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 22px; border-radius: 999px;
+      font: inherit; font-weight: 650; text-decoration: none;
+      border: 1.5px solid transparent;
+    }
+    .btn-primary { background: var(--cobalt); color: #fff; }
+    .btn-primary:hover { background: var(--cobalt-deep); }
+    .btn-ghost { border-color: var(--line); color: var(--ink); }
+    .btn-ghost:hover { border-color: var(--ink-soft); }
+
+    /* ---- Etiqueta de góndola (el elemento distintivo) ---- */
+    .shelf {
+      position: relative; padding-bottom: 26px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: end;
+    }
+    .shelf::after {           /* el riel del estante */
+      content: ""; position: absolute; left: -8%; right: -8%; bottom: 0;
+      height: 14px; border-radius: 3px;
+      background: linear-gradient(var(--line), var(--line)) top/100% 3px no-repeat,
+                  color-mix(in srgb, var(--line) 55%, transparent);
+    }
+    .tag {
+      display: block; text-decoration: none; color: #172033;
+      background: var(--tag);
+      border-radius: 10px 10px 4px 4px;
+      padding: 20px 20px 18px;
+      transform: rotate(-2.2deg);
+      transform-origin: 30% 100%;
+      box-shadow: 0 1px 0 rgba(23,32,51,.25), 0 18px 34px -18px rgba(23,32,51,.45);
+      position: relative;
+      transition: transform .25s ease;
+    }
+    .tag::before {            /* orificio de la etiqueta */
+      content: ""; position: absolute; top: 14px; right: 18px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--paper); box-shadow: inset 0 1px 2px rgba(0,0,0,.25);
+    }
+    .tag:hover { transform: rotate(-0.6deg) translateY(-3px); }
+    .tag.tag-monchi {
+      background: #131B2E; color: #FAFAF7; transform: rotate(1.8deg); transform-origin: 70% 100%;
+      box-shadow: 0 1px 0 rgba(0,0,0,.4), 0 18px 34px -18px rgba(19,27,46,.6);
+    }
+    .tag.tag-monchi:hover { transform: rotate(0.4deg) translateY(-3px); }
+    .tag-monchi .tag-bottom { border-top-color: rgba(250,250,247,.3); }
+    .tag-monchi .tag-price { color: #FFC800; }
+    .hero .tag-monchi .tag-desc { color: #D5D9E3; }
+    .tag-top { display: flex; align-items: center; gap: 12px; }
+    .tag-top { gap: 10px; }
+    .tag-top img { width: 38px; height: 34px; object-fit: contain; }
+    .tag-name {
+      font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;
+      font-variation-settings: "opsz" 60, "wdth" 82;
+    }
+    .tag-desc { margin: 10px 0 16px; font-size: .98rem; max-width: 30ch; }
+    .tag-bottom {
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 8px;
+      border-top: 2px dashed rgba(23,32,51,.35); padding-top: 12px;
+    }
+    .tag-small { font-size: .85rem; }
+    .tag-barcode { height: 30px; width: 58px; flex: none; }
+    .tag-price { font-weight: 800; font-size: 1.05rem; }
+
+    /* ---- Secciones ---- */
+    section { padding-block: 72px; border-top: 1px solid var(--line); }
+    h2 {
+      margin: 0 0 14px;
+      font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+      line-height: 1.05; letter-spacing: -0.025em; font-weight: 720;
+      font-variation-settings: "opsz" 72, "wdth" 85;
+    }
+    .lead { margin: 0; max-width: 58ch; color: var(--ink-soft); font-size: 1.1rem; }
+
+    .project {
+      margin-top: 36px;
+      display: grid; grid-template-columns: 220px 1fr; gap: 32px; align-items: center;
+      background: var(--paper-raised); border: 1px solid var(--line);
+      border-radius: 20px; padding: 28px;
+    }
+    .project-mark {
+      aspect-ratio: 1; border-radius: 16px; display: grid; place-items: center;
+      background: #0F172A;
+    }
+    .project-mark img { width: 78%; }
+    .project h3 {
+      margin: 0; font-size: 1.6rem; letter-spacing: -0.02em;
+      font-variation-settings: "opsz" 48, "wdth" 85;
+    }
+    .project p { margin: 8px 0 18px; color: var(--ink-soft); max-width: 60ch; }
+    .status-dot {
+      display: inline-flex; align-items: center; gap: 8px; font-size: .95rem;
+      color: var(--ink-soft); margin-left: 4px;
+    }
+    .status-dot::before {
+      content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--dot, var(--mint));
+    }
+    .status-dot.soon { --dot: #F59E0B; }
+    .project-mark.monchi { background: #131B2E; }
+    .project-mark.monchi img { width: 70%; }
+
+    .contacts {
+      margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .contact-card {
+      display: block; text-decoration: none;
+      background: var(--paper-raised); border: 1px solid var(--line); border-radius: 16px;
+      padding: 20px 22px;
+    }
+    .contact-card:hover { border-color: var(--cobalt); }
+    .contact-card span { display: block; color: var(--ink-soft); font-size: .95rem; }
+    .contact-card b {
+      display: block; margin-top: 4px; font-size: 1.3rem; letter-spacing: -0.01em;
+      font-variation-settings: "opsz" 36, "wdth" 90;
+    }
+    .contact-card small { display: block; margin-top: 6px; color: var(--cobalt); font-size: .92rem; font-weight: 600; }
+
+    .ways {
+      margin-top: 36px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px;
+    }
+    .ways h3 {
+      margin: 0 0 6px; font-size: 1.2rem;
+      font-variation-settings: "opsz" 36, "wdth" 90;
+    }
+    .ways p { margin: 0; color: var(--ink-soft); }
+
+    .contact {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end;
+      gap: 24px;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding-block: 28px 40px; color: var(--ink-soft); font-size: .95rem;
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; gap: 48px; padding-block: 28px 64px; }
+      .shelf::after { left: 0; right: 0; }
+      .shelf { max-width: 480px; }
+      .project { grid-template-columns: 1fr; }
+      .project-mark { width: 140px; }
+      .ways { grid-template-columns: 1fr; gap: 24px; }
+      .contacts { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .top nav a:not(:last-child) { display: none; }
+      section { padding-block: 56px; }
+      .shelf { grid-template-columns: 1fr; gap: 26px; max-width: 320px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tag { transition: none; }
+      .tag:hover { transform: rotate(-2.2deg); }
+      .tag.tag-monchi:hover { transform: rotate(1.8deg); }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap top">
+    <a class="brand" href="./">Nubik<b>Soft</b></a>
+    <nav aria-label="Principal">
+      <a href="#proyectos">Proyectos</a>
+      <a href="#como-trabajamos">Cómo trabajamos</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <h1>Software que resuelve cosas reales.</h1>
+        <p>En NubikSoft creamos aplicaciones para todo tipo de necesidades: desde el inventario de una tienda hasta las finanzas de cada persona. Herramientas claras, que se entienden desde el primer día.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#proyectos">Ver proyectos</a>
+          <a class="btn btn-ghost" href="#contacto">Hablemos</a>
+        </div>
+      </div>
+
+      <div class="shelf">
+        <a class="tag" href="zentory/" aria-label="Zentory: control de vencimientos para tu inventario">
+          <div class="tag-top">
+            <img src="assets/zentory-icon.png" alt="">
+            <span class="tag-name">Zentory</span>
+          </div>
+          <p class="tag-desc">Control de vencimientos para tu inventario.</p>
+          <div class="tag-bottom">
+            <div>
+              <div class="tag-small">Para tiendas</div>
+              <div class="tag-price">Disponible</div>
+            </div>
+            <svg class="tag-barcode" viewBox="0 0 58 34" aria-hidden="true">
+              <g fill="currentColor">
+                <rect x="0" width="3" height="34"/><rect x="5" width="1" height="34"/><rect x="8" width="2" height="34"/>
+                <rect x="13" width="1" height="34"/><rect x="16" width="3" height="34"/><rect x="21" width="1" height="34"/>
+                <rect x="24" width="2" height="34"/><rect x="29" width="3" height="34"/><rect x="34" width="1" height="34"/>
+                <rect x="37" width="2" height="34"/><rect x="41" width="1" height="34"/><rect x="44" width="3" height="34"/>
+                <rect x="49" width="1" height="34"/><rect x="52" width="2" height="34"/><rect x="56" width="2" height="34"/>
+              </g>
+            </svg>
+          </div>
+        </a>
+
+        <a class="tag tag-monchi" href="monchi/" aria-label="Monchi: control de gastos personales">
+          <div class="tag-top">
+            <img src="assets/monchi-icon.png" alt="">
+            <span class="tag-name">Monchi</span>
+          </div>
+          <p class="tag-desc">Tu dinero, claro y solo tuyo.</p>
+          <div class="tag-bottom">
+            <div>
+              <div class="tag-small">Para personas</div>
+              <div class="tag-price">Muy pronto</div>
+            </div>
+            <svg class="tag-barcode" viewBox="0 0 58 34" aria-hidden="true">
+              <g fill="currentColor">
+                <rect x="0" width="3" height="34"/><rect x="5" width="1" height="34"/><rect x="8" width="2" height="34"/>
+                <rect x="13" width="1" height="34"/><rect x="16" width="3" height="34"/><rect x="21" width="1" height="34"/>
+                <rect x="24" width="2" height="34"/><rect x="29" width="3" height="34"/><rect x="34" width="1" height="34"/>
+                <rect x="37" width="2" height="34"/><rect x="41" width="1" height="34"/><rect x="44" width="3" height="34"/>
+                <rect x="49" width="1" height="34"/><rect x="52" width="2" height="34"/><rect x="56" width="2" height="34"/>
+              </g>
+            </svg>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <section id="proyectos">
+      <div class="wrap">
+        <h2>Proyectos</h2>
+        <p class="lead">Cada producto de NubikSoft nace de una necesidad concreta, sea de un negocio o de una persona.</p>
+
+        <article class="project">
+          <div class="project-mark"><img src="assets/zentory-icon.png" alt="Logo de Zentory"></div>
+          <div>
+            <h3>Zentory <span class="status-dot">Disponible</span></h3>
+            <p>Registra cada producto con sus lotes y fechas de vencimiento, escanea su código de barras y recibe una alerta antes de que algo se venza en el estante. Todo el personal de la tienda trabaja sobre el mismo inventario.</p>
+            <a class="btn btn-ghost" href="zentory/">Ver Zentory</a>
+          </div>
+        </article>
+
+        <article class="project">
+          <div class="project-mark monchi"><img src="assets/monchi-icon.png" alt="Logo de Monchi"></div>
+          <div>
+            <h3>Monchi <span class="status-dot soon">Próximamente en Google Play</span></h3>
+            <p>Control de gastos personales que funciona sin conexión, sin cuenta y sin anuncios. Registra gastos e ingresos, arma presupuestos, sigue tus suscripciones y metas de ahorro. Tus datos se quedan cifrados en tu teléfono.</p>
+            <a class="btn btn-ghost" href="monchi/">Ver Monchi</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="como-trabajamos">
+      <div class="wrap">
+        <h2>Cómo trabajamos</h2>
+        <div class="ways">
+          <div>
+            <h3>Pensado para quien lo usa</h3>
+            <p>Pantallas claras, pocos pasos y en el idioma de cada persona. Si hace falta un manual para empezar, lo rediseñamos.</p>
+          </div>
+          <div>
+            <h3>Un modelo para cada proyecto</h3>
+            <p>Las apps para negocios no tienen pago inicial: el primer mes es gratis y luego una mensualidad cubre servidor, actualizaciones y soporte. Las apps personales se descargan gratis, con funciones extra opcionales.</p>
+          </div>
+          <div>
+            <h3>Soporte por WhatsApp</h3>
+            <p>Hablas directo con quien desarrolla la aplicación, por el mismo canal que ya usas todos los días.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto">
+      <div class="wrap">
+        <h2>Hablemos</h2>
+        <p class="lead">Escríbenos por WhatsApp para conocer nuestras aplicaciones o contarnos qué necesitas resolver.</p>
+        <div class="contacts">
+          <a class="contact-card" href="https://wa.me/50761857395?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20Zentory." target="_blank" rel="noopener">
+            <span>Zentory y ventas</span>
+            <b>+507 6185-7395</b>
+            <small>Escribir por WhatsApp</small>
+          </a>
+          <a class="contact-card" href="https://wa.me/50767968449?text=Hola%2C%20tengo%20una%20consulta%20sobre%20Monchi." target="_blank" rel="noopener">
+            <span>Consultas sobre Monchi</span>
+            <b>+507 6796-8449</b>
+            <small>Escribir por WhatsApp</small>
+          </a>
+          <a class="contact-card" href="https://wa.me/50767968449?text=Hola%2C%20necesito%20soporte%20t%C3%A9cnico." target="_blank" rel="noopener">
+            <span>Soporte técnico</span>
+            <b>+507 6796-8449</b>
+            <small>Escribir por WhatsApp</small>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <span>© <span id="year">2026</span> NubikSoft, Panamá</span>
+    <span><a href="zentory/">Zentory</a> · <a href="monchi/">Monchi</a></span>
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

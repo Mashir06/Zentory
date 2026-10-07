@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Zentory Admin</title>
+  <link rel="icon" href="../../assets/zentory-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F6F9;
+      --panel: #FFFFFF;
+      --ink: #111827;
+      --ink-soft: #4B5563;
+      --muted: #6B7280;
+      --line: #E1E5EB;
+      --brand: #0F172A;
+      --green: #0E9F6E;
+      --green-bg: #DEF7EC;
+      --amber: #B45309;
+      --amber-bg: #FEF3C7;
+      --red: #C81E1E;
+      --red-bg: #FDE8E8;
+      --gray-bg: #EEF0F3;
+      --blue: #1E40AF;
+      --blue-bg: #E0E7FF;
+      --focus: #2F4BFF;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0F172A; --panel: #172033; --ink: #F1F5F9; --ink-soft: #CBD5E1;
+        --muted: #94A3B8; --line: #2A3650; --brand: #020617;
+        --green: #34D399; --green-bg: #0B3B2E; --amber: #FBBF24; --amber-bg: #3D2E0A;
+        --red: #F87171; --red-bg: #43191B; --gray-bg: #222C40; --focus: #8FA0FF;
+        --blue: #A5B4FC; --blue-bg: #1E2A5A;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0F172A; --panel: #172033; --ink: #F1F5F9; --ink-soft: #CBD5E1;
+      --muted: #94A3B8; --line: #2A3650; --brand: #020617;
+      --green: #34D399; --green-bg: #0B3B2E; --amber: #FBBF24; --amber-bg: #3D2E0A;
+      --red: #F87171; --red-bg: #43191B; --gray-bg: #222C40; --focus: #8FA0FF;
+      --blue: #A5B4FC; --blue-bg: #1E2A5A;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+    }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+    button, input, select { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+
+    header.bar {
+      background: var(--brand); color: #fff;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 20px;
+    }
+    header.bar .id { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    header.bar img { width: 30px; height: 26px; object-fit: contain; }
+    header.bar .who { font-size: 13px; color: #CBD5E1; display: flex; gap: 12px; align-items: center; }
+    nav.tabs { display: flex; gap: 4px; margin-left: 18px; }
+    nav.tabs a { color: #CBD5E1; text-decoration: none; padding: 5px 12px; border-radius: 8px; font-weight: 500; font-size: 14px; }
+    nav.tabs a:hover { color: #fff; background: rgba(255,255,255,.08); }
+    nav.tabs a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.14); }
+    header.bar button { background: transparent; border: 1px solid #475569; color: #fff; border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+
+    main { width: min(1180px, 100% - 32px); margin: 24px auto 64px; }
+
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+
+    /* ---- Inicio de sesión ---- */
+    .login { max-width: 380px; margin: 64px auto; padding: 28px; }
+    .login h1 { margin: 0 0 4px; font-size: 22px; }
+    .login p { margin: 0 0 20px; color: var(--muted); }
+    label { display: block; font-weight: 500; margin: 14px 0 6px; }
+    input[type=search], input[type=email], input[type=password], input[type=text], input[type=tel], input[type=number], select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 16px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--panel); cursor: pointer; font-weight: 500;
+    }
+    .btn:hover { border-color: var(--muted); }
+    .btn-primary { background: var(--green); border-color: var(--green); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.05); border-color: var(--green); }
+    .btn-danger { color: var(--red); }
+    .btn[disabled] { opacity: .55; cursor: default; }
+    .full { width: 100%; margin-top: 20px; }
+    .error { color: var(--red); margin-top: 12px; min-height: 1.5em; }
+    .notice { padding: 20px 24px; max-width: 640px; margin: 48px auto; }
+    .notice code { background: var(--gray-bg); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+
+    /* ---- Resumen ---- */
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 18px; }
+    .summary button {
+      text-align: left; padding: 14px 16px; cursor: pointer;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    }
+    .summary button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .summary .n { display: block; font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .summary .l { color: var(--muted); font-size: 13px; }
+
+    .toolbar { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
+    .toolbar input { max-width: 340px; }
+    .toolbar .count { color: var(--muted); margin-left: auto; font-size: 13px; }
+
+    /* ---- Tabla de tiendas ---- */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th { font-size: 13px; color: var(--muted); font-weight: 500; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: var(--bg); }
+    tbody tr:last-child td { border-bottom: 0; }
+    td .sub { display: block; color: var(--muted); font-size: 13px; }
+    .pill {
+      display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap;
+    }
+    .s-activa { background: var(--green-bg); color: var(--green); }
+    .s-por-vencer, .s-gracia { background: var(--amber-bg); color: var(--amber); }
+    .s-suspendida { background: var(--red-bg); color: var(--red); }
+    .s-sin-registro { background: var(--gray-bg); color: var(--ink-soft); }
+    .s-exenta { background: var(--blue-bg); color: var(--blue); }
+    .exempt-box p { margin: 0 0 10px; color: var(--ink-soft); }
+    .btn-blue { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); font-weight: 600; }
+    .empty { padding: 36px; text-align: center; color: var(--muted); }
+
+    /* ---- Detalle de una tienda ---- */
+    dialog {
+      width: min(560px, 100% - 24px); border: 1px solid var(--line); border-radius: 14px;
+      background: var(--panel); color: var(--ink); padding: 0;
+    }
+    dialog::backdrop { background: rgba(15, 23, 42, .5); }
+    .dlg-head { padding: 18px 22px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+    .dlg-head h2 { margin: 0; font-size: 19px; }
+    .dlg-head .sub { color: var(--muted); font-size: 13px; }
+    .dlg-body { padding: 18px 22px; display: grid; gap: 18px; max-height: 70vh; overflow: auto; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin: 0; }
+    .facts dt { color: var(--muted); font-size: 13px; }
+    .facts dd { margin: 0; font-weight: 500; }
+    fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 14px; margin: 0; }
+    legend { padding: 0 6px; font-weight: 600; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+    .row > div { flex: 1; min-width: 120px; }
+    .history { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+    .history li { padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+    .history li:last-child { border-bottom: 0; }
+    .history .sub { color: var(--muted); font-size: 13px; }
+    .dlg-foot { padding: 14px 22px 18px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+    .x { background: none; border: 0; font-size: 22px; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px 6px; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+      background: var(--ink); color: var(--panel); padding: 10px 16px; border-radius: 10px;
+      font-size: 14px; max-width: calc(100% - 32px);
+    }
+
+    @media (max-width: 760px) {
+      header.bar { padding: 10px 16px; flex-wrap: wrap; }
+      nav.tabs { margin-left: 0; }
+      #who-email { display: none; }
+      header.bar button { white-space: nowrap; }
+      .summary { grid-template-columns: 1fr 1fr; }
+      thead { display: none; }
+      table, tbody, tr, td { display: block; width: 100%; }
+      tbody tr { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+      td { border: 0; padding: 2px 0; }
+      td[data-label]::before { content: attr(data-label) ": "; color: var(--muted); font-size: 13px; }
+      .toolbar { flex-wrap: wrap; }
+      .toolbar input { max-width: none; }
+      .facts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <div class="id"><img src="../../assets/zentory-icon.png" alt="">Administración de Zentory
+      <nav class="tabs" id="tabs" aria-label="Secciones" hidden>
+        <a href="./" aria-current="page">Tiendas</a>
+        <a href="metricas.html">Métricas</a>
+      </nav>
+    </div>
+    <div class="who" id="who" hidden>
+      <span id="who-email"></span>
+      <button id="logout" type="button">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Inicio de sesión -->
+    <form class="card login" id="login" hidden>
+      <h1>Panel de NubikSoft</h1>
+      <p>Inicia sesión con tu cuenta de administrador.</p>
+      <label for="email">Correo</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">Contraseña</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="btn btn-primary full" type="submit" id="login-btn">Iniciar sesión</button>
+      <div class="error" id="login-error" role="alert"></div>
+    </form>
+
+    <!-- Cuenta sin permiso -->
+    <div class="card notice" id="not-admin" hidden>
+      <h2 style="margin-top:0">Esta cuenta no es administradora</h2>
+      <p>Para darle acceso, en la consola de Firebase abre <b>Firestore Database</b>, crea la colección <code>nubiksoft_admins</code> y dentro un documento cuyo ID sea:</p>
+      <p><code id="my-uid"></code> <button class="btn" type="button" id="copy-uid">Copiar</button></p>
+      <p>No necesita campos (puedes poner <code>nombre</code> con tu nombre). Luego recarga esta página.</p>
+    </div>
+
+    <!-- Panel -->
+    <div id="panel" hidden>
+      <div class="summary" id="summary" role="group" aria-label="Filtrar por estado"></div>
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Buscar tienda, administrador o correo" aria-label="Buscar tienda">
+        <button class="btn" type="button" id="reload">Actualizar</button>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Tienda</th><th>Administrador</th><th>Personal</th><th>Lotes</th><th>Próximo pago</th><th>Estado</th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="empty" id="empty" hidden></div>
+      </div>
+    </div>
+  </main>
+
+  <dialog id="dlg" aria-labelledby="dlg-title">
+    <div class="dlg-head">
+      <div>
+        <h2 id="dlg-title"></h2>
+        <div class="sub" id="dlg-sub"></div>
+      </div>
+      <button class="x" type="button" data-close aria-label="Cerrar">×</button>
+    </div>
+    <div class="dlg-body">
+      <dl class="facts" id="dlg-facts"></dl>
+
+      <fieldset class="exempt-box">
+        <legend>Uso sin pago</legend>
+        <p id="exempt-text"></p>
+        <button class="btn btn-blue" type="button" id="exempt-btn"></button>
+      </fieldset>
+
+      <fieldset id="pay-box">
+        <legend>Registrar pago</legend>
+        <div class="row">
+          <div>
+            <label for="pay-months">Meses</label>
+            <select id="pay-months">
+              <option value="1">1 mes</option>
+              <option value="3">3 meses</option>
+              <option value="6">6 meses</option>
+              <option value="12">12 meses</option>
+            </select>
+          </div>
+          <div>
+            <label for="pay-amount">Monto (USD)</label>
+            <input id="pay-amount" type="number" min="0" step="0.01" placeholder="Opcional">
+          </div>
+        </div>
+        <label for="pay-note">Nota</label>
+        <input id="pay-note" type="text" placeholder="Ej. Yappy, transferencia, efectivo">
+        <p class="sub" id="pay-preview" style="margin:10px 0 0;color:var(--muted)"></p>
+        <button class="btn btn-primary" type="button" id="pay-btn" style="margin-top:10px">Registrar pago</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>WhatsApp del cliente</legend>
+        <div class="row">
+          <div>
+            <label for="wa">Número con código de país</label>
+            <input id="wa" type="tel" placeholder="Ej. 50761234567">
+          </div>
+          <button class="btn" type="button" id="wa-save">Guardar</button>
+          <a class="btn" id="wa-open" target="_blank" rel="noopener">Abrir chat</a>
+        </div>
+      </fieldset>
+
+      <div>
+        <strong>Historial de pagos</strong>
+        <ul class="history" id="history"></ul>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn btn-danger" type="button" id="suspend-btn">Suspender tienda</button>
+      <button class="btn" type="button" data-close>Cerrar</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

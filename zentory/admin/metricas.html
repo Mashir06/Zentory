@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Métricas · Zentory Admin</title>
+  <link rel="icon" href="../../assets/zentory-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F6F9; --panel: #FFFFFF; --ink: #111827; --ink-soft: #4B5563; --muted: #6B7280;
+      --line: #E1E5EB; --grid: #EEF0F3; --brand: #0F172A;
+      --green: #0E9F6E; --green-bg: #DEF7EC; --amber: #B45309; --amber-bg: #FEF3C7;
+      --red: #C81E1E; --red-bg: #FDE8E8; --gray-bg: #EEF0F3; --blue: #1E40AF; --blue-bg: #E0E7FF;
+      --violet: #6D28D9; --violet-bg: #EDE9FE;
+      --chart: #3B5BDB; --chart-hover: #2742B8; --focus: #2F4BFF;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0F172A; --panel: #172033; --ink: #F1F5F9; --ink-soft: #CBD5E1; --muted: #94A3B8;
+        --line: #2A3650; --grid: #222C40; --brand: #020617;
+        --green: #34D399; --green-bg: #0B3B2E; --amber: #FBBF24; --amber-bg: #3D2E0A;
+        --red: #F87171; --red-bg: #43191B; --gray-bg: #222C40; --blue: #A5B4FC; --blue-bg: #1E2A5A;
+        --violet: #C4B5FD; --violet-bg: #2E1F57;
+        --chart: #7C93F2; --chart-hover: #A3B4F7; --focus: #8FA0FF;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0F172A; --panel: #172033; --ink: #F1F5F9; --ink-soft: #CBD5E1; --muted: #94A3B8;
+      --line: #2A3650; --grid: #222C40; --brand: #020617;
+      --green: #34D399; --green-bg: #0B3B2E; --amber: #FBBF24; --amber-bg: #3D2E0A;
+      --red: #F87171; --red-bg: #43191B; --gray-bg: #222C40; --blue: #A5B4FC; --blue-bg: #1E2A5A;
+      --violet: #C4B5FD; --violet-bg: #2E1F57;
+      --chart: #7C93F2; --chart-hover: #A3B4F7; --focus: #8FA0FF;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+    }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+    button { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+
+    header.bar {
+      background: var(--brand); color: #fff;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 20px;
+    }
+    header.bar .id { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    header.bar img { width: 30px; height: 26px; object-fit: contain; }
+    header.bar .who { font-size: 13px; color: #CBD5E1; display: flex; gap: 12px; align-items: center; }
+    header.bar button { background: transparent; border: 1px solid #475569; color: #fff; border-radius: 8px; padding: 5px 12px; cursor: pointer; }
+    nav.tabs { display: flex; gap: 4px; margin-left: 18px; }
+    nav.tabs a {
+      color: #CBD5E1; text-decoration: none; padding: 5px 12px; border-radius: 8px; font-weight: 500; font-size: 14px;
+    }
+    nav.tabs a:hover { color: #fff; background: rgba(255,255,255,.08); }
+    nav.tabs a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.14); }
+
+    main { width: min(1180px, 100% - 32px); margin: 24px auto 64px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+    .sub { color: var(--muted); font-size: 13px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--panel); cursor: pointer; font-weight: 500;
+    }
+    .btn:hover { border-color: var(--muted); }
+    .btn[disabled] { opacity: .55; cursor: default; }
+    .notice { padding: 20px 24px; max-width: 640px; margin: 48px auto; }
+    .error { color: var(--red); background: var(--red-bg); padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; }
+
+    .head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .head h1 { margin: 0; font-size: 22px; }
+    .head .right { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .s-activa { background: var(--green-bg); color: var(--green); }
+    .s-por-vencer { background: var(--amber-bg); color: var(--amber); }
+    .s-suspendida { background: var(--red-bg); color: var(--red); }
+    .s-sin-registro { background: var(--gray-bg); color: var(--ink-soft); }
+    .s-exenta { background: var(--blue-bg); color: var(--blue); }
+    .s-trial { background: var(--violet-bg); color: var(--violet); }
+
+    /* ---- Indicadores ---- */
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .kpi { padding: 16px 18px; }
+    .kpi .l { color: var(--muted); font-size: 13px; font-weight: 500; }
+    .kpi .n { font-size: 30px; font-weight: 700; line-height: 1.15; margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
+    .kpi .sub { line-height: 1.4; }
+    .delta.up { color: var(--green); }
+    .delta.down { color: var(--red); }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .box { padding: 16px 18px; min-width: 0; }
+    .box h2 { margin: 0; font-size: 16px; }
+    .box .bh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+
+    /* ---- Gráficas ---- */
+    .chart { position: relative; }
+    .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+    .chart .grid { stroke: var(--grid); stroke-width: 1; }
+    .chart .base { stroke: var(--line); stroke-width: 1; }
+    .chart .tick { fill: var(--muted); font-size: 12px; font-family: inherit; }
+    .chart .tick.cur { fill: var(--ink); font-weight: 600; }
+    .chart .val { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: inherit; }
+    .chart .bar { fill: var(--chart); }
+    .chart .hit { fill: transparent; }
+    .chart .col { cursor: default; }
+    .chart .col.on .bar { fill: var(--chart-hover); }
+    .chart .col.on .hit { fill: var(--grid); opacity: .6; }
+    .chart .tip {
+      position: absolute; top: -6px; pointer-events: none; white-space: nowrap;
+      background: var(--ink); color: var(--panel); font-size: 13px; padding: 6px 10px; border-radius: 8px;
+    }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .note { margin: 8px 0 0; }
+
+    /* ---- Estado de las tiendas ---- */
+    .groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+    .groups li { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 32px; gap: 12px; align-items: center; }
+    .groups .gl { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+    .gbar { height: 10px; background: var(--grid); border-radius: 5px; overflow: hidden; }
+    .gbar span { display: block; height: 100%; border-radius: 5px; min-width: 0; }
+    .gbar .s-activa { background: var(--green); }
+    .gbar .s-trial { background: var(--violet); }
+    .gbar .s-exenta { background: var(--blue); }
+    .gbar .s-suspendida { background: var(--red); }
+    .gbar .s-sin-registro { background: var(--muted); }
+    .gn { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* ---- Uso ---- */
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; margin: 0 0 14px; }
+    .facts dt { color: var(--muted); font-size: 13px; }
+    .facts dd { margin: 0; font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums; }
+    .facts dd .sub { font-weight: 400; }
+    h3 { font-size: 13px; color: var(--muted); font-weight: 500; margin: 0 0 4px; }
+
+    .list { list-style: none; margin: 0; padding: 0; font-size: 14px; max-height: 340px; overflow: auto; }
+    .list li { padding: 9px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .list li:last-child { border-bottom: 0; }
+    .list strong { font-variant-numeric: tabular-nums; }
+    .list .late { color: var(--red); }
+    .count-badge { font-size: 13px; color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      header.bar { padding: 10px 16px; flex-wrap: wrap; }
+      #who-email { display: none; }
+      header.bar button { white-space: nowrap; }
+      nav.tabs { margin-left: 0; }
+      .kpi .n { font-size: 24px; }
+    }
+    @media (max-width: 420px) {
+      .kpis { grid-template-columns: 1fr; }
+      .facts { grid-template-columns: 1fr; }
+      .groups li { grid-template-columns: minmax(0, 1fr) 60px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <div class="id">
+      <img src="../../assets/zentory-icon.png" alt="">Administración de Zentory
+      <nav class="tabs" aria-label="Secciones">
+        <a href="./">Tiendas</a>
+        <a href="metricas.html" aria-current="page">Métricas</a>
+      </nav>
+    </div>
+    <div class="who" id="who" hidden>
+      <span id="who-email"></span>
+      <button id="logout" type="button">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="card notice" id="loading">Cargando…</div>
+
+    <div class="card notice" id="not-admin" hidden>
+      <h2 style="margin-top:0">Esta cuenta no es administradora</h2>
+      <p>Vuelve al <a href="./">panel</a> para ver cómo darle acceso.</p>
+    </div>
+
+    <div id="panel" hidden>
+      <div class="head">
+        <h1>Métricas</h1>
+        <div class="right">
+          <span class="sub" id="updated"></span>
+          <button class="btn" type="button" id="reload">Actualizar</button>
+        </div>
+      </div>
+      <div class="error" id="error" role="alert" hidden></div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="grid2">
+        <section class="card box">
+          <div class="bh"><h2>Ingresos por mes</h2><span class="sub" id="rev-total"></span></div>
+          <div class="chart" id="rev-chart" data-label="Ingresos cobrados por mes"></div>
+          <p class="sub note" id="rev-note" hidden>Los pagos registrados sin monto se cuentan con la mensualidad de la tienda.</p>
+        </section>
+        <section class="card box">
+          <div class="bh"><h2>Tiendas nuevas por mes</h2><span class="sub" id="grow-total"></span></div>
+          <div class="chart" id="grow-chart" data-label="Tiendas nuevas por mes"></div>
+        </section>
+      </div>
+
+      <div class="grid2">
+        <section class="card box">
+          <div class="bh"><h2>Estado de las tiendas</h2></div>
+          <ul class="groups" id="groups"></ul>
+        </section>
+        <section class="card box">
+          <div class="bh"><h2>Uso de la app</h2></div>
+          <dl class="facts" id="usage"></dl>
+          <h3>Tiendas con más lotes</h3>
+          <ul class="list" id="top"></ul>
+        </section>
+      </div>
+
+      <div class="grid2">
+        <section class="card box">
+          <div class="bh"><h2>Próximos cobros</h2><span class="sub">próximos 30 días y vencidos</span></div>
+          <ul class="list" id="upcoming"></ul>
+        </section>
+        <section class="card box">
+          <div class="bh"><h2>Sin actividad en 30 días</h2><span class="count-badge" id="inactive-count"></span></div>
+          <p class="sub" style="margin:0 0 6px">Tiendas que no han registrado lotes: conviene escribirles antes de que dejen de pagar.</p>
+          <ul class="list" id="inactive"></ul>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="metricas.js"></script>
+</body>
+</html>
