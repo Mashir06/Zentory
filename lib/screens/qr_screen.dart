@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -114,7 +115,8 @@ class _QRScreenState extends State<QRScreen> {
                                 ),
                               ),
                             ),
-                            Positioned(
+                            // La linterna no se puede controlar desde el navegador.
+                            if (!kIsWeb) Positioned(
                               top: 12,
                               right: 12,
                               child: ValueListenableBuilder<MobileScannerState>(

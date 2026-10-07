@@ -83,6 +83,18 @@ jobs:
           set -o pipefail
           flutter build appbundle --release --build-number=${{ github.run_number }} 2>&1 | tee -a compilacion.txt
 
+      # Versión web (iPhone y computadoras). Se publica en
+      # https://nubiksoft.com/zentory/app/ : el zip ya trae la carpeta
+      # zentory/app/ para copiarla tal cual dentro del sitio.
+      - name: Compilar versión web
+        run: |
+          set -o pipefail
+          flutter build web --release --base-href /zentory/app/ --build-number=${{ github.run_number }} 2>&1 | tee -a compilacion.txt
+          rm -rf webpkg && mkdir -p webpkg/zentory/app
+          cp -r build/web/. webpkg/zentory/app/
+          (cd webpkg && zip -qr ../zentory-web.zip zentory)
+          ls -la zentory-web.zip
+
       # Si algo falla, los errores se muestran como avisos del workflow (se ven
       # sin iniciar sesión en GitHub).
       - name: Mostrar errores
@@ -106,6 +118,7 @@ jobs:
           path: |
             zentory*.apk
             zentory.aab
+            zentory-web.zip
             analisis.txt
             pruebas.txt
 
@@ -123,12 +136,14 @@ jobs:
             - `zentory-armeabi-v7a.apk`: solo para teléfonos antiguos de 32 bits.
             - `zentory-x86_64.apk`: para emuladores.
             - `zentory.aab`: para subir a Google Play (no se instala en el teléfono).
+            - `zentory-web.zip`: versión web (iPhone y computadoras). Copia su carpeta `zentory/app/` dentro del sitio nubiksoft.com.
             - `analisis.txt` y `pruebas.txt`: resultados de `flutter analyze` y `flutter test`.
           files: |
             zentory.apk
             zentory-armeabi-v7a.apk
             zentory-x86_64.apk
             zentory.aab
+            zentory-web.zip
             analisis.txt
             pruebas.txt
           make_latest: true

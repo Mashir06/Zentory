@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -220,6 +221,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () =>
                           Navigator.of(context).pushNamed(Routes.profile),
                     ),
+                    if (kIsWeb)
+                      SettingsOption(
+                        icon: Icons.notifications_off_outlined,
+                        iconColor: AppColors.warning,
+                        title: tr('Alertas de vencimiento'),
+                        subtitle: tr('En la versión web no llegan alertas automáticas. Revisa Inicio y el Calendario, o usa la app de Android.'),
+                      )
+                    else ...[
                     SettingsOption(
                       icon: Icons.notifications_outlined,
                       title: tr('Notificaciones'),
@@ -236,6 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: tr('Permisos, batería y prueba de alertas'),
                       onTap: () => showNotificationSetupSheet(context),
                     ),
+                    ],
                     SettingsOption(
                       icon: Icons.lock_outline,
                       title: tr('Privacidad y Seguridad'),

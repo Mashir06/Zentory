@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common.dart';
 import '../widgets/form_fields.dart';
+import '../widgets/install_hint.dart';
 import '../l10n/strings.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -174,6 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  IosInstallHint(),
                 ],
               ),
             ),

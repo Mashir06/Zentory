@@ -35,6 +35,14 @@ String tr(String key, [List<Object?> args = const []]) {
 }
 
 const Map<String, String> _en = {
+  'Alertas de vencimiento':
+      'Expiry alerts',
+  'En la versión web no llegan alertas automáticas. Revisa Inicio y el Calendario, o usa la app de Android.':
+      'The web version doesn\'t send automatic alerts. Check Home and the Calendar, or use the Android app.',
+  'Instala Zentory en tu iPhone':
+      'Install Zentory on your iPhone',
+  'En Safari, toca Compartir y luego "Agregar a pantalla de inicio". Así se abre como una app.':
+      'In Safari, tap Share and then "Add to Home Screen". It will open like an app.',
   'Contactar soporte':
       'Contact support',
   'Hola, me registré en Zentory con el correo {0} y necesito ayuda con mi cuenta.':
@@ -848,6 +856,14 @@ const Map<String, String> _en = {
 };
 
 const Map<String, String> _zh = {
+  'Alertas de vencimiento':
+      '到期提醒',
+  'En la versión web no llegan alertas automáticas. Revisa Inicio y el Calendario, o usa la app de Android.':
+      '网页版不会自动发送提醒。请查看首页和日历，或使用安卓应用。',
+  'Instala Zentory en tu iPhone':
+      '在 iPhone 上安装 Zentory',
+  'En Safari, toca Compartir y luego "Agregar a pantalla de inicio". Así se abre como una app.':
+      '在 Safari 中点按“分享”，然后选择“添加到主屏幕”，即可像应用一样打开。',
   'Contactar soporte':
       '联系客服',
   'Hola, me registré en Zentory con el correo {0} y necesito ayuda con mi cuenta.':

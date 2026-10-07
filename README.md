@@ -17,6 +17,15 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - **Suscripción y pagos** (Ajustes > Estado del pago): solo información (estado, mensualidad de $25 o `suscripcion.monto`, próxima fecha de pago, aviso y días de gracia, si se pueden editar productos, último pago e historial para el administrador de la tienda). Por la política de pagos de Google Play, la app no tiene ningún botón, enlace ni texto para pagar fuera de Google Play: NubikSoft envía el enlace de pago por WhatsApp desde el panel. El único contacto es el WhatsApp de soporte (+507 6796-8449).
 - Ajustes: modo oscuro (predeterminado) o claro, e idioma (español, inglés o chino mandarín). También privacidad, preguntas frecuentes y contacto de soporte (WhatsApp de soporte técnico).
 
+
+## Versión web (iPhone y computadoras)
+
+- Misma app Flutter compilada para la web (`flutter build web --base-href /zentory/app/`). GitHub Actions genera `zentory-web.zip` en cada versión: su carpeta `zentory/app/` se copia dentro del sitio y queda en https://nubiksoft.com/zentory/app/.
+- En iPhone se abre en Safari y se instala con Compartir → "Agregar a pantalla de inicio" (la pantalla de inicio de sesión lo explica).
+- Funciona igual: cuentas, aprobación, tiendas, productos, lotes, escáner con la cámara, fotos, calendario, idiomas y suscripción. Usa el mismo Firebase (app web `1:794054120945:web:…`).
+- **Sin alertas automáticas**: el navegador no puede programar notificaciones locales. `lib/services/notification_service.dart` elige `notification_service_io.dart` (Android) o `notification_service_web.dart` (no hace nada). Para alertas en la web haría falta envío desde un servidor (Firebase Cloud Messaging + Cloud Functions, plan Blaze).
+- En la web no aparecen la guía de notificaciones, la prueba de alertas ni la linterna del escáner.
+
 ## Requisitos
 
 - Flutter estable (probado para Flutter 3.47 / Dart 3.11 o superior)

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -499,8 +500,8 @@ class _LotFormScreenState extends State<LotFormScreen> {
       if (!mounted) return;
       setState(() => _loading = false);
       // En teléfonos que bloquean el segundo plano (p. ej. ROM chinas),
-      // guía una sola vez para dejar listas las alertas.
-      maybePromptNotificationSetup(context);
+      // guía una sola vez para dejar listas las alertas (no aplica en la web).
+      if (!kIsWeb) maybePromptNotificationSetup(context);
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -589,7 +590,7 @@ class _LotFormScreenState extends State<LotFormScreen> {
             children: [
               ZentoryHeader(
                 onBack: () => Navigator.of(context).maybePop(),
-                trailing: IconButton(
+                trailing: kIsWeb ? null : IconButton(
                   tooltip: tr('Probar notificación'),
                   icon: Icon(Icons.notifications_active_outlined,
                       color: AppColors.textPrimary),
