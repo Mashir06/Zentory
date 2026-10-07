@@ -89,7 +89,7 @@ jobs:
       - name: Compilar versión web
         run: |
           set -o pipefail
-          flutter build web --release --base-href /zentory/app/ --build-number=${{ github.run_number }} 2>&1 | tee -a compilacion.txt
+          flutter build web --release --base-href /zentory/app/ --no-web-resources-cdn --build-number=${{ github.run_number }} 2>&1 | tee -a compilacion.txt
           rm -rf webpkg && mkdir -p webpkg/zentory/app
           cp -r build/web/. webpkg/zentory/app/
           (cd webpkg && zip -qr ../zentory-web.zip zentory)
