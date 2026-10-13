@@ -42,6 +42,18 @@ class NotificationService {
   /// `true`: en Android las alertas se programan en el teléfono.
   static const bool supported = true;
 
+  /// Solo se usa en la versión web (avisos push). Se declara aquí para que
+  /// el código común compile igual en Android.
+  static const String prefWebPushEnabled = 'web_push_enabled';
+
+  /// Motivo del último intento fallido (solo lo llena la versión web).
+  String? lastProblem;
+
+  /// En Android las alertas son locales: no hay avisos push de la web.
+  Future<bool> webPushEnabled() async => false;
+
+  Future<bool> setWebPushEnabled(bool value) async => false;
+
   /// Usar alarmas "de reloj" (como el despertador). Son las que los sistemas
   /// con ahorro de batería agresivo (ColorOS, MIUI...) casi nunca bloquean.
   /// Si el usuario no lo eligió, se activa sola en esos fabricantes.

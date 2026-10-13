@@ -37,8 +37,28 @@ String tr(String key, [List<Object?> args = const []]) {
 const Map<String, String> _en = {
   'Alertas de vencimiento':
       'Expiry alerts',
-  'En la versión web no llegan alertas automáticas. Revisa Inicio y el Calendario, o usa la app de Android.':
-      'The web version doesn\'t send automatic alerts. Check Home and the Calendar, or use the Android app.',
+  'Avisos de vencimiento a las 7:00 a. m. en este dispositivo':
+      'Expiry alerts at 7:00 a.m. on this device',
+  'Enviar notificación de prueba':
+      'Send a test notification',
+  'Comprueba que los avisos llegan a este dispositivo':
+      'Check that alerts reach this device',
+  'Notificaciones activadas en este dispositivo.':
+      'Notifications turned on for this device.',
+  'Prueba enviada. Debería llegarte en unos segundos.':
+      'Test sent. It should arrive in a few seconds.',
+  'En iPhone, primero agrega Zentory a la pantalla de inicio (Compartir → Agregar a inicio) y ábrela desde ahí para activar las notificaciones.':
+      'On iPhone, first add Zentory to your Home Screen (Share → Add to Home Screen) and open it from there to turn on notifications.',
+  'Este navegador no permite notificaciones.':
+      'This browser does not support notifications.',
+  'Las notificaciones están bloqueadas para este sitio. Actívalas en los ajustes del navegador.':
+      'Notifications are blocked for this site. Allow them in your browser settings.',
+  'No se activaron las notificaciones.':
+      'Notifications were not turned on.',
+  'No se pudieron activar las notificaciones. Revisa tu conexión e inténtalo de nuevo.':
+      'Notifications could not be turned on. Check your connection and try again.',
+  'El servidor de avisos todavía no está activo. Se mostró una prueba solo en este dispositivo.':
+      'The alert server is not active yet. A test was shown on this device only.',
   'Instala Zentory en tu iPhone':
       'Install Zentory on your iPhone',
   'En Safari, toca Compartir y luego "Agregar a pantalla de inicio". Así se abre como una app.':
@@ -858,8 +878,28 @@ const Map<String, String> _en = {
 const Map<String, String> _zh = {
   'Alertas de vencimiento':
       '到期提醒',
-  'En la versión web no llegan alertas automáticas. Revisa Inicio y el Calendario, o usa la app de Android.':
-      '网页版不会自动发送提醒。请查看首页和日历，或使用安卓应用。',
+  'Avisos de vencimiento a las 7:00 a. m. en este dispositivo':
+      '每天上午 7:00 在此设备上提醒到期',
+  'Enviar notificación de prueba':
+      '发送测试通知',
+  'Comprueba que los avisos llegan a este dispositivo':
+      '检查提醒能否送达此设备',
+  'Notificaciones activadas en este dispositivo.':
+      '已在此设备上开启通知。',
+  'Prueba enviada. Debería llegarte en unos segundos.':
+      '测试已发送，几秒钟内应会收到。',
+  'En iPhone, primero agrega Zentory a la pantalla de inicio (Compartir → Agregar a inicio) y ábrela desde ahí para activar las notificaciones.':
+      '在 iPhone 上，请先将 Zentory 添加到主屏幕（分享 → 添加到主屏幕），再从主屏幕打开以开启通知。',
+  'Este navegador no permite notificaciones.':
+      '此浏览器不支持通知。',
+  'Las notificaciones están bloqueadas para este sitio. Actívalas en los ajustes del navegador.':
+      '此网站的通知已被阻止。请在浏览器设置中允许通知。',
+  'No se activaron las notificaciones.':
+      '未开启通知。',
+  'No se pudieron activar las notificaciones. Revisa tu conexión e inténtalo de nuevo.':
+      '无法开启通知。请检查网络连接后重试。',
+  'El servidor de avisos todavía no está activo. Se mostró una prueba solo en este dispositivo.':
+      '提醒服务器尚未启用。仅在此设备上显示了测试通知。',
   'Instala Zentory en tu iPhone':
       '在 iPhone 上安装 Zentory',
   'En Safari, toca Compartir y luego "Agregar a pantalla de inicio". Así se abre como una app.':
