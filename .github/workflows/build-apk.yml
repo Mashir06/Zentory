@@ -11,6 +11,11 @@ on:
       - 'sitio/**'
       - 'firestore.rules'
       - '.github/workflows/sitio.yml'
+      # Las funciones de Firebase tampoco.
+      - 'functions/**'
+      - 'firebase.json'
+      - '.firebaserc'
+      - '.github/workflows/verificar.yml'
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,17 @@
+{
+  "name": "zentory-functions",
+  "description": "Funciones de Firebase de Zentory: avisos de vencimiento para la versión web",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "deploy": "firebase deploy --only functions --project zentory-base"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.3.0"
+  }
+}

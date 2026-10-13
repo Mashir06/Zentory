@@ -23,8 +23,8 @@ Permite registrar productos con su fecha de vencimiento, recibir alertas antes d
 - Misma app Flutter compilada para la web (`flutter build web --base-href /zentory/app/`). GitHub Actions genera `zentory-web.zip` en cada versión: su carpeta `zentory/app/` se copia dentro del sitio y queda en https://nubiksoft.com/zentory/app/.
 - En iPhone se abre en Safari y se instala con Compartir → "Agregar a pantalla de inicio" (la pantalla de inicio de sesión lo explica).
 - Funciona igual: cuentas, aprobación, tiendas, productos, lotes, escáner con la cámara, fotos, calendario, idiomas y suscripción. Usa el mismo Firebase (app web `1:794054120945:web:…`).
-- **Sin alertas automáticas**: el navegador no puede programar notificaciones locales. `lib/services/notification_service.dart` elige `notification_service_io.dart` (Android) o `notification_service_web.dart` (no hace nada). Para alertas en la web haría falta envío desde un servidor (Firebase Cloud Messaging + Cloud Functions, plan Blaze).
-- En la web no aparecen la guía de notificaciones, la prueba de alertas ni la linterna del escáner.
+- **Alertas por notificaciones push**: en Ajustes > Notificaciones cada persona las activa en su navegador. La función `avisosVencimientoWeb` (carpeta `functions/`) corre todos los días a las 7:00 a. m. (hora de Panamá) y avisa 3 días antes, 1 día antes y el día del vencimiento, igual que Android, en el idioma de cada usuario. Ajustes también tiene un botón de prueba (función `probarAvisoWeb`). En iPhone requiere iOS 16.4+ y la app agregada a la pantalla de inicio. Ver "Avisos en la web" más abajo.
+- En la web no aparecen la guía de permisos de Android ni la linterna del escáner.
 
 ## Requisitos
 
@@ -108,3 +108,24 @@ flutter test
 ## Versión anterior (Kotlin)
 
 El código original en Kotlin/Compose se retiró del repositorio al completar la migración. Sigue disponible en el historial de Git, en el commit `41a230a` (carpeta `APP/`).
+
+## Avisos en la web (notificaciones push)
+
+Piezas:
+
+- `lib/services/notification_service_web.dart`: pide el permiso y guarda cada navegador en `usuarios/{uid}.avisosWeb.{token}` = `{ idioma, actualizado }` y `usuarios/{uid}.avisosWebActivos = true`. Al cerrar sesión se borra.
+- `functions/`: `avisosVencimientoWeb` (diaria, 7:00 a. m. Panamá) y `probarAvisoWeb` (prueba desde Ajustes). La lógica está en `functions/logica.js` y se prueba con `npm test`.
+- `firebase-messaging-sw.js` en la **raíz** de nubiksoft.com (repositorio del sitio): muestra los avisos con la app cerrada. Debe estar en `https://nubiksoft.com/firebase-messaging-sw.js`.
+
+Activar (una sola vez):
+
+1. Firebase > Uso y facturación: cambiar `zentory-base` al plan **Blaze** (con pocas tiendas, normalmente queda dentro de la parte gratuita).
+2. Publicar las funciones, por ejemplo desde Google Cloud Shell:
+   ```bash
+   git clone https://github.com/Mashir06/Zentory.git && cd Zentory/functions && npm install && cd ..
+   npx firebase-tools login --no-localhost
+   npx firebase-tools deploy --only functions --project zentory-base
+   ```
+3. Subir el sitio con `firebase-messaging-sw.js` en la raíz y la versión web nueva en `zentory/app/`.
+
+No hace falta cambiar las reglas de Firestore: cada usuario ya puede actualizar su propio documento en `usuarios`.

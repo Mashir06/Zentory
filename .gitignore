@@ -37,3 +37,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 local.properties
+
+# Funciones de Firebase
+functions/node_modules/

@@ -109,6 +109,10 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifications = true;
 
+  /// Versión web: avisos push activados en este navegador.
+  bool _webPush = false;
+  bool _webPushBusy = false;
+
   @override
   void initState() {
     super.initState();
@@ -117,6 +121,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() => _notifications =
           prefs.getBool(NotificationService.prefNotificationsEnabled) ?? true);
     });
+    if (kIsWeb) {
+      NotificationService.instance.webPushEnabled().then((on) {
+        if (mounted) setState(() => _webPush = on);
+      });
+    }
+  }
+
+  void _toast(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(text),
+        duration: const Duration(seconds: 6),
+      ));
+  }
+
+  /// Versión web: activa o desactiva los avisos push en este navegador.
+  /// El permiso se pide en el mismo toque (Safari lo exige).
+  Future<void> _setWebPush(bool value) async {
+    if (_webPushBusy) return;
+    setState(() {
+      _webPush = value;
+      _webPushBusy = true;
+    });
+    final service = NotificationService.instance;
+    final ok = await service.setWebPushEnabled(value);
+    if (!mounted) return;
+    setState(() {
+      _webPush = value && ok;
+      _webPushBusy = false;
+    });
+    if (value) {
+      _toast(ok
+          ? tr('Notificaciones activadas en este dispositivo.')
+          : (service.lastProblem ??
+              tr('No se pudieron activar las notificaciones. Revisa tu conexión e inténtalo de nuevo.')));
+    }
+  }
+
+  Future<void> _testWebPush() async {
+    final service = NotificationService.instance;
+    await service.sendTestNotification();
+    if (!mounted) return;
+    _toast(service.lastProblem ??
+        tr('Prueba enviada. Debería llegarte en unos segundos.'));
   }
 
   Future<void> _setNotifications(bool value) async {
@@ -221,14 +270,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () =>
                           Navigator.of(context).pushNamed(Routes.profile),
                     ),
-                    if (kIsWeb)
+                    if (kIsWeb) ...[
                       SettingsOption(
-                        icon: Icons.notifications_off_outlined,
-                        iconColor: AppColors.warning,
-                        title: tr('Alertas de vencimiento'),
-                        subtitle: tr('En la versión web no llegan alertas automáticas. Revisa Inicio y el Calendario, o usa la app de Android.'),
-                      )
-                    else ...[
+                        icon: Icons.notifications_outlined,
+                        title: tr('Notificaciones'),
+                        subtitle: tr('Avisos de vencimiento a las 7:00 a. m. en este dispositivo'),
+                        onTap: () => _setWebPush(!_webPush),
+                        trailing: Switch(
+                          value: _webPush,
+                          onChanged: _webPushBusy ? null : _setWebPush,
+                        ),
+                      ),
+                      if (_webPush)
+                        SettingsOption(
+                          icon: Icons.send_outlined,
+                          title: tr('Enviar notificación de prueba'),
+                          subtitle: tr('Comprueba que los avisos llegan a este dispositivo'),
+                          onTap: _testWebPush,
+                        ),
+                    ] else ...[
                     SettingsOption(
                       icon: Icons.notifications_outlined,
                       title: tr('Notificaciones'),
